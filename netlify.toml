@@ -1,0 +1,29 @@
+# Netlify config for the demo deployment.
+#
+# What this configures:
+#   * `base` — Netlify cd's into web/ before running anything. Treats web/ as
+#     the project root for both `npm install` and the build command.
+#   * `command` — XMLUI build with the MSW mock bundled in (api.ts becomes
+#     the in-browser API). `VITE_TT_DEMO=true` makes index.ts point the
+#     frontend at the relative `/api` prefix instead of the Rust backend.
+#   * `publish` — relative to `base`, so the final dir on Netlify is
+#     `web/dist/`.
+#   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`
+#     postinstall step that 404s in fresh installs. The package still works
+#     for our use case.
+#   * SPA rewrite — every unmatched path falls back to `/index.html` so
+#     XMLUI's client-side router can pick it up.
+
+[build]
+base = "web"
+publish = "dist"
+command = "npm run build:demo"
+
+[build.environment]
+NPM_FLAGS = "--ignore-scripts"
+NODE_VERSION = "20"
+
+[[redirects]]
+from = "/*"
+status = 200
+to = "/index.html"

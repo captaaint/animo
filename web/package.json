@@ -8,6 +8,8 @@
     "preview": "xmlui preview",
     "build-prod": "npm run build -- --prod",
     "release-ci": "npm run build-prod && xmlui zip-dist",
+    "build:demo": "VITE_TT_DEMO=true xmlui build --prod",
+    "preview:demo": "npm run build:demo && xmlui preview",
     "check": "xmlui check src --format gnu"
   },
   "dependencies": {
