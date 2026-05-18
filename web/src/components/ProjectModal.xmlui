@@ -22,7 +22,7 @@
       data="{editItem
         ? { name: editItem.name, clientId: editItem.clientId, color: editItem.color,
             hourlyRate: editItem.hourlyRate || 0, currency: editItem.currency || 'EUR' }
-        : { name: '', clientId: null, color: '#3b82f6', hourlyRate: 0, currency: 'EUR' }}"
+        : { name: '', clientId: null, color: '#3F8F8C', hourlyRate: 0, currency: 'EUR' }}"
       onSubmit="(data) => saveCall.execute({
         ...data,
         clientId: data.clientId || null,

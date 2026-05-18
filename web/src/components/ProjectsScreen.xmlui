@@ -27,7 +27,7 @@
     onError="() => toast.error('Delete failed')"
   />
 
-  <VStack padding="$space-6" gap="$space-4" height="*" overflowY="auto">
+  <VStack gap="$space-4" padding="0" width="*" height="*" overflowY="auto">
     <Card padding="$space-2">
       <Table
         data="{projectsDs.value || []}"

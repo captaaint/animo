@@ -56,7 +56,7 @@ pub async fn create(
         .validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let id = Uuid::new_v4().to_string();
-    let color = payload.color.unwrap_or_else(|| "#3b82f6".to_string());
+    let color = payload.color.unwrap_or_else(|| "#3F8F8C".to_string()); // Sage Teal
     sqlx::query(
         "INSERT INTO clients (id, user_id, name, color) VALUES (?, ?, ?, ?)",
     )

@@ -362,7 +362,13 @@ const badgeStyle = (color: string): React.CSSProperties => ({
 });
 
 const contentStyle: React.CSSProperties = {
-  background: "var(--xmlui-color-surface-0, white)",
+  // Tone-aware popover surface. The theme defines
+  // `backgroundColor-popover-Picker` per tone:
+  //   light → `$color-primary-50` (Mist) — soft branded panel
+  //   dark  → `$backgroundColor-primary` (matches ModalDialog)
+  // Fallback chain keeps a sensible default if the theme isn't loaded.
+  background:
+    "var(--xmlui-backgroundColor-popover-Picker, var(--xmlui-backgroundColor-primary, white))",
   color: "var(--xmlui-textColor-primary, inherit)",
   boxShadow:
     "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",

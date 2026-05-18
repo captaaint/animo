@@ -584,6 +584,37 @@ export function WeekCalendar(props: WeekCalendarProps) {
     };
   }, []);
 
+  // Auto-fit pixelsPerHour to the grid slot height so the full 24-hour
+  // day fits exactly with no scrollbar. We trust the inline-prop
+  // pixelsPerHour as the "preferred" (max) value and only shrink it when
+  // the slot is too short. Recomputed on every resize via the same
+  // ResizeObserver pattern used for scrollbarGutter.
+  useEffect(() => {
+    const GRID_BOTTOM_PAD = 24;
+    const GRID_TOP_PAD = 8;
+    const visibleMin = (dayEndHour - dayStartHour) * 60;
+    const fit = () => {
+      const el = gridRef.current;
+      if (!el || visibleMin <= 0) return;
+      const available = el.clientHeight - GRID_BOTTOM_PAD - GRID_TOP_PAD;
+      if (available <= 0) return;
+      const fitted = (available / visibleMin) * 60;
+      // Cap at the prop value — don't blow events up to giant blocks
+      // on tall monitors. Floor at 12 px/h so labels stay readable.
+      const next = Math.max(12, Math.min(pixelsPerHourProp, fitted));
+      // Avoid feedback loops: only update if the change is meaningful.
+      setPxPerHour((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (gridRef.current) ro.observe(gridRef.current);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [pixelsPerHourProp, dayStartHour, dayEndHour]);
+
   // Mirror the grid's horizontal scroll onto the header so day labels stay
   // aligned with their columns when the user pans the grid on mobile.
   useEffect(() => {
@@ -1204,9 +1235,11 @@ export function WeekCalendar(props: WeekCalendarProps) {
         borderRadius: tokens["borderRadius"],
         color: tokens["textColor"],
         overflow: "hidden",
-        // Always fill 100% of the parent — the page/Tabs chain plus the
-        // .xmlui-page-root flex override in index.html give the parent a
-        // definite height, so the calendar grows to match available space.
+        // Fill the parent slot — the page/Tabs chain plus the
+        // .xmlui-page-root flex override in web/index.html gives this a
+        // definite height. The grid wrapper inside has flex:1 and the
+        // pixelsPerHour state below adapts so the 24-hour content
+        // always fits exactly with no scrollbar.
         height: "100%",
         minHeight: 0,
         ...style,
@@ -1386,10 +1419,11 @@ export function WeekCalendar(props: WeekCalendarProps) {
         </div>
       </div>
 
-      {/* Grid — fills the remaining vertical space inside the wrapper and
-          scrolls internally when its `gridHeight` exceeds the available
-          height. The wrapper itself has a definite `calc(100vh - 14rem)`
-          height so this always has a real container to scroll inside. */}
+      {/* Grid — fills the remaining vertical space inside the wrapper.
+          Vertical scroll is disabled and `pxPerHour` is auto-fitted to
+          the slot height (see the ResizeObserver block above the
+          return), so the full 24-hour day is always visible without a
+          scrollbar. */}
       <div
         ref={gridRef}
         style={{
@@ -1400,11 +1434,8 @@ export function WeekCalendar(props: WeekCalendarProps) {
           position: "relative",
           flex: 1,
           minHeight: 0,
-          overflowY: "auto",
+          overflowY: "hidden",
           overflowX: isMobile ? "auto" : "hidden",
-          // Always reserve scrollbar space so the grid columns stay
-          // pixel-aligned with the header (which has no scrollbar).
-          scrollbarGutter: "stable",
           // Small gap between the day-name header and the calendar grid so
           // the first hour label has breathing room.
           paddingTop: 8,

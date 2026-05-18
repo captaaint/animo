@@ -71,9 +71,12 @@ function projectName(projectId, projectsList) {
 }
 
 function projectColor(projectId, projectsList) {
-  if (!projectId) return '#94a3b8';
+  // Fallback color when a time entry has no project or the project was
+  // deleted. Surface-300 from the Animo palette keeps the bullet visible
+  // without competing with real project colors.
+  if (!projectId) return '#C2BDB7';
   const p = projectsList.find(p => p.id === projectId);
-  return p ? p.color : '#94a3b8';
+  return p ? p.color : '#C2BDB7';
 }
 
 function mondayOfWeek(d) {

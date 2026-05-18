@@ -187,11 +187,13 @@ window.exportTimeReport = function exportTimeReport(
 // Layout — matches the user-supplied screenshot
 // =====================================================================================================================
 
-const PRIMARY = "#4188c9"; // brand blue (matches the Kimai theme)
-const TEXT = "#222222";
-const TEXT_MUTED = "#9aa1ab";
-const BORDER = "#e6e9ee";
-const BORDER_FAINT = "#f1f3f6";
+// Animo palette — match web/src/themes/tracker-theme.ts so the PDF and
+// the on-screen Reports view sit in the same visual language.
+const PRIMARY = "#3F8F8C"; // Sage Teal
+const TEXT = "#1E2328"; // Deep Charcoal
+const TEXT_MUTED = "#76716D"; // surface-500
+const BORDER = "#E0DCD7"; // surface-200
+const BORDER_FAINT = "#F0EDEA"; // surface-100
 
 function buildDocDefinition(opts: ReportPdfOptions) {
   const totalText = formatHms(opts.totalSeconds);
