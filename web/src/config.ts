@@ -2,7 +2,7 @@ import type { StandaloneAppDescription } from "xmlui";
 import { TrackerTheme } from "./themes/tracker-theme";
 
 const App: StandaloneAppDescription = {
-  name: "Time Tracker",
+  name: "Animo",
   version: "0.1.0",
   themes: [TrackerTheme],
   defaultTheme: "tracker-theme",

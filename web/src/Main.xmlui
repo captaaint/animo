@@ -1,7 +1,7 @@
 <App
   layout="vertical-sticky"
   scrollWholePage="false"
-  global.apiBase="{window.__TT_API_BASE__ || 'http://127.0.0.1:8080/api'}"
+  global.apiBase="{window.__ANIMO_API_BASE__ || 'http://127.0.0.1:8080/api'}"
   global.token="{readToken()}"
   global.pageTitle="{'Calendar'}"
   global.entriesTick="{0}"
@@ -19,7 +19,7 @@
 >
   <property name="logoTemplate">
     <H3 marginBottom="0">
-      Time Tracker
+      Animo
     </H3>
   </property>
   <AuthGate

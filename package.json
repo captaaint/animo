@@ -1,10 +1,10 @@
 {
-  "name": "time-tracking-app",
+  "name": "animo",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "api": "cargo run -p time-tracking-api",
-    "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p time-tracking-api",
+    "api": "cargo run -p animo-api",
+    "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api",
     "seed:demo": "cd api && cargo run --bin seed_demo",
     "web": "cd web && npm run start",
     "dev": "concurrently -k -n api,web -c green,cyan \"npm:api\" \"npm:web\"",

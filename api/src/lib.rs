@@ -140,5 +140,5 @@ pub async fn run_server(cfg: Config) -> anyhow::Result<()> {
 }
 
 async fn health() -> Json<Value> {
-    Json(json!({ "status": "ok", "service": "time-tracking-api" }))
+    Json(json!({ "status": "ok", "service": "animo-api" }))
 }

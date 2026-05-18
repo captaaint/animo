@@ -3,9 +3,9 @@
 # What this configures:
 #   * `base` — Netlify cd's into web/ before running anything. Treats web/ as
 #     the project root for both `npm install` and the build command.
-#   * `command` — XMLUI build with the MSW mock bundled in (api.ts becomes
-#     the in-browser API). `VITE_TT_DEMO=true` makes index.ts point the
-#     frontend at the relative `/api` prefix instead of the Rust backend.
+#   * `command` — XMLUI build with the in-browser API handler bundled in.
+#     `VITE_ANIMO_DEMO=true` makes index.ts install the handler and point
+#     the frontend at the relative `/api` prefix instead of a real backend.
 #   * `publish` — relative to `base`, so the final dir on Netlify is
 #     `web/dist/`.
 #   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`

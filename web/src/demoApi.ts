@@ -20,7 +20,7 @@
 //   * No auth: `/auth/me` always returns the demo user, login/register/logout
 //     are pass-through stubs.
 
-const STORAGE_KEY = "tt-demo-state-v1";
+const STORAGE_KEY = "animo-demo-state-v1";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Types — mirror the Rust API JSON shapes the frontend already consumes.
@@ -218,7 +218,7 @@ function nextId(prefix: string): string {
 
 const DEMO_USER = {
   id: "demo-user",
-  email: "demo@timetracker.local",
+  email: "demo@getanimo.app",
   name: "Demo User",
   roles: ["user"],
   permissions: [
@@ -540,9 +540,9 @@ async function handle(method: string, path: string, query: URLSearchParams, init
  * installs once even if called multiple times.
  */
 export function installDemoApi() {
-  const w = window as Window & { __TT_DEMO_API_INSTALLED__?: boolean };
-  if (w.__TT_DEMO_API_INSTALLED__) return;
-  w.__TT_DEMO_API_INSTALLED__ = true;
+  const w = window as Window & { __ANIMO_DEMO_API_INSTALLED__?: boolean };
+  if (w.__ANIMO_DEMO_API_INSTALLED__) return;
+  w.__ANIMO_DEMO_API_INSTALLED__ = true;
 
   // Eagerly load (or seed) state so the first request doesn't pay the cost.
   loadState();
