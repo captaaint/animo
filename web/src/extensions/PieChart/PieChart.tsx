@@ -46,13 +46,15 @@ export type PieChartProps = {
   width?: number | string;
 };
 
+// Animo palette — see web/src/themes/tracker-theme.ts. Same order as
+// BarChart so slice colors stay consistent when the two charts sit
+// side-by-side on the Reports page.
 const DEFAULT_PALETTE = [
-  "#4188c9", // primary blue
-  "#10b981", // teal
-  "#7c3aed", // violet
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#3b82f6", // indigo
+  "#3F8F8C", // Sage Teal
+  "#F2A82F", // Warm Amber
+  "#FF6F61", // Soft Coral
+  "#A7D0C9", // Soft Mint
+  "#1E2328", // Deep Charcoal
 ];
 
 export function PieChart(props: PieChartProps) {

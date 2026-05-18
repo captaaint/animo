@@ -11,9 +11,9 @@
 // The bootstrap sequence:
 //   1. setup hook fires on the Tauri thread.
 //   2. We spawn a dedicated tokio runtime on a worker thread that calls
-//      `time_tracking_api::bind` — which creates the SQLx pool, runs
-//      migrations, opens a TCP listener on 127.0.0.1:0, and returns the
-//      actual bound port.
+//      `animo_api::bind` — which creates the SQLx pool, runs migrations,
+//      opens a TCP listener on 127.0.0.1:0, and returns the actual bound
+//      port.
 //   3. The port is handed back to the Tauri thread via an std::sync::mpsc
 //      channel. Synchronous because the webview must not open before we
 //      know where to point it.
@@ -26,7 +26,7 @@ use std::sync::mpsc;
 use std::thread;
 
 use tauri::{Manager, State};
-use time_tracking_api::{bind, Config};
+use animo_api::{bind, Config};
 
 /// Port assigned to the embedded axum server at startup. Exposed to the
 /// webview via the [`api_base`] command so the XMLUI frontend can build its
@@ -41,8 +41,7 @@ struct ApiPort(u16);
 ///     once the desktop shell has its own DB).
 ///   - Release builds (`cfg!(debug_assertions) == false`) → no-op. End users
 ///     who install the bundled app should start with an empty DB; a future
-///     "Import existing database" Settings flow can replace this (TAURI_PLAN
-///     §9.3).
+///     "Import existing database" Settings flow can replace this.
 ///   - Dev builds → look for `<repo>/api/data.db` via the `CARGO_MANIFEST_DIR`
 ///     baked in at compile time. If present, copy it across. This path only
 ///     resolves on the developer's own machine.
@@ -86,7 +85,7 @@ pub fn run() {
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "time_tracking_api=info,time_tracking_desktop_lib=info".into()),
+                .unwrap_or_else(|_| "animo_api=info,animo_desktop_lib=info".into()),
         )
         .init();
 

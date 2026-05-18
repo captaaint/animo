@@ -1,11 +1,11 @@
 [package]
-name = "time-tracking-desktop"
+name = "animo-desktop"
 version = "0.1.0"
 edition = "2021"
-description = "Time Tracker desktop shell (Tauri 2 + embedded axum)"
+description = "Animo desktop shell (Tauri 2 + embedded axum)"
 
 [lib]
-name = "time_tracking_desktop_lib"
+name = "animo_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -14,7 +14,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
 tauri-plugin-single-instance = "2"
-time-tracking-api = { path = "../api" }
+animo-api = { path = "../api" }
 tokio = { version = "1", features = ["full"] }
 anyhow = "1"
 tracing = "0.1"

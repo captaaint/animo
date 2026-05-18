@@ -115,12 +115,14 @@ async fn main() -> Result<()> {
     let mut rng = StdRng::seed_from_u64(2026_05_13);
 
     // -- clients -------------------------------------------------------------
+    // Animo palette only — Sage Teal, Warm Amber, Soft Coral, Deep
+    // Charcoal, Soft Mint. See web/src/themes/tracker-theme.ts.
     let clients = [
-        ("Acme Corp", "#ef4444"),
-        ("Nimbus Studio", "#8b5cf6"),
-        ("Verge Analytics", "#06b6d4"),
-        ("Aurora Bank", "#0ea5e9"),
-        ("GreenLeaf Co", "#22c55e"),
+        ("Acme Corp", "#3F8F8C"),
+        ("Nimbus Studio", "#F2A82F"),
+        ("Verge Analytics", "#FF6F61"),
+        ("Aurora Bank", "#1E2328"),
+        ("GreenLeaf Co", "#A7D0C9"),
     ];
     let mut client_ids: Vec<String> = Vec::with_capacity(clients.len());
     for (name, color) in clients {
@@ -140,7 +142,7 @@ async fn main() -> Result<()> {
         (
             "Website Redesign",
             Some(0),
-            "#f97316",
+            "#3F8F8C",
             95.0,
             "EUR",
             &[
@@ -155,7 +157,7 @@ async fn main() -> Result<()> {
         (
             "Mobile App",
             Some(0),
-            "#fb7185",
+            "#FF6F61",
             110.0,
             "EUR",
             &[
@@ -170,7 +172,7 @@ async fn main() -> Result<()> {
         (
             "Brand Guidelines",
             Some(1),
-            "#a78bfa",
+            "#F2A82F",
             80.0,
             "EUR",
             &[
@@ -183,7 +185,7 @@ async fn main() -> Result<()> {
         (
             "Data Pipeline",
             Some(2),
-            "#22d3ee",
+            "#A7D0C9",
             120.0,
             "EUR",
             &[
@@ -197,7 +199,7 @@ async fn main() -> Result<()> {
         (
             "Analytics Dashboard",
             Some(2),
-            "#0891b2",
+            "#3F8F8C",
             120.0,
             "EUR",
             &[
@@ -210,7 +212,7 @@ async fn main() -> Result<()> {
         (
             "Compliance Audit",
             Some(3),
-            "#3b82f6",
+            "#1E2328",
             140.0,
             "EUR",
             &[
@@ -223,7 +225,7 @@ async fn main() -> Result<()> {
         (
             "Marketing Site",
             Some(4),
-            "#16a34a",
+            "#F2A82F",
             75.0,
             "EUR",
             &[
@@ -236,7 +238,7 @@ async fn main() -> Result<()> {
         (
             "Internal Ops",
             None,
-            "#64748b",
+            "#C2BDB7",
             0.0,
             "EUR",
             &[
@@ -271,11 +273,11 @@ async fn main() -> Result<()> {
 
     // -- tags ----------------------------------------------------------------
     let tags = [
-        ("deep-work", "#0ea5e9"),
-        ("meeting", "#f59e0b"),
-        ("review", "#a855f7"),
-        ("research", "#10b981"),
-        ("support", "#ef4444"),
+        ("deep-work", "#3F8F8C"), // Sage Teal
+        ("meeting", "#F2A82F"),   // Warm Amber
+        ("review", "#A7D0C9"),    // Soft Mint
+        ("research", "#1E2328"),  // Deep Charcoal
+        ("support", "#FF6F61"),   // Soft Coral
     ];
     let mut tag_ids: Vec<String> = Vec::with_capacity(tags.len());
     for (name, color) in tags {

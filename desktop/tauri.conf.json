@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Time Tracker",
+  "productName": "Animo",
   "version": "0.1.0",
-  "identifier": "com.nsoftware.timetracker",
+  "identifier": "app.getanimo.timetracker",
   "build": {
     "beforeDevCommand": "npm --prefix web run start",
     "beforeBuildCommand": "npm --prefix web run build",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Time Tracker",
+        "title": "Animo",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -29,10 +29,16 @@
   "bundle": {
     "active": true,
     "targets": ["dmg", "app", "msi", "deb", "appimage"],
-    "icon": [],
-    "copyright": "© 2026 nsoftware",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "copyright": "© 2026 Animo",
     "category": "Productivity",
-    "shortDescription": "Time tracker (XMLUI + axum + Tauri)",
-    "longDescription": "Self-hosted time tracker with projects, clients, tags, and detailed PDF reports. Runs entirely on the local machine."
+    "shortDescription": "Animo — time tracker (XMLUI + axum + Tauri)",
+    "longDescription": "Animo is a self-hosted time tracker with projects, clients, tags, and detailed PDF reports. Runs entirely on the local machine."
   }
 }

@@ -20,7 +20,7 @@
 //   * No auth: `/auth/me` always returns the demo user, login/register/logout
 //     are pass-through stubs.
 
-const STORAGE_KEY = "tt-demo-state-v1";
+const STORAGE_KEY = "animo-demo-state-v1";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Types — mirror the Rust API JSON shapes the frontend already consumes.
@@ -96,22 +96,26 @@ function isoEnd(startIso: string, durationSec: number): string {
 }
 
 function buildSeedState(): DemoState {
+  // All colors below come from the Animo brand palette
+  // (see web/src/themes/tracker-theme.ts). Picked so that adjacent
+  // categories don't share a hue and the calendar/Reports charts
+  // read at a glance.
   const clients: Client[] = [
-    { id: "c1", name: "Acme Corp", color: "#7c3aed" },
-    { id: "c2", name: "Globex Inc.", color: "#10b981" },
+    { id: "c1", name: "Acme Corp", color: "#3F8F8C" }, // Sage Teal
+    { id: "c2", name: "Globex Inc.", color: "#F2A82F" }, // Warm Amber
   ];
   const projects: Project[] = [
-    { id: "p1", name: "Website Redesign", color: "#6366f1", clientId: "c1", hourlyRate: 120, currency: "USD" },
-    { id: "p2", name: "Platform API", color: "#0ea5e9", clientId: "c1", hourlyRate: 140, currency: "USD" },
-    { id: "p3", name: "Internal Tools", color: "#64748b", clientId: "c2", hourlyRate: null, currency: null },
-    { id: "p4", name: "Mobile Companion", color: "#f97316", clientId: "c2", hourlyRate: 110, currency: "EUR" },
+    { id: "p1", name: "Website Redesign", color: "#3F8F8C", clientId: "c1", hourlyRate: 120, currency: "USD" }, // Sage Teal
+    { id: "p2", name: "Platform API", color: "#A7D0C9", clientId: "c1", hourlyRate: 140, currency: "USD" }, // Soft Mint
+    { id: "p3", name: "Internal Tools", color: "#1E2328", clientId: "c2", hourlyRate: null, currency: null }, // Deep Charcoal
+    { id: "p4", name: "Mobile Companion", color: "#FF6F61", clientId: "c2", hourlyRate: 110, currency: "EUR" }, // Soft Coral
   ];
   const tags: Tag[] = [
-    { id: "t1", name: "frontend", color: "#6366f1" },
-    { id: "t2", name: "backend", color: "#0ea5e9" },
-    { id: "t3", name: "meeting", color: "#f59e0b" },
-    { id: "t4", name: "design", color: "#ec4899" },
-    { id: "t5", name: "bugfix", color: "#ef4444" },
+    { id: "t1", name: "frontend", color: "#3F8F8C" }, // Sage Teal
+    { id: "t2", name: "backend", color: "#A7D0C9" }, // Soft Mint
+    { id: "t3", name: "meeting", color: "#F2A82F" }, // Warm Amber
+    { id: "t4", name: "design", color: "#FF6F61" }, // Soft Coral
+    { id: "t5", name: "bugfix", color: "#1E2328" }, // Deep Charcoal
   ];
 
   const tagPools: string[][] = [
@@ -218,7 +222,7 @@ function nextId(prefix: string): string {
 
 const DEMO_USER = {
   id: "demo-user",
-  email: "demo@timetracker.local",
+  email: "demo@getanimo.app",
   name: "Demo User",
   roles: ["user"],
   permissions: [
@@ -540,9 +544,9 @@ async function handle(method: string, path: string, query: URLSearchParams, init
  * installs once even if called multiple times.
  */
 export function installDemoApi() {
-  const w = window as Window & { __TT_DEMO_API_INSTALLED__?: boolean };
-  if (w.__TT_DEMO_API_INSTALLED__) return;
-  w.__TT_DEMO_API_INSTALLED__ = true;
+  const w = window as Window & { __ANIMO_DEMO_API_INSTALLED__?: boolean };
+  if (w.__ANIMO_DEMO_API_INSTALLED__) return;
+  w.__ANIMO_DEMO_API_INSTALLED__ = true;
 
   // Eagerly load (or seed) state so the first request doesn't pay the cost.
   loadState();

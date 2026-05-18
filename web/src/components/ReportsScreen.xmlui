@@ -379,7 +379,7 @@
             ]}"
             dataKey="seconds"
             nameKey="label"
-            colors="{['#7c3aed', '#334155']}"
+            colors="{['#3F8F8C', '#C2BDB7']}"
           />
         </Stack>
       </Card>
@@ -418,7 +418,7 @@
             ]}"
             dataKey="seconds"
             nameKey="label"
-            colors="{['#7c3aed', '#334155']}"
+            colors="{['#3F8F8C', '#C2BDB7']}"
           />
         </Stack>
       </Card>

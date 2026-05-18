@@ -1,6 +1,6 @@
-# Time Tracker
+# Animo
 
-> A self-hosted, single-user time-tracking app inspired by [Kimai](https://www.kimai.org/) — XMLUI frontend, Rust + axum backend, SQLite storage, optional Tauri desktop shell.
+> A self-hosted, single-user time-tracking app inspired by [Kimai](https://www.kimai.org/) — XMLUI frontend, Rust + axum backend, SQLite storage, optional Tauri desktop shell. Domain: [getanimo.app](https://getanimo.app).
 
 Track work against projects and clients, either by typing start/end times manually or by running the live header stopwatch. View entries on a weekly calendar grid or as a list grouped by day, slice them with project / tag / date-range filters, and export a styled PDF report.
 
@@ -33,7 +33,7 @@ npm run dev
 
 This starts:
 
-- `cargo run -p time-tracking-api` on `http://127.0.0.1:8080`
+- `cargo run -p animo-api` on `http://127.0.0.1:8080`
 - `xmlui start` on `http://localhost:5173`
 
 Open the Vite URL, register a new account, and you're in.
@@ -105,7 +105,7 @@ npm run tauri:build
 Notes:
 
 - The desktop shell stores its SQLite DB under the platform per-user data dir
-  (macOS: `~/Library/Application Support/com.nsoftware.timetracker/data.db`).
+  (macOS: `~/Library/Application Support/app.getanimo.timetracker/data.db`).
 - On first launch in a dev build, the shell seeds that DB from `api/data.db`
   if it exists — handy when porting an existing browser session over.
 - The placeholder icon at `desktop/icons/icon.png` is a 32×32 colored square.
@@ -156,7 +156,7 @@ URL as its `apiBase` global. See [`desktop/src/lib.rs`](desktop/src/lib.rs).
 ## Repository layout
 
 ```text
-time-tracking-app/
+animo/
 ├── api/             Rust crate — axum router, sqlx pool, migrations
 │   ├── src/
 │   │   ├── lib.rs              build_state, build_app, bind, run_server
@@ -239,7 +239,7 @@ The API reads its config from environment variables — see
 | `DATABASE_URL`  | `sqlite:data.db?mode=rwc`            | sqlx connection string.                                |
 | `JWT_SECRET`    | `dev-secret-change-me` (dev default) | Override in any non-dev deployment.                    |
 | `CORS_ORIGINS`  | `http://localhost:5173..5176`        | Comma-separated allow-list for the Vite dev ports.     |
-| `RUST_LOG`      | `time_tracking_api=info`             | Standard `tracing-subscriber` filter.                  |
+| `RUST_LOG`      | `animo_api=info`                     | Standard `tracing-subscriber` filter.                  |
 
 The Tauri shell ignores most of these and builds its `Config` programmatically
 via `Config::for_desktop(app_data_dir)`.

@@ -45,17 +45,19 @@ export type BarChartProps = {
   width?: number | string;
 };
 
+// Animo palette — keep in lock-step with web/src/themes/tracker-theme.ts.
+// Ordered for chart legibility: brand color first, then secondary brand
+// hue, then warning/danger accents. Categories beyond 5 cycle back.
 const DEFAULT_PALETTE = [
-  "#4188c9", // primary blue (matches the Tracker theme)
-  "#10b981", // teal
-  "#7c3aed", // violet
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#3b82f6", // indigo
+  "#3F8F8C", // Sage Teal — primary brand
+  "#F2A82F", // Warm Amber — warn
+  "#FF6F61", // Soft Coral — danger
+  "#A7D0C9", // Soft Mint — primary subtle
+  "#1E2328", // Deep Charcoal — dark accent
 ];
 
-const GRID_COLOR = "rgba(148, 163, 184, 0.18)";
-const TICK_COLOR = "#64748b";
+const GRID_COLOR = "rgba(30, 35, 40, 0.12)"; // Deep Charcoal @ 12% (subtle grid)
+const TICK_COLOR = "#76716D"; // surface-500
 
 export function BarChart(props: BarChartProps) {
   const {

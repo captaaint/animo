@@ -19,7 +19,7 @@
 
   <ModalDialog id="modal" padding="$space-4" title="{editItem ? 'Edit tag' : 'New tag'}">
     <Form
-      data="{editItem || { name: '', color: '#64748b' }}"
+      data="{editItem || { name: '', color: '#3F8F8C' }}"
       onSubmit="(data) => saveCall.execute(data)"
     >
       <TextBox bindTo="name" label="Name" required="true" />

@@ -6,6 +6,100 @@ export const TrackerTheme: ThemeDefinition = {
   extends: "xmlui",
   color: "$color-primary-500",
   themeVars: {
+    // =============================================================
+    // Animo brand palette — these seven hexes are the only colors
+    // surfacing in the UI; every shade in the scales below either is
+    // one of them or is derived by varying lightness around the same
+    // hue. Keep new components on the named scales (color-primary-*,
+    // color-surface-*, color-warn-*, color-danger-*) instead of
+    // sneaking in raw hex values, otherwise the brand drifts.
+    //
+    //   Sage Teal      #3F8F8C  — primary brand
+    //   Soft Mint      #A7D0C9  — primary subtle accent / pale teal
+    //   Mist           #EAF3F1  — primary tint surface
+    //   Deep Charcoal  #1E2328  — text / dark surface
+    //   Warm Amber     #F2A82F  — warning
+    //   Soft Coral     #FF6F61  — danger / destructive
+    //   Warm White     #FAF8F6  — page background / light surface
+    //
+    // We override the `const-color-X-N` atoms (not `color-X-N`) so
+    // XMLUI's tone system keeps working — dark tone automatically
+    // inverts the index (`color-X-50` → `const-color-X-950`), so the
+    // same palette serves both light and dark modes after inversion.
+    // =============================================================
+
+    // Primary scale (Sage Teal hue ~177° anchored at 500)
+    "const-color-primary-50": "#EAF3F1",
+    "const-color-primary-100": "#D5E7E3",
+    "const-color-primary-200": "#A7D0C9",
+    "const-color-primary-300": "#7AB8AE",
+    "const-color-primary-400": "#5DA39D",
+    "const-color-primary-500": "#3F8F8C",
+    "const-color-primary-600": "#357773",
+    "const-color-primary-700": "#2A5F5B",
+    "const-color-primary-800": "#1F4744",
+    "const-color-primary-900": "#162F2D",
+    "const-color-primary-950": "#0F1F1D",
+
+    // Surface scale (warm neutrals, Warm White → Deep Charcoal).
+    // In dark mode the indices invert: -950/-1000 become page bg,
+    // -50/-100 become text — so the 950/1000 entries are pushed
+    // darker than #1E2328 to keep a clear "raised vs page" hierarchy.
+    "const-color-surface-0": "#FFFFFF",
+    "const-color-surface-50": "#FAF8F6",
+    "const-color-surface-100": "#F0EDEA",
+    "const-color-surface-200": "#E0DCD7",
+    "const-color-surface-300": "#C2BDB7",
+    "const-color-surface-400": "#9D9893",
+    "const-color-surface-500": "#76716D",
+    "const-color-surface-600": "#544F4B",
+    "const-color-surface-700": "#3D3934",
+    "const-color-surface-800": "#2C2925",
+    "const-color-surface-900": "#1E2328",
+    "const-color-surface-950": "#14181C",
+    "const-color-surface-1000": "#0A0C0F",
+
+    // Warn scale (Warm Amber as 500)
+    "const-color-warn-50": "#FEF6E6",
+    "const-color-warn-100": "#FCEBC8",
+    "const-color-warn-200": "#F9CE8C",
+    "const-color-warn-300": "#F6B95C",
+    "const-color-warn-400": "#F4AE45",
+    "const-color-warn-500": "#F2A82F",
+    "const-color-warn-600": "#D49118",
+    "const-color-warn-700": "#A36F0E",
+    "const-color-warn-800": "#7C5408",
+    "const-color-warn-900": "#553905",
+    "const-color-warn-950": "#3B2604",
+
+    // Danger scale (Soft Coral as 500)
+    "const-color-danger-50": "#FFE7E5",
+    "const-color-danger-100": "#FFCFCB",
+    "const-color-danger-200": "#FFB0A8",
+    "const-color-danger-300": "#FF9485",
+    "const-color-danger-400": "#FF8170",
+    "const-color-danger-500": "#FF6F61",
+    "const-color-danger-600": "#E8554A",
+    "const-color-danger-700": "#C8412F",
+    "const-color-danger-800": "#9C2F22",
+    "const-color-danger-900": "#6E2017",
+    "const-color-danger-950": "#48140E",
+
+    // Success scale (re-uses Sage Teal because the brand only ships
+    // one positive accent; in practice rare — XMLUI just needs a value
+    // for built-in semantic tokens like form-validation success).
+    "const-color-success-50": "#EAF3F1",
+    "const-color-success-100": "#D5E7E3",
+    "const-color-success-200": "#A7D0C9",
+    "const-color-success-300": "#7AB8AE",
+    "const-color-success-400": "#5DA39D",
+    "const-color-success-500": "#3F8F8C",
+    "const-color-success-600": "#357773",
+    "const-color-success-700": "#2A5F5B",
+    "const-color-success-800": "#1F4744",
+    "const-color-success-900": "#162F2D",
+    "const-color-success-950": "#0F1F1D",
+
     // --- App layout
     "width-navPanel-App": "280px",
     "maxWidth-content-App": "100%",
@@ -23,10 +117,39 @@ export const TrackerTheme: ThemeDefinition = {
     "marginBottom-logo-NavPanel": "0",
     "paddingHorizontal-NavPanel": "$space-4",
     "paddingHorizontal-md-NavPanel": "0",
+    // Make the NavPanel share the AppHeader's surface so the sidebar
+    // and the top bar read as one continuous chrome.
+    "backgroundColor-NavPanel": "$backgroundColor-AppHeader",
+
+    // WeekCalendar uses its own backgroundColor tokens (the extension
+    // doesn't declare defaults). Pin all four surface zones — main
+    // grid, top toolbar with the date-range controls, day-label header,
+    // and the left hour-gutter — to the same raised surface Card uses
+    // so the whole calendar reads as one sibling of the page Cards
+    // instead of a sunken/transparent inset with mismatched strips.
+    "backgroundColor-WeekCalendar": "$color-surface-raised",
+    "backgroundColor-toolbar-WeekCalendar": "$color-surface-raised",
+    "backgroundColor-header-WeekCalendar": "$color-surface-raised",
+    "backgroundColor-gutter-WeekCalendar": "$color-surface-raised",
+
+    // Every popover-style surface in the app shares the same tone-aware
+    // page-background semantic token. That is also what ModalDialog
+    // defaults to (`backgroundColor-ModalDialog` → `$backgroundColor-primary`
+    // → `$color-surface-50`), so dropdowns, date pickers, row-action
+    // menus, and the calendar's quick-edit popovers visually match the
+    // modal editor. Avoid pointing at `$backgroundColor-ModalDialog`
+    // directly — xmlui only defines that override in the light tone, so
+    // dark mode would fall through to whatever default and break parity.
+    "backgroundColor-menu-AutoComplete": "$backgroundColor-primary",
+    "backgroundColor-menu-Select": "$backgroundColor-primary",
+    "backgroundColor-menu-DatePicker": "$backgroundColor-primary",
+    "backgroundColor-DropdownMenu": "$backgroundColor-primary",
+    "backgroundColor-popover-WeekCalendar": "$backgroundColor-primary",
+    "backgroundColor-popoverPrimary-WeekCalendar": "$backgroundColor-primary",
 
     // --- Colors & typography
-    "color-surface": "rgb(111, 110, 119)",
-    backgroundColor: "$color-surface-0",
+    "color-surface": "$color-surface-500",
+    backgroundColor: "$color-surface-50",
     fontSize: "15px",
     "fontFamily-monospace": "Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace",
     "font-feature-settings": "'cv03', 'ss03'",
@@ -109,6 +232,27 @@ export const TrackerTheme: ThemeDefinition = {
     "size-icon-Benefit": "24px",
     "maxWidth-md-Benefit": "600px",
     "maxWidth-Benefit": "400px",
+  },
+  tones: {
+    // Tone-specific overrides where the same color reference doesn't
+    // suit both modes equally. The const-color-* inversion handles most
+    // tokens; these are the exceptions where the *semantic* color
+    // should differ per tone.
+    light: {
+      themeVars: {
+        // Header picker popovers (project + tag) sit on Mist so they
+        // read as a soft branded panel instead of a stark white surface.
+        // Dark mode keeps the modal-matching neutral (see below).
+        "backgroundColor-popover-Picker": "$color-primary-50",
+      },
+    },
+    dark: {
+      themeVars: {
+        // Header picker popovers in dark mode share the modal surface
+        // so dropdown + edit modal read as one elevation family.
+        "backgroundColor-popover-Picker": "$backgroundColor-primary",
+      },
+    },
   },
   resources: {},
 };
