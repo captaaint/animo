@@ -1,0 +1,196 @@
+<Component name="EntryModal"
+  var.editItem="{null}"
+  var.entryDate="{toIsoDate(new Date())}"
+  var.startStr="{'09:00'}"
+  var.endStr="{'10:00'}"
+  var.descr="{''}"
+  var.projectId="{null}"
+  var.billable="{false}"
+  var.entryTagIds="{[]}"
+  var.modalOpen="{false}"
+  method.open="(data) => {
+    editItem = data || null;
+    if (data) {
+      entryDate = data.startTime.slice(0,10);
+      startStr = data.startTime.slice(11,16);
+      endStr = data.endTime.slice(11,16);
+      descr = data.description || '';
+      projectId = data.projectId;
+      billable = !!data.billable;
+      entryTagIds = data.tagIds || [];
+    } else {
+      entryDate = toIsoDate(new Date());
+      startStr = '09:00';
+      endStr = '10:00';
+      descr = '';
+      projectId = null;
+      billable = false;
+      entryTagIds = [];
+    }
+    modalOpen = true;
+    modal.open();
+  }"
+  method.openForSlot="(slot) => {
+    editItem = null;
+    entryDate = slot &amp;&amp; slot.date ? slot.date : toIsoDate(new Date());
+    startStr = slot &amp;&amp; slot.startTime ? slot.startTime : '09:00';
+    endStr = slot &amp;&amp; slot.endTime ? slot.endTime : '10:00';
+    descr = '';
+    projectId = null;
+    billable = false;
+    entryTagIds = [];
+    modalOpen = true;
+    modal.open();
+  }"
+  method.openForCounter="(data) => {
+    editItem = null;
+    entryDate = data &amp;&amp; data.startTime ? data.startTime.slice(0, 10) : toIsoDate(new Date());
+    startStr = data &amp;&amp; data.startTime ? data.startTime.slice(11, 16) : '09:00';
+    endStr = data &amp;&amp; data.endTime ? data.endTime.slice(11, 16) : '10:00';
+    descr = data &amp;&amp; data.description ? data.description : '';
+    projectId = data &amp;&amp; data.projectId ? data.projectId : null;
+    billable = false;
+    entryTagIds = [];
+    modalOpen = true;
+    modal.open();
+  }"
+>
+  <APICall id="saveCall"
+    method="{editItem ? 'PATCH' : 'POST'}"
+    url="{editItem ? apiBase + '/time-entries/' + editItem.id : apiBase + '/time-entries'}"
+    credentials="include"
+    body="{{
+      projectId: projectId || null,
+      description: descr || '',
+      startTime: combineDateTime(entryDate, startStr),
+      endTime: combineDateTime(entryDate, endStr),
+      billable: !!billable,
+      tagIds: entryTagIds || []
+    }}"
+    onSuccess="() => {
+      toast.success(editItem ? 'Entry updated' : 'Entry added');
+      emitEvent('saved');
+      modal.close();
+    }"
+    onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
+  />
+
+  <APICall id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/time-entries/' + (editItem ? editItem.id : '')}"
+    credentials="include"
+    onSuccess="() => {
+      toast.success('Entry deleted');
+      emitEvent('saved');
+      modal.close();
+    }"
+    onError="() => toast.error('Delete failed')"
+  />
+
+  <KeyListener enabled="{modalOpen}"
+    onEnter="() => {
+      if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) saveCall.execute();
+      else toast.error('End must be after start');
+    }" />
+
+  <ModalDialog id="modal" maxWidth="720px"
+    padding="$space-4"
+    closeButtonVisible="false"
+    onClose="() => { modalOpen = false; emitEvent('closed'); }">
+    <VStack gap="$space-4" padding="$space-2">
+      <TextBox id="descrInput"
+        label="Description"
+        width="*"
+        initialValue="{descr}"
+        onDidChange="(v) => descr = v"
+        placeholder="What did you work on?" />
+
+      <HStack gap="$space-2" width="*" verticalAlignment="end">
+        <Select width="*"
+          label="Project"
+          initialValue="{projectId}"
+          onDidChange="(v) => projectId = v"
+          placeholder="(no project)">
+          <Items data="{$props.projects || []}">
+            <Option value="{$item.id}" label="{$item.name}" />
+          </Items>
+        </Select>
+
+        <Select width="*"
+          label="Tags"
+          multiSelect="true"
+          initialValue="{entryTagIds}"
+          onDidChange="(v) => entryTagIds = v || []"
+          placeholder="(no tags)">
+          <Items data="{$props.tags || []}">
+            <Option value="{$item.id}" label="{$item.name}" />
+          </Items>
+        </Select>
+      </HStack>
+
+      <HStack gap="$space-4" verticalAlignment="end" width="*">
+        <DatePicker width="180px"
+          label="Date"
+          initialValue="{entryDate}"
+          onDidChange="(v) => entryDate = v"
+          dateFormat="yyyy-MM-dd" />
+        <Switch
+          initialValue="{billable}"
+          onDidChange="(v) => billable = !!v"
+          label="Billable" />
+      </HStack>
+
+      <HStack gap="$space-3" verticalAlignment="end" width="*" wrapContent="true">
+        <VStack gap="$space-1">
+          <Text fontSize="$fontSize-small" variant="secondary" fontWeight="500">
+            Time range
+          </Text>
+          <HStack gap="0" verticalAlignment="center">
+            <TimeInput id="startInput" width="100px"
+              borderRadius="$borderRadius 0 0 $borderRadius"
+              borderRight="none"
+              initialValue="{startStr}"
+                onDidChange="(v) => {
+                if (!v || v === startStr) return;
+                const oldDur = parseTimeToSec(endStr) - parseTimeToSec(startStr);
+                startStr = v;
+                const newEnd = addSecToTime(v, oldDur > 0 ? oldDur : 3600);
+                if (newEnd !== endStr) {
+                  endStr = newEnd;
+                  endInput.setValue(newEnd);
+                }
+                durInput.setValue(formatHms(parseTimeToSec(newEnd) - parseTimeToSec(v)));
+              }" />
+            <TimeInput id="endInput" width="100px"
+              borderRadius="0 $borderRadius $borderRadius 0"
+              initialValue="{endStr}"
+                onDidChange="(v) => {
+                if (!v || v === endStr) return;
+                endStr = v;
+                durInput.setValue(formatHms(parseTimeToSec(v) - parseTimeToSec(startStr)));
+              }" />
+          </HStack>
+        </VStack>
+        <TextBox id="durInput" width="90px"
+          label="Duration"
+          initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
+            onDidChange="(v) => {
+            const sec = parseHmsToSec(v);
+            if (sec <= 0) return;
+            const newEnd = addSecToTime(startStr, sec);
+            if (newEnd === endStr) return;
+            endStr = newEnd;
+            endInput.setValue(newEnd);
+          }" />
+      </HStack>
+
+      <HStack gap="$space-2" verticalAlignment="center" width="*">
+        <SpaceFiller />
+        <Button label="Cancel" variant="outlined" size="sm"
+          onClick="modal.close()" />
+        <Button label="{editItem ? 'Save' : 'Add'}" themeColor="primary" size="sm"
+          onClick="if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) { saveCall.execute(); } else { toast.error('End must be after start'); }" />
+      </HStack>
+    </VStack>
+  </ModalDialog>
+</Component>

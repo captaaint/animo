@@ -1,0 +1,544 @@
+<Component
+  name="ReportsScreen"
+  var.fromDate="{mondayOfWeek(new Date())}"
+  var.toDate="{shiftDate(mondayOfWeek(new Date()), 6)}"
+  var.progress="{0}"
+  var.searchText="{''}"
+  var.projectFilter="{[]}"
+  var.tagFilter="{[]}"
+>
+  <Viewport id="vp" />
+
+  <DataSource
+    id="summaryDs"
+    url="{apiBase + '/reports/summary?from=' + fromDate + '&amp;to=' + toDate}"
+    credentials="include"
+  />
+  <DataSource
+    id="projectsDs"
+    url="{apiBase + '/projects'}"
+    credentials="include"
+  />
+  <DataSource
+    id="clientsDs"
+    url="{apiBase + '/clients'}"
+    credentials="include"
+  />
+  <DataSource
+    id="tagsDs"
+    url="{apiBase + '/tags'}"
+    credentials="include"
+  />
+  <DataSource
+    id="meDs"
+    url="{apiBase + '/auth/me'}"
+    credentials="include"
+  />
+
+  <ModalDialog
+    id="progressModal"
+    padding="$space-4"
+    title="Generating report"
+    maxWidth="420px"
+  >
+    <VStack gap="$space-4" padding="$space-2">
+      <Text>
+        Preparing your PDF…
+      </Text>
+      <ProgressBar value="{progress}" />
+      <Text variant="secondary" fontSize="$fontSize-small">
+        {progress >= 1 ? 'Done' : Math.round((progress || 0) * 100) + '%'}
+      </Text>
+    </VStack>
+  </ModalDialog>
+
+  <ModalDialog
+    id="pdfPreview"
+    closeButtonVisible="false"
+    maxWidth="600px"
+    height="95vh"
+    padding="$space-0"
+    onClose="if ($param &amp;&amp; $param.url) window.revokeBlobUrl($param.url);"
+  >
+    <VStack height="*" width="*" gap="$space-0">
+      <Stack height="*" width="*" overflowY="auto">
+        <Pdf src="{$param.url}" />
+      </Stack>
+      <HStack
+        width="*"
+        verticalAlignment="center"
+        padding="$space-3"
+        backgroundColor="$color-surface-50"
+      >
+        <Button
+          label="Discard"
+          variant="outlined"
+          onClick="pdfPreview.close()"
+        />
+        <SpaceFiller />
+        <Button
+          label="Download"
+          themeColor="primary"
+          icon="download"
+          onClick="window.downloadBlobUrl($param.url, $param.fileName); pdfPreview.close();"
+        />
+      </HStack>
+    </VStack>
+  </ModalDialog>
+
+  <APICall
+    id="duplicateCall"
+    method="POST"
+    url="{apiBase + '/time-entries'}"
+    credentials="include"
+    body="{$param}"
+    onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); }"
+    onError="() => toast.error('Duplicate failed')"
+  />
+
+  <!-- Cross-tree export trigger: AppHeader's "Export PDF" button dispatches
+       `tt:export-report`. Inline the export logic here so the listener has
+       access to the ids/state it needs. -->
+  <WindowEvent
+    eventName="tt:export-report"
+    onMessage="() => {
+      progress = 0;
+      progressModal.open();
+      const allEntries = ((summaryDs.value || {}).entries) || [];
+      const filtered = applyReportFilters(allEntries, projectFilter, tagFilter);
+      const projects = projectsDs.value || [];
+      const clients = clientsDs.value || [];
+      const allTags = tagsDs.value || [];
+      const enriched = filtered.map((e) => {
+        const p = projects.find((pp) => pp.id === e.projectId);
+        const c = p &amp;&amp; clients.find((cc) => cc.id === p.clientId);
+        return {
+          description: e.description || '',
+          projectName: p ? p.name : (e.projectName || null),
+          projectColor: p ? p.color : null,
+          clientName: c ? c.name : (e.clientName || null),
+          durationSeconds: e.durationSeconds != null
+            ? e.durationSeconds
+            : Math.round((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 1000),
+          date: (e.startTime || '').slice(0, 10),
+          tags: tagsForIds(e.tagIds, allTags).map((t) => ({ name: t.name, color: t.color }))
+        };
+      });
+      window.generateReportPdf(
+        {
+          fromDate: fromDate,
+          toDate: toDate,
+          user: ((meDs.value || {}).user) || { name: 'User', email: '' },
+          totalSeconds: sumDurationSeconds(filtered),
+          entries: enriched
+        },
+        (blobUrl) => {
+          progressModal.close();
+          pdfPreview.open({
+            url: blobUrl,
+            fileName: 'report_' + fromDate + '_' + toDate + '.pdf'
+          });
+        },
+        (err) => {
+          progressModal.close();
+          toast.error('Export failed: ' + err);
+        },
+        (ratio) => { progress = ratio; }
+      );
+    }"
+  />
+
+  <VStack
+    gap="$space-4"
+    padding="0"
+    width="*"
+    height="*"
+    overflowY="auto"
+  >
+    <!-- Filter card: date range + client + project + tag selectors -->
+    <Card padding="$space-4">
+      <HStack
+        gap="$space-2"
+        verticalAlignment="center"
+        width="100%"
+        wrapContent
+      >
+        <DatePicker
+          label="Date range"
+          id="rangePicker"
+          mode="range"
+          weekStartsOn="1"
+          showWeekNumber="true"
+          dateFormat="yyyy-MM-dd"
+          borderRadius="0"
+          initialValue="{{ from: fromDate, to: toDate }}"
+          onDidChange="(v) => {
+              if (!v || typeof v !== 'object') return;
+              if (v.from &amp;&amp; v.from !== fromDate) fromDate = v.from;
+              if (v.to &amp;&amp; v.to !== toDate) toDate = v.to;
+            }"
+        />
+
+        <AutoComplete
+          label="Projects"
+          id="projectFilterSel"
+          width="*"
+          minWidth="300px"
+          placeholder="Search project or client"
+          multi="true"
+          initialValue="{projectFilter}"
+          groupBy="clientName"
+          testId="filter-project"
+          onDidChange="(v) => projectFilter = v || []"
+        >
+          <property name="groupHeaderTemplate">
+            <Text>
+              {($group || '').toUpperCase()}
+            </Text>
+          </property>
+          <Items
+            data="{projectOptionsGroupedByClient(projectsDs.value || [], clientsDs.value || [])}"
+          >
+            <Option
+              value="{$item.id}"
+              label="{$item.name}"
+              keywords="{$item.keywords}"
+              clientName="{$item.clientName}"
+            >
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack
+                  width="10px"
+                  height="10px"
+                  borderRadius="50%"
+                  backgroundColor="{$item.color}"
+                />
+                <Text>
+                  {$item.name}
+                </Text>
+              </HStack>
+            </Option>
+          </Items>
+        </AutoComplete>
+        <AutoComplete
+          label="Tags"
+          id="tagFilterSel"
+          width="*"
+          minWidth="240px"
+          placeholder="Search tag"
+          multi="true"
+          initialValue="{tagFilter}"
+          testId="filter-tag"
+          onDidChange="(v) => tagFilter = v || []"
+        >
+          <Items data="{tagsDs.value || []}">
+            <Option
+              value="{$item.id}"
+              label="{$item.name}"
+              keywords="{[$item.name]}"
+            >
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack
+                  width="10px"
+                  height="10px"
+                  borderRadius="50%"
+                  backgroundColor="{$item.color}"
+                />
+                <Text>
+                  {$item.name}
+                </Text>
+              </HStack>
+            </Option>
+          </Items>
+        </AutoComplete>
+      </HStack>
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          label="Clear filters"
+          variant="ghost"
+          size="sm"
+          testId="filter-clear"
+          enabled="{(projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)}"
+          onClick="
+            projectFilter = [];
+            tagFilter = [];
+            if (projectFilterSel) projectFilterSel.setValue([]);
+            if (tagFilterSel) tagFilterSel.setValue([]);
+          "
+        />
+        <SpaceFiller />
+        <Button
+          label="Export PDF"
+          icon="doc"
+          width="fit-content"
+          variant="outlined"
+          testId="header-export-pdf"
+          onClick="window.ttExportReport()"
+        />
+      </HStack>
+    </Card>
+
+    <!-- KPI bar -->
+    <Card padding="0">
+      <HStack verticalAlignment="center" width="*" gap="$space-0">
+        <VStack
+          width="*"
+          paddingHorizontal="$space-6"
+          paddingVertical="$space-4"
+          gap="$space-2"
+        >
+          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
+            Total Hours
+          </Text>
+          <H3 marginBottom="0">
+            {formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}
+          </H3>
+        </VStack>
+        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
+        <VStack
+          width="*"
+          paddingHorizontal="$space-6"
+          paddingVertical="$space-4"
+          gap="$space-2"
+        >
+          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
+            Billable Hours
+          </Text>
+          <H3 marginBottom="0">
+            {sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0
+              ? '—'
+              : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}
+          </H3>
+        </VStack>
+        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
+        <VStack
+          width="*"
+          paddingHorizontal="$space-6"
+          paddingVertical="$space-4"
+          gap="$space-2"
+        >
+          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
+            Amount
+          </Text>
+          <H3 marginBottom="0">
+            {amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0
+              ? '—'
+              : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))
+                  .map(a => a.amount.toFixed(2) + ' ' + a.currency)
+                  .join(' + ')}
+          </H3>
+        </VStack>
+        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
+        <VStack
+          width="*"
+          paddingHorizontal="$space-6"
+          paddingVertical="$space-4"
+          gap="$space-2"
+        >
+          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
+            Average Daily Hours
+          </Text>
+          <H3 marginBottom="0">
+            {formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}
+          </H3>
+        </VStack>
+      </HStack>
+    </Card>
+
+    <!-- Charts: side-by-side on desktop, stacked on mobile -->
+    <HStack
+      when="{!vp.value || !vp.value.isMobile}"
+      width="*"
+      gap="$space-4"
+      verticalAlignment="stretch"
+    >
+      <Card width="*" minWidth="0" padding="$space-6" gap="$space-4">
+        <H3>
+          Daily hours
+        </H3>
+        <Stack height="280px" width="*">
+          <BarChart
+            orientation="vertical"
+            data="{dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+            dataKeys="{['hours']}"
+            nameKey="day"
+          />
+        </Stack>
+      </Card>
+
+      <Card width="*" minWidth="0" padding="$space-6" gap="$space-4">
+        <H3>
+          Billable distribution
+        </H3>
+        <Stack height="280px" width="*" horizontalAlignment="center" verticalAlignment="center">
+          <PieChart
+            cutout="65%"
+            showLegend="true"
+            data="{[
+              { label: 'Billable', seconds: sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) },
+              { label: 'Non-billable', seconds: sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) - sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) }
+            ]}"
+            dataKey="seconds"
+            nameKey="label"
+            colors="{['#7c3aed', '#334155']}"
+          />
+        </Stack>
+      </Card>
+    </HStack>
+
+    <VStack
+      when="{vp.value &amp;&amp; vp.value.isMobile}"
+      width="*"
+      gap="$space-4"
+    >
+      <Card width="*" padding="$space-6" gap="$space-4">
+        <H3>
+          Daily hours
+        </H3>
+        <Stack height="280px" width="*">
+          <BarChart
+            orientation="vertical"
+            data="{dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+            dataKeys="{['hours']}"
+            nameKey="day"
+          />
+        </Stack>
+      </Card>
+
+      <Card width="*" padding="$space-6" gap="$space-4">
+        <H3>
+          Billable distribution
+        </H3>
+        <Stack height="280px" width="*" horizontalAlignment="center" verticalAlignment="center">
+          <PieChart
+            cutout="65%"
+            showLegend="true"
+            data="{[
+              { label: 'Billable', seconds: sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) },
+              { label: 'Non-billable', seconds: sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) - sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) }
+            ]}"
+            dataKey="seconds"
+            nameKey="label"
+            colors="{['#7c3aed', '#334155']}"
+          />
+        </Stack>
+      </Card>
+    </VStack>
+
+    <Card>
+      <TextBox
+        width="*"
+        placeholder="Search description, project, client, tag…"
+        startIcon="search"
+        testId="reports-search"
+        initialValue="{searchText}"
+        onDidChange="(v) => searchText = v || ''"
+      />
+      <List
+        maxHeight="100%"
+        backgroundColor="transparent"
+        data="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || [])}"
+        groupBy="{(e) => (e.startTime || '').slice(0, 10)}"
+      >
+        <property name="emptyListTemplate">
+          <NoResult
+            label="{searchText || (projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)
+              ? 'No entries match your filters'
+              : 'No entries in this date range'}"
+          />
+        </property>
+        <property name="groupHeaderTemplate">
+          <HStack
+            verticalAlignment="center"
+            gap="$space-3"
+            paddingVertical="$space-2"
+            paddingHorizontal="$space-3"
+            backgroundColor="$color-surface-50"
+            borderRadius="$borderRadius"
+            cursor="pointer"
+            onClick="$group.toggle()"
+          >
+            <Icon name="{$group.isExpanded ? 'chevrondown' : 'chevronright'}" />
+            <Text fontWeight="bold">
+              {$group.key}
+            </Text>
+            <SpaceFiller />
+            <Text variant="secondary" fontWeight="bold">
+              {formatDuration(($group.items || []).reduce((s, e) => s + (e.durationSeconds || 0), 0))}
+            </Text>
+          </HStack>
+        </property>
+
+        <property name="itemTemplate">
+          <HStack
+            testId="reports-entry-row"
+            verticalAlignment="center"
+            gap="$space-3"
+            paddingVertical="$space-2"
+            paddingHorizontal="$space-3"
+          >
+            <VStack width="*" minWidth="220px" gap="$space-1">
+              <Text>
+                {$item.description || '(no description)'}
+              </Text>
+              <HStack
+                gap="$space-1"
+                wrapContent="true"
+                when="{($item.tagIds || []).length > 0}"
+              >
+                <Items data="{tagsForIds($item.tagIds, tagsDs.value || [])}">
+                  <Stack
+                    backgroundColor="{$item.color}"
+                    paddingHorizontal="$space-2"
+                    paddingVertical="$space-0"
+                    borderRadius="$borderRadius-small"
+                  >
+                    <Text fontSize="$fontSize-tiny" color="white">
+                      {$item.name}
+                    </Text>
+                  </Stack>
+                </Items>
+              </HStack>
+            </VStack>
+            <Text width="140px" variant="secondary">
+              {$item.projectName || '(no project)'}
+            </Text>
+            <Text width="110px" variant="secondary">
+              {$item.startTime.slice(11,16)} – {$item.endTime.slice(11,16)}
+            </Text>
+            <Text width="80px" fontWeight="bold">
+              {formatDuration($item.durationSeconds)}
+            </Text>
+            <Text width="40px" variant="secondary">
+              {$item.billable ? '$' : ''}
+            </Text>
+            <DropdownMenu alignment="end">
+              <property name="triggerTemplate">
+                <Button
+                  icon="dotmenuhorizontal"
+                  variant="ghost"
+                  size="sm"
+                  themeColor="secondary"
+                  testId="row-actions"
+                />
+              </property>
+              <MenuItem
+                icon="play"
+                testId="resume-entry"
+                onClick="publishResume($item.description, $item.projectId)"
+              >
+                Resume
+              </MenuItem>
+              <MenuItem
+                icon="copy"
+                testId="duplicate-entry"
+                onClick="duplicateCall.execute(duplicateEntryPayload($item))"
+              >
+                Duplicate
+              </MenuItem>
+            </DropdownMenu>
+          </HStack>
+        </property>
+      </List>
+    </Card>
+  </VStack>
+</Component>

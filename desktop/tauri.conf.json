@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Time Tracker",
+  "version": "0.1.0",
+  "identifier": "com.nsoftware.timetracker",
+  "build": {
+    "beforeDevCommand": "npm --prefix web run start",
+    "beforeBuildCommand": "npm --prefix web run build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../web/dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Time Tracker",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 500,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data: blob:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; connect-src 'self' ipc: http://ipc.localhost http://127.0.0.1:* ws://127.0.0.1:* http://localhost:* ws://localhost:*; worker-src 'self' blob:"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app", "msi", "deb", "appimage"],
+    "icon": [],
+    "copyright": "© 2026 nsoftware",
+    "category": "Productivity",
+    "shortDescription": "Time tracker (XMLUI + axum + Tauri)",
+    "longDescription": "Self-hosted time tracker with projects, clients, tags, and detailed PDF reports. Runs entirely on the local machine."
+  }
+}

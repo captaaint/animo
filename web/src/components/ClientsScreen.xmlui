@@ -1,0 +1,66 @@
+<Component name="ClientsScreen">
+  <DataSource
+    id="clientsDs"
+    url="{apiBase + '/clients'}"
+    credentials="include"
+  />
+
+  <ClientModal id="clientModal" onSaved="() => clientsDs.refetch()" />
+
+  <APICall
+    id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/clients/' + $param}"
+    credentials="include"
+    confirmMessage="Are you sure?"
+    confirmTitle="Delete client"
+    onSuccess="() => { toast.success('Client deleted'); clientsDs.refetch(); }"
+    onError="() => toast.error('Delete failed')"
+  />
+
+  <VStack padding="$space-6" gap="$space-4" height="*" overflowY="auto">
+    <Card padding="$space-2">
+      <Table
+        data="{clientsDs.value || []}"
+        when="{(clientsDs.value || []).length > 0}"
+      >
+        <Column header="Color" width="80px">
+          <Stack backgroundColor="{$item.color}" width="20px" height="20px" />
+        </Column>
+        <Column bindTo="name" header="Name" />
+        <Column header="Actions" width="200px">
+          <HStack gap="$space-2">
+            <Button
+              label="Edit"
+              icon="pencil"
+              size="sm"
+              variant="outlined"
+              onClick="clientModal.open($item)"
+            />
+            <Button
+              label="Delete"
+              icon="trash"
+              size="sm"
+              variant="outlined"
+              themeColor="attention"
+              onClick="deleteCall.execute($item.id)"
+            />
+          </HStack>
+        </Column>
+      </Table>
+
+      <NoResult
+        when="{clientsDs.loaded &amp;&amp; (clientsDs.value || []).length === 0}"
+        label="No clients yet"
+      />
+      <Spinner when="{!clientsDs.loaded}" />
+    </Card>
+    <HStack verticalAlignment="center">
+      <Button
+        label="New client"
+        icon="plus"
+        onClick="clientModal.open()"
+      />
+    </HStack>
+  </VStack>
+</Component>

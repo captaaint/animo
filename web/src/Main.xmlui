@@ -1,0 +1,139 @@
+<App
+  layout="vertical-sticky"
+  scrollWholePage="false"
+  global.apiBase="{window.__TT_API_BASE__ || 'http://127.0.0.1:8080/api'}"
+  global.token="{readToken()}"
+  global.pageTitle="{'Calendar'}"
+  global.entriesTick="{0}"
+  onDidNavigate="(to) => {
+    if (to === '/projects') pageTitle = 'Projects';
+    else if (to === '/clients') pageTitle = 'Clients';
+    else if (to === '/tags') pageTitle = 'Tags';
+    else if (to === '/reports') pageTitle = 'Reports';
+    else if (to === '/login') pageTitle = 'Sign in';
+    else if (to === '/register') pageTitle = 'Create account';
+    else if (to === '/list') pageTitle = 'List';
+    else if (to === '/settings') pageTitle = 'Settings';
+    else pageTitle = 'Calendar';
+  }"
+>
+  <property name="logoTemplate">
+    <H3 marginBottom="0">
+      Time Tracker
+    </H3>
+  </property>
+  <AuthGate
+    id="auth"
+    apiBase="{apiBase}"
+    idleTimeoutSeconds="604800"
+    idleWarningSeconds="120"
+    onSignIn="Actions.navigate('/')"
+    onSignOut="Actions.navigate('/login')"
+  />
+
+  <Viewport id="appVp" />
+
+  <DataSource
+    id="appProjectsDs"
+    url="{apiBase + '/projects'}"
+    credentials="include"
+    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+  />
+  <DataSource
+    id="appClientsDs"
+    url="{apiBase + '/clients'}"
+    credentials="include"
+    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+  />
+  <DataSource
+    id="appTagsDs"
+    url="{apiBase + '/tags'}"
+    credentials="include"
+    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+  />
+  <TonePersist />
+
+  <AppHeader when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+    <TimerBar when="{(!appVp.value || !appVp.value.isMobile) &amp;&amp; (pageTitle === 'Calendar' || pageTitle === 'List')}"
+      projects="{appProjectsDs.value || []}"
+      clients="{appClientsDs.value || []}"
+      tags="{appTagsDs.value || []}"
+      onSaved="() => entriesTick = entriesTick + 1"
+    />
+  </AppHeader>
+
+  <NavPanel when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+    <NavGroup label="Track" initiallyExpanded="true">
+      <NavLink to="/" label="Calendar" icon="date" />
+      <NavLink to="/list" label="List" icon="board" />
+    </NavGroup>
+
+    <NavGroup label="Analyze" initiallyExpanded="true">
+      <NavLink to="/reports" label="Reports" icon="trending_up" />
+    </NavGroup>
+
+    <NavGroup label="Manage" initiallyExpanded="true">
+      <NavLink to="/projects" label="Projects" icon="folder" />
+      <NavLink to="/clients" label="Clients" icon="users" />
+      <NavLink to="/tags" label="Tags" icon="hash" />
+    </NavGroup>
+
+    <NavGroup label="Account" initiallyExpanded="true">
+      <NavLink to="/settings" label="Settings" icon="cog" />
+      <HStack verticalAlignment="center" gap="0.5rem" padding="0.5rem 1rem">
+        <Inspector />
+        <Text>Inspector</Text>
+      </HStack>
+    </NavGroup>
+  </NavPanel>
+
+  <Pages>
+    <Page url="/login">
+      <Redirect to="/" when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}" />
+      <LoginScreen
+        signIn="{auth.signIn}"
+        loading="{auth.value &amp;&amp; auth.value.loading}"
+        error="{auth.value &amp;&amp; auth.value.error}"
+      />
+    </Page>
+    <Page url="/register">
+      <Redirect to="/" when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}" />
+      <RegisterScreen
+        register="{auth.register}"
+        loading="{auth.value &amp;&amp; auth.value.loading}"
+        error="{auth.value &amp;&amp; auth.value.error}"
+      />
+    </Page>
+    <Page url="/">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Timesheet view="calendar" />
+    </Page>
+    <Page url="/list">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Timesheet view="list" />
+    </Page>
+    <Page url="/projects">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <ProjectsScreen />
+    </Page>
+    <Page url="/clients">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <ClientsScreen />
+    </Page>
+    <Page url="/tags">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <TagsScreen />
+    </Page>
+    <Page url="/reports">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <ReportsScreen />
+    </Page>
+    <Page url="/settings">
+      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <SettingsScreen
+        userName="{auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}"
+        onSignOut="() => auth.signOut()"
+      />
+    </Page>
+  </Pages>
+</App>

@@ -1,0 +1,29 @@
+<Component name="ClientModal"
+  var.editItem="{null}"
+  method.open="(data) => { editItem = data || null; modal.open(); }"
+>
+  <APICall id="saveCall"
+    method="{editItem ? 'PATCH' : 'POST'}"
+    url="{editItem
+      ? apiBase + '/clients/' + editItem.id
+      : apiBase + '/clients'}"
+    credentials="include"
+    body="{$param}"
+    onSuccess="() => {
+      toast.success(editItem ? 'Client updated' : 'Client added');
+      emitEvent('saved');
+      modal.close();
+    }"
+    onError="() => toast.error('Save failed')"
+  />
+
+  <ModalDialog id="modal" padding="$space-4" title="{editItem ? 'Edit client' : 'New client'}">
+    <Form
+      data="{editItem || { name: '', color: '#3b82f6' }}"
+      onSubmit="(data) => saveCall.execute(data)"
+    >
+      <TextBox bindTo="name" label="Name" required="true" />
+      <ColorPicker bindTo="color" label="Color" />
+    </Form>
+  </ModalDialog>
+</Component>

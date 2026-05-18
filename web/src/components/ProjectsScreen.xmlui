@@ -1,0 +1,87 @@
+<Component name="ProjectsScreen">
+  <DataSource
+    id="projectsDs"
+    url="{apiBase + '/projects'}"
+    credentials="include"
+  />
+  <DataSource
+    id="clientsDs"
+    url="{apiBase + '/clients'}"
+    credentials="include"
+  />
+
+  <ProjectModal
+    id="projectModal"
+    clients="{clientsDs.value || []}"
+    onSaved="() => projectsDs.refetch()"
+  />
+
+  <APICall
+    id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/projects/' + $param}"
+    credentials="include"
+    confirmMessage="Are you sure?"
+    confirmTitle="Delete project"
+    onSuccess="() => { toast.success('Project deleted'); projectsDs.refetch(); }"
+    onError="() => toast.error('Delete failed')"
+  />
+
+  <VStack padding="$space-6" gap="$space-4" height="*" overflowY="auto">
+    <Card padding="$space-2">
+      <Table
+        data="{projectsDs.value || []}"
+        when="{(projectsDs.value || []).length > 0}"
+      >
+        <Column header="Color" width="80px">
+          <Stack backgroundColor="{$item.color}" width="20px" height="20px" />
+        </Column>
+        <Column bindTo="name" header="Name" />
+        <Column header="Client">
+          <Text>
+            {((clientsDs.value || []).find(c => c.id === $item.clientId) || {}).name || '—'}
+          </Text>
+        </Column>
+        <Column header="Rate" width="120px">
+          <Text>
+            {$item.hourlyRate &amp;&amp; $item.hourlyRate > 0
+            ? ($item.hourlyRate + ' ' + ($item.currency || 'EUR') + '/h')
+            : '—'}
+          </Text>
+        </Column>
+        <Column header="Actions" width="200px">
+          <HStack gap="$space-2">
+            <Button
+              label="Edit"
+              icon="pencil"
+              size="sm"
+              variant="outlined"
+              onClick="projectModal.open($item)"
+            />
+            <Button
+              label="Delete"
+              icon="trash"
+              size="sm"
+              variant="outlined"
+              themeColor="attention"
+              onClick="deleteCall.execute($item.id)"
+            />
+          </HStack>
+        </Column>
+      </Table>
+
+      <NoResult
+        when="{projectsDs.loaded &amp;&amp; (projectsDs.value || []).length === 0}"
+        label="No projects yet"
+      />
+      <Spinner when="{!projectsDs.loaded}" />
+    </Card>
+    <HStack verticalAlignment="center">
+      <Button
+        label="New project"
+        icon="plus"
+        onClick="projectModal.open()"
+      />
+    </HStack>
+  </VStack>
+</Component>

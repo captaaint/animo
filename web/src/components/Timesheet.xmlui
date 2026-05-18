@@ -1,0 +1,120 @@
+<Component
+  name="Timesheet"
+  var.weekStart="{mondayOfWeek(new Date())}"
+  var.duplicatePayload="{null}"
+>
+  <DataSource
+    id="entriesDs"
+    url="{apiBase + '/time-entries?from=' + weekStart + '&amp;to=' + shiftDate(weekStart, 6) + '&amp;_t=' + entriesTick}"
+    credentials="include"
+  />
+  <DataSource
+    id="projectsDs"
+    url="{apiBase + '/projects'}"
+    credentials="include"
+  />
+  <DataSource
+    id="tagsDs"
+    url="{apiBase + '/tags'}"
+    credentials="include"
+  />
+  <DataSource
+    id="clientsDs"
+    url="{apiBase + '/clients'}"
+    credentials="include"
+  />
+
+  <Viewport id="vp" />
+
+  <EntryModal
+    id="entryModal"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => entriesDs.refetch()"
+    onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
+  />
+
+  <APICall id="duplicateCall"
+    method="POST"
+    url="{apiBase + '/time-entries'}"
+    credentials="include"
+    body="{duplicatePayload}"
+    onSuccess="() => { toast.success('Entry duplicated'); entriesDs.refetch(); }"
+    onError="() => toast.error('Duplicate failed')" />
+
+  <APICall id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/time-entries/' + $param}"
+    credentials="include"
+    confirmMessage="Delete this entry?"
+    confirmTitle="Delete entry"
+    onSuccess="() => { toast.success('Entry deleted'); entriesDs.refetch(); }"
+    onError="() => toast.error('Delete failed')" />
+
+  <!-- Desktop layout: TimerBar is in the AppHeader, so the page body just
+       holds the stats Card + main content (Calendar or List by `view`).
+       VStack and Card use height="*" so the calendar grows to fill the
+       page (works alongside the .xmlui-page-root flex override in index.html). -->
+  <VStack when="{!vp.value || !vp.value.isMobile}" height="*" width="*" padding="$space-0" gap="$space-4">
+      <CalendarScreen when="{$props.view !== 'list'}"
+        id="calendarScreen"
+        height="*"
+        weekStart="{weekStart}"
+        entries="{entriesDs.value || []}"
+        projects="{projectsDs.value || []}"
+        tags="{tagsDs.value || []}"
+        onWeekChange="(v) => weekStart = v"
+        onOpenEntry="(e) => entryModal.open(e)"
+        onAddSlot="(slot) => entryModal.openForSlot(slot)"
+        onSaved="() => entriesDs.refetch()"
+      />
+      <ListScreen when="{$props.view === 'list'}"
+        weekStart="{weekStart}"
+        entries="{entriesDs.value || []}"
+        projects="{projectsDs.value || []}"
+        tags="{tagsDs.value || []}"
+        clients="{clientsDs.value || []}"
+        onWeekChange="(v) => weekStart = v"
+        onOpenEntry="(e) => entryModal.open(e)"
+        onAddNew="() => entryModal.open()"
+        onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
+        onDeleteEntry="(e) => deleteCall.execute(e.id)"
+      />
+  </VStack>
+
+  <!-- Mobile layout: main content (Calendar or List) fills the screen via
+       the flex chain in index.html; the compact TimerBar docks at the
+       bottom. -->
+  <VStack when="{vp.value && vp.value.isMobile}"
+    height="*" width="*" gap="$space-2">
+    <CalendarScreen when="{$props.view !== 'list'}"
+      id="calendarScreenMobile"
+      height="*"
+      weekStart="{weekStart}"
+      entries="{entriesDs.value || []}"
+      projects="{projectsDs.value || []}"
+      onWeekChange="(v) => weekStart = v"
+      onOpenEntry="(e) => entryModal.open(e)"
+      onAddSlot="(slot) => entryModal.openForSlot(slot)"
+      onSaved="() => entriesDs.refetch()"
+    />
+    <ListScreen when="{$props.view === 'list'}"
+      weekStart="{weekStart}"
+      entries="{entriesDs.value || []}"
+      projects="{projectsDs.value || []}"
+      tags="{tagsDs.value || []}"
+      clients="{clientsDs.value || []}"
+      onWeekChange="(v) => weekStart = v"
+      onOpenEntry="(e) => entryModal.open(e)"
+      onAddNew="() => entryModal.open()"
+      onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
+    />
+
+    <TimerBar
+      compact="true"
+      projects="{projectsDs.value || []}"
+      onSaved="() => entriesDs.refetch()"
+      onCounterStop="(p) => entryModal.openForCounter(p)"
+    />
+  </VStack>
+</Component>

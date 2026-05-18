@@ -1,0 +1,26 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "xmlui start",
+    "build": "xmlui build",
+    "preview": "xmlui preview",
+    "build-prod": "npm run build -- --prod",
+    "release-ci": "npm run build-prod && xmlui zip-dist",
+    "check": "xmlui check src --format gnu"
+  },
+  "dependencies": {
+    "@ark-ui/react": "^5.36.2",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@tauri-apps/api": "^2.11.0",
+    "chart.js": "^4.5.1",
+    "pdfmake": "^0.2.10",
+    "react-chartjs-2": "^5.3.1",
+    "xmlui": "0.12.27",
+    "xmlui-pdf": "^0.1.13"
+  },
+  "devDependencies": {
+    "@types/pdfmake": "^0.2.9"
+  }
+}

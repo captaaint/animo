@@ -1,0 +1,187 @@
+<Component
+  name="ListScreen"
+  var.searchText="{''}"
+>
+  <VStack gap="$space-4">
+    <Card
+      verticalAlignment="center"
+      gap="$space-2"
+      orientation="horizontal"
+      wrapContent
+    >
+      <HStack>
+        <Text fontWeight="bold">
+          {formatMonthDay($props.weekStart)}
+        </Text>
+        <Button
+          variant="outlined"
+          size="sm"
+          label="◀"
+          onClick="emitEvent('weekChange', shiftDate($props.weekStart, -7))"
+        />
+        <Button
+          variant="outlined"
+          size="sm"
+          label="Today"
+          onClick="emitEvent('weekChange', mondayOfWeek(new Date()))"
+        />
+        <Button
+          variant="outlined"
+          size="sm"
+          label="▶"
+          onClick="emitEvent('weekChange', shiftDate($props.weekStart, 7))"
+        />
+
+      </HStack>
+      <SpaceFiller />
+      <HStack width="200px">
+        <VStack gap="$space-0">
+          <Text variant="secondary" fontSize="$fontSize-small">
+            Today
+          </Text>
+          <Text fontWeight="bold">
+            {formatDuration(dayTotalSeconds($props.entries || [], toIsoDate(new Date())))}
+          </Text>
+        </VStack>
+        <VStack gap="$space-0">
+          <Text variant="secondary" fontSize="$fontSize-small">
+            This week
+          </Text>
+          <Text fontWeight="bold">
+            {formatDuration(weekTotalSeconds($props.entries || [], mondayOfWeek(new Date())))}
+          </Text>
+        </VStack>
+      </HStack>
+    </Card>
+
+    <Card orientation="horizontal" gap="$space-2">
+      <HStack width="100%" gap="$space-2" verticalAlignment="center">
+        <TextBox
+          width="*"
+          placeholder="Search description, project, client, tag…"
+          startIcon="search"
+          testId="list-search"
+          initialValue="{searchText}"
+          onDidChange="(v) => searchText = v || ''"
+        />
+        <Button label="New entry" icon="plus" onClick="emitEvent('addNew')" />
+      </HStack>
+    </Card>
+    <Card height="*">
+      <List
+        backgroundColor="transparent"
+        data="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || [])}"
+        groupBy="{(e) => (e.startTime || '').slice(0, 10)}"
+      >
+        <property name="emptyListTemplate">
+          <NoResult
+            label="{searchText ? 'No entries match your search' : 'No entries this week'}"
+          />
+        </property>
+        <property name="groupHeaderTemplate">
+          <HStack
+            verticalAlignment="center"
+            gap="$space-3"
+            paddingVertical="$space-2"
+            paddingHorizontal="$space-3"
+            backgroundColor="$color-surface-50"
+            borderRadius="$borderRadius"
+            cursor="pointer"
+            onClick="$group.toggle()"
+          >
+            <Icon name="{$group.isExpanded ? 'chevrondown' : 'chevronright'}" />
+            <Text fontWeight="bold">
+              {$group.key}
+            </Text>
+            <SpaceFiller />
+            <Text variant="secondary" fontWeight="bold">
+              {formatDuration(($group.items || []).reduce((s, e) => s + durationSeconds(e.startTime, e.endTime), 0))}
+            </Text>
+          </HStack>
+        </property>
+
+        <property name="itemTemplate">
+          <HStack
+            testId="list-entry-row"
+            verticalAlignment="center"
+            gap="$space-3"
+            paddingVertical="$space-2"
+            paddingHorizontal="$space-3"
+          >
+            <VStack width="*" minWidth="220px" gap="$space-1">
+              <Text>
+                {$item.description || '(no description)'}
+              </Text>
+              <HStack
+                gap="$space-1"
+                wrapContent="true"
+                when="{($item.tagIds || []).length > 0}"
+              >
+                <Items data="{tagsForIds($item.tagIds, $props.tags || [])}">
+                  <Stack
+                    backgroundColor="{$item.color}"
+                    paddingHorizontal="$space-2"
+                    paddingVertical="$space-0"
+                    borderRadius="$borderRadius-small"
+                  >
+                    <Text fontSize="$fontSize-tiny" color="white">
+                      {$item.name}
+                    </Text>
+                  </Stack>
+                </Items>
+              </HStack>
+            </VStack>
+            <Text width="140px" variant="secondary">
+              {projectName($item.projectId, $props.projects || [])}
+            </Text>
+            <Text width="110px" variant="secondary">
+              {$item.startTime.slice(11,16)} – {$item.endTime.slice(11,16)}
+            </Text>
+            <Text width="80px" fontWeight="bold">
+              {formatDuration(durationSeconds($item.startTime, $item.endTime))}
+            </Text>
+            <DropdownMenu alignment="end">
+              <property name="triggerTemplate">
+                <Button
+                  icon="dotmenuhorizontal"
+                  variant="ghost"
+                  size="sm"
+                  themeColor="secondary"
+                  testId="row-actions"
+                />
+              </property>
+              <MenuItem
+                icon="play"
+                testId="resume-entry"
+                onClick="publishResume($item.description, $item.projectId)"
+              >
+                Resume
+              </MenuItem>
+              <MenuItem
+                icon="copy"
+                testId="duplicate-entry"
+                onClick="emitEvent('duplicateEntry', $item)"
+              >
+                Duplicate
+              </MenuItem>
+              <MenuItem
+                icon="pencil"
+                onClick="emitEvent('openEntry', $item)"
+              >
+                Edit
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem
+                icon="trash"
+                testId="delete-entry"
+                onClick="emitEvent('deleteEntry', $item)"
+              >
+                Delete
+              </MenuItem>
+            </DropdownMenu>
+          </HStack>
+        </property>
+      </List>
+    </Card>
+  </VStack>
+</Component>

@@ -1,0 +1,34 @@
+<Component name="SettingsScreen">
+  <Card padding="$space-6" gap="$space-4">
+    <H2>Settings</H2>
+
+    <VStack gap="$space-2">
+      <Text variant="secondary" fontSize="$fontSize-small">
+        Signed in as
+      </Text>
+      <HStack verticalAlignment="center" gap="$space-3">
+        <Avatar size="md" name="{$props.userName || ''}" />
+        <Text fontWeight="bold">{$props.userName || ''}</Text>
+      </HStack>
+    </VStack>
+
+    <VStack gap="$space-2">
+      <Text variant="secondary" fontSize="$fontSize-small">
+        Appearance
+      </Text>
+      <HStack verticalAlignment="center" gap="$space-2">
+        <Text>Theme</Text>
+        <ToneChangerButton />
+      </HStack>
+    </VStack>
+
+    <VStack gap="$space-2">
+      <Text variant="secondary" fontSize="$fontSize-small">
+        Account
+      </Text>
+      <Button label="Sign out" icon="exit"
+        themeColor="attention" variant="outlined"
+        onClick="emitEvent('signOut')" />
+    </VStack>
+  </Card>
+</Component>

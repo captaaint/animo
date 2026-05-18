@@ -1,0 +1,49 @@
+<Component
+  name="CalendarScreen"
+  var.pendingUpdate="{null}"
+  var.selectedSlot="{null}"
+  method.clearSelection="() => { selectedSlot = null; }"
+>
+  <APICall
+    id="updateCall"
+    method="PATCH"
+    url="{apiBase + '/time-entries/' + (pendingUpdate ? pendingUpdate.id : '')}"
+    credentials="include"
+    body="{{
+      projectId: pendingUpdate ? pendingUpdate.projectId : null,
+      description: pendingUpdate ? (pendingUpdate.description || '') : '',
+      startTime: pendingUpdate ? pendingUpdate.startTime : null,
+      endTime: pendingUpdate ? pendingUpdate.endTime : null
+    }}"
+    onSuccess="() => { emitEvent('saved'); pendingUpdate = null; }"
+    onError="() => { toast.error('Update failed'); pendingUpdate = null; }"
+  />
+
+  <Card padding="0">
+    <WeekCalendar
+      entries="{$props.entries || []}"
+      projects="{$props.projects || []}"
+      currentDate="{$props.weekStart}"
+      viewMode="week"
+      weekStartsOn="1"
+      dayStartHour="0"
+      dayEndHour="24"
+      pixelsPerHour="48"
+      snapMinutes="15"
+      defaultEntryMinutes="60"
+      inlinePopover="false"
+      selectedSlot="{selectedSlot}"
+      height="*"
+      width="*"
+      onCreateEntry="(p) => emitEvent('addSlot', {
+      date: p.startTime.slice(0, 10),
+      startTime: p.startTime.slice(11, 16),
+      endTime: p.endTime.slice(11, 16)
+    })"
+      onSlotSelected="(s) => { selectedSlot = s; }"
+      onSelectEntry="(e) => emitEvent('openEntry', e)"
+      onUpdateEntry="(p) => { pendingUpdate = p; updateCall.execute(); }"
+      onDateChange="(d) => emitEvent('weekChange', mondayOfWeek(new Date(d)))"
+    />
+  </Card>
+</Component>

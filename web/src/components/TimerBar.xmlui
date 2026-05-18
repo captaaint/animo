@@ -1,0 +1,121 @@
+<Component name="TimerBar"
+  var.descr="{''}"
+  var.projectId="{null}"
+  var.tagIds="{[]}"
+  var.pendingStart="{null}"
+  var.pendingEnd="{null}"
+  var.projectSearch="{''}"
+  var.tagSearch="{''}"
+>
+  <Stopwatch id="sw"
+    onStop="(p) => {
+      if ($props.compact) {
+        emitEvent('counterStop', { startTime: p.startTime, endTime: p.endTime, description: descr, projectId: projectId, tagIds: tagIds });
+        descr = '';
+        tagIds = [];
+      } else {
+        pendingStart = p.startTime;
+        pendingEnd = p.endTime;
+        saveCounterCall.execute();
+      }
+    }"
+    onResume="(p) => {
+      const newDescr = (p &amp;&amp; p.description) ? p.description : '';
+      descr = newDescr;
+      projectId = (p &amp;&amp; p.projectId) ? p.projectId : null;
+      if (typeof descrFull !== 'undefined' &amp;&amp; descrFull) descrFull.setValue(newDescr);
+      if (typeof descrCompact !== 'undefined' &amp;&amp; descrCompact) descrCompact.setValue(newDescr);
+    }"
+  />
+
+  <APICall id="saveCounterCall"
+    method="POST"
+    url="{apiBase + '/time-entries'}"
+    credentials="include"
+    body="{{
+      projectId: projectId || null,
+      description: descr || '',
+      startTime: pendingStart,
+      endTime: pendingEnd,
+      tagIds: tagIds || []
+    }}"
+    onSuccess="() => {
+      toast.success('Entry saved');
+      pendingStart = null;
+      pendingEnd = null;
+      descr = '';
+      tagIds = [];
+      emitEvent('saved');
+    }"
+    onError="() => { pendingStart = null; pendingEnd = null; toast.error('Save failed'); }"
+  />
+
+  <!-- Compact: single-row input + icon-only play/stop button. On stop the
+       parent opens EntryModal so the user can review the description, project,
+       and time range before persisting. -->
+  <Card when="{$props.compact}" padding="$space-2">
+    <HStack verticalAlignment="center" gap="$space-2" width="*">
+      <TextBox id="descrCompact" width="*"
+        placeholder="What are you working on?"
+        initialValue="{descr}"
+        onDidChange="(v) => descr = v"
+        variant="ghost" />
+      <Text when="{sw.value &amp;&amp; sw.value.running}"
+        fontFamily="monospace" fontWeight="bold">
+        {sw.value.display}
+      </Text>
+      <Button when="{!sw.value || !sw.value.running}"
+        label="▶" themeColor="primary" size="sm"
+        onClick="sw.start()" />
+      <Button when="{sw.value &amp;&amp; sw.value.running}"
+        label="■" themeColor="attention" size="sm"
+        onClick="sw.stop()" />
+    </HStack>
+  </Card>
+
+  <!-- Full (desktop) layout: borderless toolbar. The description input takes
+       all leftover space (via star sizing); the right-side group (timer +
+       play/stop) keeps its natural width. -->
+  <HStack when="{!$props.compact}" verticalAlignment="center" gap="$space-3" width="100%">
+    <TextBox id="descrFull" width="*"
+      placeholder="What are you working on?"
+      initialValue="{descr}"
+      onDidChange="(v) => descr = v"
+      variant="ghost" />
+
+    <!-- Project picker: ark-ui Combobox-backed Picker extension. Searchable,
+         single-select, grouped by client. -->
+    <Picker
+      icon="folder"
+      data="{projectsForPicker($props.projects, $props.clients, '')}"
+      valueField="id"
+      labelField="name"
+      groupField="clientName"
+      colorField="color"
+      searchPlaceholder="Search project or client"
+      value="{projectId}"
+      onDidChange="(v) => projectId = v" />
+
+    <!-- Tag picker: same component, multi-select. -->
+    <Picker
+      icon="hash"
+      multiSelect="true"
+      data="{$props.tags || []}"
+      valueField="id"
+      labelField="name"
+      colorField="color"
+      searchPlaceholder="Search tag"
+      value="{tagIds}"
+      onDidChange="(v) => tagIds = v || []" />
+
+    <Text fontFamily="monospace" fontSize="1.25rem" fontWeight="bold">
+      {sw.value &amp;&amp; sw.value.display ? sw.value.display : '0:00:00'}
+    </Text>
+    <Button when="{!sw.value || !sw.value.running}"
+      label="▶" themeColor="primary"
+      onClick="sw.start()" />
+    <Button when="{sw.value &amp;&amp; sw.value.running}"
+      label="■" themeColor="attention"
+      onClick="sw.stop()" />
+  </HStack>
+</Component>

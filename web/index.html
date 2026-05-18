@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/resources/favicon.ico" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Tracker</title>
+  <style>
+    /* DatePicker / Select dropdown popovers shouldn't shrink to anchor width */
+    [data-radix-popper-content-wrapper] {
+      min-width: 280px !important;
+    }
+
+    /* Mobile: hide the brand logo (Time Tracker) in the AppHeader.
+       It still appears inside the mobile drawer (NavPanel), which is rendered
+       outside [role="banner"], so it remains unaffected. */
+    @media (max-width: 991.98px) {
+      [role="banner"] [data-part-id="hamburger"] + div {
+        display: none;
+      }
+    }
+
+    /* Force the Page wrapper to flex-grow inside its viewport-sized container
+       so the inner Timesheet layout (VStack with height="*", WeekCalendar
+       with height: 100%) can size to the available space. The default
+       flex: 0 0 auto would collapse the wrapper to content size, leaving
+       large empty regions below the calendar on desktop, and letting the
+       compact TimerBar drift off-screen on mobile. */
+    .xmlui-page-root {
+      flex: 1 1 0% !important;
+      min-height: 0 !important;
+    }
+
+    /* Let XMLUI's Card / Stack content wrappers shrink below their content
+       intrinsic size so a child with height: 100% (the WeekCalendar) is
+       bounded by the flex chain instead of pushing its parent to overflow.
+       Without this, the wrapper keeps its default min-height: auto and the
+       calendar grid spills past the viewport. */
+    [class*="_wrapper_1j0nj"],
+    [class*="_base_z1u49"] {
+      min-height: 0 !important;
+    }
+
+    /* Reports-only override: drop the Page wrapper's horizontal padding so the
+       scrollable VStack reaches the viewport edge and the scrollbar sits flush
+       with the right side. The Reports page is identified by its unique
+       header-export button — adjust the selector if that test-id changes. */
+    .xmlui-page-root:has([data-testid="filter-client"]) {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+
+    /* xmlui's vertical-sticky + scrollWholePage=false layout doesn't provide a
+       page-level scroll container (mainContentArea ends up overflow:initial
+       per the .vertical:not(.scrollWholePage) rule, and the .desktop rule that
+       would set pageContentContainer:auto doesn't apply). Force the page
+       content container to be the scroll container so List / Reports / etc.
+       can scroll their content while the AppHeader stays sticky. */
+    [class*="_pageContentContainer"] {
+      overflow-y: auto !important;
+    }
+  </style>
+  <script>window.__PUBLIC_PATH = '/'</script>
+  <script>
+    window.downloadAuthed = async function (url, _unusedToken, fileName) {
+      const resp = await fetch(url, { credentials: 'include' });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const blob = await resp.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(objectUrl); }, 1000);
+    };
+
+    window.fetchPdfBlob = function (url, _unusedToken, onReady, onError, onProgress) {
+      var startedAt = Date.now();
+      var minVisibleMs = 700;
+      var fake = 0.05;
+      if (onProgress) onProgress(fake);
+      var timer = setInterval(function () {
+        fake = Math.min(0.85, fake + 0.08);
+        if (onProgress) onProgress(fake);
+      }, 100);
+
+      fetch(url, { credentials: 'include' })
+        .then(function (resp) {
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          return resp.blob();
+        })
+        .then(function (blob) {
+          clearInterval(timer);
+          var blobUrl = URL.createObjectURL(blob);
+          var elapsed = Date.now() - startedAt;
+          var wait = Math.max(0, minVisibleMs - elapsed);
+          setTimeout(function () {
+            if (onProgress) onProgress(1);
+            setTimeout(function () {
+              if (onReady) onReady(blobUrl);
+            }, 250);
+          }, wait);
+        })
+        .catch(function (e) {
+          clearInterval(timer);
+          if (onError) onError(e.message || 'failed');
+        });
+    };
+
+    window.downloadBlobUrl = function (blobUrl, fileName) {
+      var a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    window.revokeBlobUrl = function (blobUrl) {
+      try { URL.revokeObjectURL(blobUrl); } catch (e) {}
+    };
+
+    window.setIframeBlob = function (selector, blobUrl) {
+      var fullUrl = blobUrl + '#toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+      var attempts = 0;
+      var apply = function () {
+        var el = document.querySelector(selector);
+        if (el && el.tagName === 'IFRAME') {
+          el.removeAttribute('src');
+          el.src = fullUrl;
+          return;
+        }
+        if (attempts++ < 30) setTimeout(apply, 50);
+      };
+      apply();
+    };
+  </script>
+  <base href="/">
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="/index.ts"></script>
+</body>
+</html>

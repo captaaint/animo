@@ -1,0 +1,72 @@
+<Component name="TagsScreen">
+  <DataSource
+    id="tagsDs"
+    url="{apiBase + '/tags'}"
+    credentials="include"
+  />
+
+  <TagModal id="tagModal" onSaved="() => tagsDs.refetch()" />
+
+  <APICall
+    id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/tags/' + $param}"
+    credentials="include"
+    confirmMessage="Are you sure?"
+    confirmTitle="Delete tag"
+    onSuccess="() => { toast.success('Tag deleted'); tagsDs.refetch(); }"
+    onError="() => toast.error('Delete failed')"
+  />
+
+  <VStack padding="$space-6" gap="$space-4" height="*" overflowY="auto">
+    <Card padding="$space-2">
+      <Table
+        data="{tagsDs.value || []}"
+        when="{(tagsDs.value || []).length > 0}"
+      >
+        <Column header="Color" width="80px">
+          <Stack
+            backgroundColor="{$item.color}"
+            width="20px"
+            height="20px"
+            borderRadius="50%"
+          />
+        </Column>
+        <Column bindTo="name" header="Name" />
+        <Column header="Actions" width="200px">
+          <HStack gap="$space-2">
+            <Button
+              label="Edit"
+              icon="pencil"
+              size="sm"
+              variant="outlined"
+              onClick="tagModal.open($item)"
+            />
+            <Button
+              label="Delete"
+              icon="trash"
+              size="sm"
+              variant="outlined"
+              themeColor="attention"
+              onClick="deleteCall.execute($item.id)"
+            />
+          </HStack>
+        </Column>
+      </Table>
+
+      <NoResult
+        when="{tagsDs.loaded &amp;&amp; (tagsDs.value || []).length === 0}"
+        label="No tags yet"
+      />
+      <Spinner when="{!tagsDs.loaded}" />
+    </Card>
+    <HStack verticalAlignment="center">
+      <Button
+        label="New tag"
+        icon="plus"
+        testId="new-tag-btn"
+        onClick="tagModal.open()"
+      />
+    </HStack>
+  </VStack>
+</Component>
