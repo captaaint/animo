@@ -12,6 +12,8 @@
     "tauri": "cd desktop && tauri",
     "tauri:dev": "cd desktop && tauri dev",
     "tauri:build": "cd web && npm run build && cd ../desktop && tauri build",
+    "build:demo": "cd web && npm run build:demo",
+    "preview:demo": "cd web && npm run preview:demo",
     "e2e": "cd e2e && npm test",
     "e2e:ui": "cd e2e && npm run test:ui",
     "e2e:headed": "cd e2e && npm run test:headed",

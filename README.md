@@ -49,6 +49,43 @@ npm run dev:demo    # dev mode against demo.db (login: demo@example.com / demo12
 
 ---
 
+## Public demo (Netlify)
+
+The frontend can be built as a fully static, no-backend demo — handy for
+sharing a working link without exposing the Rust API.
+
+```bash
+npm run build:demo      # builds web/dist/ with the demo flag baked in
+npm run preview:demo    # build + preview locally on http://localhost:4173
+```
+
+What that gives you:
+
+- The bundle ships a hand-written `/api/*` fetch handler
+  ([`web/src/demoApi.ts`](web/src/demoApi.ts)) that monkey-patches
+  `window.fetch` before XMLUI mounts. Every request that would normally
+  hit the Rust backend is served in-browser instead.
+- Authentication is bypassed — `GET /auth/me` always returns a "Demo User",
+  so visitors land directly on the Calendar.
+- Seed data covers the past four work-weeks (~50 time entries across
+  2 clients × 2 projects × 5 tags), regenerated relative to "today" on
+  first launch.
+- All CRUD persists in `localStorage` (key `tt-demo-state-v1`). Clearing
+  the site's storage resets the demo to its initial seed.
+
+### Deploying to Netlify
+
+The repo ships a `netlify.toml` that points Netlify at `web/` as the base
+directory and runs `npm run build:demo`. Once the repository is connected
+to Netlify, the default settings produce a working deployment — nothing
+else to configure.
+
+`NPM_FLAGS=--ignore-scripts` is set in `netlify.toml` to skip a broken
+upstream `xmlui-pdf` postinstall step; the package still works for the
+demo's use case.
+
+---
+
 ## Desktop app (Tauri)
 
 ```bash
@@ -79,7 +116,7 @@ Notes:
 
 ## Architecture overview
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Browser (or Tauri webview)                                          │
 │  ┌────────────────────────────────────────────────────────────────┐  │
@@ -118,7 +155,7 @@ URL as its `apiBase` global. See [`desktop/src/lib.rs`](desktop/src/lib.rs).
 
 ## Repository layout
 
-```
+```text
 time-tracking-app/
 ├── api/             Rust crate — axum router, sqlx pool, migrations
 │   ├── src/
