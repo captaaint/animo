@@ -18,24 +18,74 @@
     onError="() => toast.error('Delete failed')"
   />
 
-  <VStack gap="$space-4" padding="0" width="100%" maxWidth="800px" marginHorizontal="auto"
-    height="*" overflowY="auto">
-    <Card when-xs="false" when-sm="true" padding="$space-2">
+  <VStack
+    gap="$space-4"
+    padding="0"
+    width="100%"
+    maxWidth="800px"
+    marginHorizontal="auto"
+    height="*"
+    overflowY="auto"
+  >
+
+    <!-- Desktop/tablet: table with combined Client column + Color hex column -->
+    <Card when-xs="false" when-sm="true" padding="$space-4">
+      <!-- Desktop/tablet: New client button top-right -->
+      <HStack when-xs="false" when-sm="true" verticalAlignment="center">
+        <SpaceFiller />
+        <Button
+          label="New client"
+          icon="plus"
+          onClick="clientModal.open()"
+        />
+      </HStack>
       <Table
         data="{clientsDs.value || []}"
         when="{(clientsDs.value || []).length > 0}"
       >
-        <Column header="Color" width="80px">
-          <Stack backgroundColor="{$item.color}" width="20px" height="20px"
-            borderRadius="3px" />
+        <Column header="Client">
+          <HStack verticalAlignment="center" gap="$space-2">
+            <Stack
+              backgroundColor="{$item.color}"
+              width="20px"
+              height="20px"
+              borderRadius="3px"
+            />
+            <Text>
+              {$item.name}
+            </Text>
+          </HStack>
         </Column>
-        <Column bindTo="name" header="Name" />
-        <Column header="Actions" width="100px">
+        <Column header="Color" width="160px">
+          <HStack verticalAlignment="center" gap="$space-2">
+            <Stack
+              backgroundColor="{$item.color}"
+              width="20px"
+              height="20px"
+              borderRadius="3px"
+            />
+            <Text variant="secondary">
+              {$item.color}
+            </Text>
+          </HStack>
+        </Column>
+        <Column header="" width="100px">
           <HStack gap="$space-1" verticalAlignment="center">
-            <Button icon="pencil" size="xs" variant="ghost" padding="$space-2"
-              onClick="clientModal.open($item)" />
-            <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
-              onClick="deleteCall.execute($item.id)" />
+            <Button
+              icon="pencil"
+              size="xs"
+              variant="ghost"
+              padding="$space-2"
+              onClick="clientModal.open($item)"
+            />
+            <Button
+              icon="trash"
+              size="xs"
+              variant="ghost"
+              themeColor="attention"
+              padding="$space-2"
+              onClick="deleteCall.execute($item.id)"
+            />
           </HStack>
         </Column>
       </Table>
@@ -47,55 +97,68 @@
       <Spinner when="{!clientsDs.loaded}" />
     </Card>
 
-    <VStack when-xs="true" when-sm="false" gap="0">
-      <Card when="{(clientsDs.value || []).length > 0}" padding="$space-2" width="100%">
-        <Theme
-          padding-summary-ExpandableItem="$space-1 $space-4"
-          paddingHorizontal-content-ExpandableItem="$space-4"
-          paddingVertical-content-ExpandableItem="$space-1"
-          backgroundColor-summary-ExpandableItem="$color-primary-50">
-          <Items data="{clientsDs.value || []}">
-            <ExpandableItem fullWidthSummary="true" initiallyExpanded="true">
-              <property name="summary">
-                <HStack verticalAlignment="center" gap="$space-3">
-                  <Stack backgroundColor="{$item.color}" width="14px" height="14px"
-                    borderRadius="3px" />
-                  <Text fontWeight="600">{$item.name}</Text>
-                </HStack>
+    <!-- Mobile: flat list rows with three-dot context menu -->
+    <VStack when-xs="true" when-sm="false" gap="$space-3">
+      <Card
+        when="{(clientsDs.value || []).length > 0}"
+        padding="$space-2"
+        width="100%"
+      >
+        <Items data="{clientsDs.value || []}">
+          <HStack
+            verticalAlignment="center"
+            paddingVertical="$space-3"
+            paddingHorizontal="$space-2"
+            gap="$space-3"
+          >
+            <Stack
+              backgroundColor="{$item.color}"
+              width="16px"
+              height="16px"
+              borderRadius="3px"
+            />
+            <Text fontWeight="500">
+              {$item.name}
+            </Text>
+            <SpaceFiller />
+            <DropdownMenu alignment="end">
+              <property name="triggerTemplate">
+                <Button
+                  icon="dotmenu"
+                  variant="ghost"
+                  size="sm"
+                  themeColor="secondary"
+                />
               </property>
-
-              <VStack gap="$space-2" paddingVertical="0">
-                <HStack gap="$space-2" width="100%" verticalAlignment="center">
-                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="bold">Color</Text>
-                  <Stack backgroundColor="{$item.color}" width="14px" height="14px"
-                    borderRadius="3px" />
-                  <SpaceFiller />
-                  <HStack gap="$space-1" verticalAlignment="center">
-                    <Button icon="pencil" size="xs" variant="ghost" padding="$space-2"
-                      onClick="clientModal.open($item)" />
-                    <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
-                      onClick="deleteCall.execute($item.id)" />
-                  </HStack>
-                </HStack>
-              </VStack>
-            </ExpandableItem>
-          </Items>
-        </Theme>
+              <MenuItem icon="pencil" onClick="clientModal.open($item)">
+                Edit
+              </MenuItem>
+              <MenuSeparator />
+              <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">
+                Delete
+              </MenuItem>
+            </DropdownMenu>
+          </HStack>
+        </Items>
       </Card>
 
-      <Card when="{clientsDs.loaded &amp;&amp; (clientsDs.value || []).length === 0}"
-        padding="$space-2" width="100%">
+      <Card
+        when="{clientsDs.loaded &amp;&amp; (clientsDs.value || []).length === 0}"
+        padding="$space-2"
+        width="100%"
+      >
         <NoResult label="No clients yet" />
       </Card>
       <Spinner when="{!clientsDs.loaded}" />
-    </VStack>
 
-    <HStack verticalAlignment="center">
+      <!-- Mobile: full-width New client button at bottom -->
       <Button
+        width="100%"
         label="New client"
         icon="plus"
         onClick="clientModal.open()"
       />
-    </HStack>
+    </VStack>
+
   </VStack>
 </Component>
