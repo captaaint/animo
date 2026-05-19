@@ -64,11 +64,19 @@
         </HStack>
 
         <TextBox bindTo="name" label="Name" required="true" />
-        <Select bindTo="clientId" label="Client" placeholder="(no client)">
+        <AutoComplete
+          bindTo="clientId"
+          label="Client"
+          placeholder="(no client)">
           <Items data="{$props.clients || []}">
-            <Option value="{$item.id}" label="{$item.name}" />
+            <Option value="{$item.id}" label="{$item.name}">
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                <Text>{$item.name}</Text>
+              </HStack>
+            </Option>
           </Items>
-        </Select>
+        </AutoComplete>
         <ColorPicker bindTo="color" label="Color" />
         <HStack gap="$space-2" width="*">
           <NumberBox bindTo="hourlyRate" label="Hourly rate" width="*" minValue="0" step="1" />

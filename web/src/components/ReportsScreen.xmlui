@@ -236,7 +236,7 @@
                 <Stack
                   width="10px"
                   height="10px"
-                  borderRadius="50%"
+                  borderRadius="3px"
                   backgroundColor="{$item.color}"
                 />
                 <Text>
@@ -267,7 +267,7 @@
                 <Stack
                   width="10px"
                   height="10px"
-                  borderRadius="50%"
+                  borderRadius="3px"
                   backgroundColor="{$item.color}"
                 />
                 <Text>

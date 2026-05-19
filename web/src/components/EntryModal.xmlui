@@ -172,31 +172,41 @@
         <Text fontWeight="500" color="$color-surface-900">
           Project
         </Text>
-        <Select
+        <AutoComplete
           width="100%"
           initialValue="{projectId}"
           onDidChange="(v) => projectId = v"
           placeholder="No project">
           <Items data="{$props.projects || []}">
-            <Option value="{$item.id}" label="{$item.name}" />
+            <Option value="{$item.id}" label="{$item.name}">
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                <Text>{$item.name}</Text>
+              </HStack>
+            </Option>
           </Items>
-        </Select>
+        </AutoComplete>
       </VStack>
 
       <VStack gap="$space-2" width="100%">
         <Text fontWeight="500" color="$color-surface-900">
           Tags
         </Text>
-        <Select
+        <AutoComplete
           width="100%"
-          multiSelect="true"
+          multi="true"
           initialValue="{entryTagIds}"
           onDidChange="(v) => entryTagIds = v || []"
           placeholder="No tags">
           <Items data="{$props.tags || []}">
-            <Option value="{$item.id}" label="{$item.name}" />
+            <Option value="{$item.id}" label="{$item.name}">
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                <Text>{$item.name}</Text>
+              </HStack>
+            </Option>
           </Items>
-        </Select>
+        </AutoComplete>
       </VStack>
 
       <HStack gap="$space-5" width="100%" verticalAlignment="end">
