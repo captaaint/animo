@@ -45,12 +45,6 @@
       >
         <Column header="Client">
           <HStack verticalAlignment="center" gap="$space-2">
-            <Stack
-              backgroundColor="{$item.color}"
-              width="20px"
-              height="20px"
-              borderRadius="3px"
-            />
             <Text>
               {$item.name}
             </Text>
