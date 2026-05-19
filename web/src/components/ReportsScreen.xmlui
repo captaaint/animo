@@ -6,6 +6,8 @@
   var.searchText="{''}"
   var.projectFilter="{[]}"
   var.tagFilter="{[]}"
+  var.sliceBy="{'billable'}"
+  var.distData="{((fe) => sliceBy === 'project' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const key = p ? String(p.id) : '__none__'; if (!acc[key]) acc[key] = { label: p ? p.name : 'No project', seconds: 0, color: p ? p.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'client' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const c = p ? (clientsDs.value || []).find(cc => cc.id === p.clientId) : null; const key = c ? String(c.id) : '__none__'; if (!acc[key]) acc[key] = { label: c ? c.name : 'No client', seconds: 0, color: c ? c.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'tag' ? fe.reduce((acc, e) => { const tags = tagsForIds(e.tagIds || [], tagsDs.value || []); if (tags.length === 0) { const ex = acc.find(a => a.label === 'No tag'); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: 'No tag', seconds: e.durationSeconds || 0, color: '#C2BDB7' }); } else { tags.forEach(t => { const ex = acc.find(a => a.label === t.name); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: t.name, seconds: e.durationSeconds || 0, color: t.color }); }); } return acc; }, []) : [{ label: 'Billable', seconds: sumBillableSeconds(fe) }, { label: 'Non-billable', seconds: sumDurationSeconds(fe) - sumBillableSeconds(fe) }])(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))}"
 >
   <Viewport id="vp" />
 
@@ -425,20 +427,31 @@
       </Card>
 
       <Card width="*" minWidth="0" padding="$space-6" gap="$space-4">
-        <H3>
-          Billable distribution
-        </H3>
+        <HStack verticalAlignment="center">
+          <H3>{sliceBy === 'project' ? 'Project' : sliceBy === 'client' ? 'Client' : sliceBy === 'tag' ? 'Tag' : 'Billable'} distribution</H3>
+          <SpaceFiller />
+          <DropdownMenu alignment="end">
+            <property name="triggerTemplate">
+              <Button
+                variant="outlined"
+                size="sm"
+                label="{sliceBy === 'project' ? 'Projects' : sliceBy === 'client' ? 'Clients' : sliceBy === 'tag' ? 'Tags' : 'Billable'}"
+                icon="chevrondown" />
+            </property>
+            <MenuItem onClick="sliceBy = 'billable'">Billable</MenuItem>
+            <MenuItem onClick="sliceBy = 'project'">Projects</MenuItem>
+            <MenuItem onClick="sliceBy = 'client'">Clients</MenuItem>
+            <MenuItem onClick="sliceBy = 'tag'">Tags</MenuItem>
+          </DropdownMenu>
+        </HStack>
         <Stack height="280px" width="*" horizontalAlignment="center" verticalAlignment="center">
           <PieChart
             cutout="65%"
             showLegend="true"
-            data="{[
-              { label: 'Billable', seconds: sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) },
-              { label: 'Non-billable', seconds: sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) - sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) }
-            ]}"
+            data="{distData}"
             dataKey="seconds"
             nameKey="label"
-            colors="{['#3F8F8C', '#C2BDB7']}"
+            colors="{sliceBy === 'billable' ? ['#3F8F8C', '#C2BDB7'] : (distData || []).map(d => d.color)}"
           />
         </Stack>
       </Card>
@@ -464,20 +477,31 @@
       </Card>
 
       <Card width="*" padding="$space-6" gap="$space-4">
-        <H3>
-          Billable distribution
-        </H3>
+        <HStack verticalAlignment="center">
+          <H3>{sliceBy === 'project' ? 'Project' : sliceBy === 'client' ? 'Client' : sliceBy === 'tag' ? 'Tag' : 'Billable'} distribution</H3>
+          <SpaceFiller />
+          <DropdownMenu alignment="end">
+            <property name="triggerTemplate">
+              <Button
+                variant="outlined"
+                size="sm"
+                label="{sliceBy === 'project' ? 'Projects' : sliceBy === 'client' ? 'Clients' : sliceBy === 'tag' ? 'Tags' : 'Billable'}"
+                icon="chevrondown" />
+            </property>
+            <MenuItem onClick="sliceBy = 'billable'">Billable</MenuItem>
+            <MenuItem onClick="sliceBy = 'project'">Projects</MenuItem>
+            <MenuItem onClick="sliceBy = 'client'">Clients</MenuItem>
+            <MenuItem onClick="sliceBy = 'tag'">Tags</MenuItem>
+          </DropdownMenu>
+        </HStack>
         <Stack height="280px" width="*" horizontalAlignment="center" verticalAlignment="center">
           <PieChart
             cutout="65%"
             showLegend="true"
-            data="{[
-              { label: 'Billable', seconds: sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) },
-              { label: 'Non-billable', seconds: sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) - sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) }
-            ]}"
+            data="{distData}"
             dataKey="seconds"
             nameKey="label"
-            colors="{['#3F8F8C', '#C2BDB7']}"
+            colors="{sliceBy === 'billable' ? ['#3F8F8C', '#C2BDB7'] : (distData || []).map(d => d.color)}"
           />
         </Stack>
       </Card>

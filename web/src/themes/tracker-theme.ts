@@ -147,6 +147,7 @@ export const TrackerTheme: ThemeDefinition = {
     "minWidth-DropdownMenu": "0",
     "backgroundColor-MenuItem--hover": "$color-surface-100",
     "backgroundColor-dropdown-item--hover": "$color-surface-200",
+    "textColor-indicator-Select": "$color-primary-500",
     "backgroundColor-popover-WeekCalendar": "$backgroundColor-primary",
     "backgroundColor-popoverPrimary-WeekCalendar": "$backgroundColor-primary",
 

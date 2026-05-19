@@ -129,8 +129,12 @@ export function Picker(props: PickerProps) {
     if (multiSelect) {
       setValue(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);
     } else {
-      setValue([id]);
-      setOpen(false);
+      if (value.includes(id)) {
+        setValue([]);
+      } else {
+        setValue([id]);
+        setOpen(false);
+      }
     }
   };
 
@@ -262,6 +266,12 @@ function ItemRow({
         />
       )}
       <span style={{ flex: 1, textAlign: "left" }}>{item.label}</span>
+      {selected && (
+        <PickerIcon
+          name="checkmark"
+          color="var(--xmlui-color-primary-500, #3F8F8C)"
+        />
+      )}
     </button>
   );
 }
