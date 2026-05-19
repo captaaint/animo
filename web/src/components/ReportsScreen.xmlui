@@ -304,72 +304,104 @@
       </HStack>
     </Card>
 
-    <!-- KPI bar -->
-    <Card padding="0">
-      <HStack verticalAlignment="center" width="*" gap="$space-0">
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Total Hours
-          </Text>
-          <H3 marginBottom="0">
-            {formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}
-          </H3>
-        </VStack>
-        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Billable Hours
-          </Text>
-          <H3 marginBottom="0">
-            {sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0
-              ? '—'
-              : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}
-          </H3>
-        </VStack>
-        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Amount
-          </Text>
-          <H3 marginBottom="0">
-            {amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0
-              ? '—'
-              : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))
-                  .map(a => a.amount.toFixed(2) + ' ' + a.currency)
-                  .join(' + ')}
-          </H3>
-        </VStack>
-        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Average Daily Hours
-          </Text>
-          <H3 marginBottom="0">
-            {formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}
-          </H3>
-        </VStack>
+    <!-- KPI cards – desktop: single row, mobile: 2×2 -->
+    <HStack when-xs="false" when-sm="true" gap="$space-4">
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="clock" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="file-text" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0 ? '—' : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="credit-card" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0 ? '—' : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="trending-up" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+    </HStack>
+
+    <VStack when-xs="true" when-sm="false" gap="$space-4">
+      <HStack gap="$space-4">
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="clock" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+            </VStack>
+          </HStack>
+        </Card>
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="file-text" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0 ? '—' : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+            </VStack>
+          </HStack>
+        </Card>
       </HStack>
-    </Card>
+      <HStack gap="$space-4">
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="credit-card" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0 ? '—' : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+            </VStack>
+          </HStack>
+        </Card>
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="trending-up" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}</Text>
+            </VStack>
+          </HStack>
+        </Card>
+      </HStack>
+    </VStack>
 
     <!-- Charts: side-by-side on desktop, stacked on mobile -->
     <HStack

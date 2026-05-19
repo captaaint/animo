@@ -11,15 +11,15 @@ const App: StandaloneAppDescription = {
     useHashBasedRouting: false,
   },
   resources: {
-    // In-app brand mark (rendered by the AppHeader's <Logo> component).
-    // `logo-dark` is picked automatically when the dark tone is active.
     logo: "resources/full-logo.svg",
     "logo-dark": "resources/dark-full-logo.svg",
-    // Favicon — the same square icon used for the Tauri desktop bundle so
-    // browser tabs and the dock icon stay visually consistent.
     favicon: "resources/logo.svg",
     "font.inter":
       "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "icon.clock": "resources/clock.svg",
+    "icon.credit-card": "resources/credit-card.svg",
+    "icon.file-text": "resources/file-text.svg",
+    "icon.trending-up": "resources/trending-up.svg",
   },
 };
 
