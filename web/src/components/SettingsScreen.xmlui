@@ -17,8 +17,8 @@
         Appearance
       </Text>
       <HStack verticalAlignment="center" gap="$space-2">
-        <Text>Theme</Text>
-        <ToneChangerButton />
+        <Text>Tone</Text>
+        <ToneSwitch />
       </HStack>
     </VStack>
 

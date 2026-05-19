@@ -11,7 +11,9 @@ const App: StandaloneAppDescription = {
   },
   resources: {
     // In-app brand mark (rendered by the AppHeader's <Logo> component).
+    // `logo-dark` is picked automatically when the dark tone is active.
     logo: "resources/full-logo.svg",
+    "logo-dark": "resources/dark-full-logo.svg",
     // Favicon — the same square icon used for the Tauri desktop bundle so
     // browser tabs and the dock icon stay visually consistent.
     favicon: "resources/logo.svg",

@@ -17,11 +17,6 @@
     else pageTitle = 'Calendar';
   }"
 >
-  <property name="logoTemplate">
-    <Link to="/" height="100%">
-      <Image src="resources/full-logo.svg" height="$space-8" />
-    </Link>
-  </property>
   <AuthGate
     id="auth"
     apiBase="{apiBase}"
@@ -80,10 +75,6 @@
 
     <NavGroup label="Account" initiallyExpanded="true">
       <NavLink to="/settings" label="Settings" icon="cog" />
-      <HStack verticalAlignment="center" gap="0.5rem" padding="0.5rem 1rem">
-        <Inspector />
-        <Text>Inspector</Text>
-      </HStack>
     </NavGroup>
   </NavPanel>
 
