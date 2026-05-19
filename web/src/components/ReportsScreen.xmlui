@@ -95,6 +95,13 @@
     </VStack>
   </ModalDialog>
 
+  <EntryModal
+    id="entryModal"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => summaryDs.refetch()"
+  />
+
   <APICall
     id="duplicateCall"
     method="POST"
@@ -103,6 +110,17 @@
     body="{$param}"
     onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); }"
     onError="() => toast.error('Duplicate failed')"
+  />
+
+  <APICall
+    id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/time-entries/' + $param}"
+    credentials="include"
+    confirmTitle="Delete entry"
+    confirmMessage="Delete this entry?"
+    onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
+    onError="() => toast.error('Delete failed')"
   />
 
   <!-- Cross-tree export trigger: AppHeader's "Export PDF" button dispatches
@@ -560,18 +578,23 @@
                       />
                     </property>
                     <MenuItem
-                      icon="play"
-                      testId="resume-entry"
-                      onClick="publishResume($item.description, $item.projectId)"
-                    >
-                      Resume
-                    </MenuItem>
-                    <MenuItem
                       icon="copy"
-                      testId="duplicate-entry"
                       onClick="duplicateCall.execute(duplicateEntryPayload($item))"
                     >
                       Duplicate
+                    </MenuItem>
+                    <MenuItem
+                      icon="pencil"
+                      onClick="entryModal.open($item)"
+                    >
+                      Edit
+                    </MenuItem>
+                    <MenuSeparator />
+                    <MenuItem
+                      icon="trash"
+                      onClick="deleteCall.execute($item.id)"
+                    >
+                      Delete
                     </MenuItem>
                   </DropdownMenu>
                 </Column>
@@ -774,18 +797,23 @@
                             />
                           </property>
                           <MenuItem
-                            icon="play"
-                            testId="resume-entry"
-                            onClick="publishResume($item.description, $item.projectId)"
-                          >
-                            Resume
-                          </MenuItem>
-                          <MenuItem
                             icon="copy"
-                            testId="duplicate-entry"
                             onClick="duplicateCall.execute(duplicateEntryPayload($item))"
                           >
                             Duplicate
+                          </MenuItem>
+                          <MenuItem
+                            icon="pencil"
+                            onClick="entryModal.open($item)"
+                          >
+                            Edit
+                          </MenuItem>
+                          <MenuSeparator />
+                          <MenuItem
+                            icon="trash"
+                            onClick="deleteCall.execute($item.id)"
+                          >
+                            Delete
                           </MenuItem>
                         </DropdownMenu>
                       </HStack>

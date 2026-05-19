@@ -220,13 +220,6 @@
                       />
                     </property>
                     <MenuItem
-                      icon="play"
-                      testId="resume-entry"
-                      onClick="publishResume($item.description, $item.projectId)"
-                    >
-                      Resume
-                    </MenuItem>
-                    <MenuItem
                       icon="copy"
                       testId="duplicate-entry"
                       onClick="emitEvent('duplicateEntry', $item)"
@@ -444,13 +437,6 @@
                             width="28px"
                           />
                         </property>
-                        <MenuItem
-                          icon="play"
-                          testId="resume-entry"
-                          onClick="publishResume($item.description, $item.projectId)"
-                        >
-                          Resume
-                        </MenuItem>
                         <MenuItem
                           icon="copy"
                           testId="duplicate-entry"

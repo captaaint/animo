@@ -73,24 +73,27 @@
     <VStack when-xs="true" when-sm="false" gap="$space-3">
       <Card when="{(tagsDs.value || []).length > 0}" padding="$space-2" width="100%">
         <Items data="{tagsDs.value || []}">
-          <HStack
-            verticalAlignment="center"
-            paddingVertical="$space-3"
-            paddingHorizontal="$space-2"
-            gap="$space-3"
-          >
-            <Stack backgroundColor="{$item.color}" width="16px" height="16px" borderRadius="3px" />
-            <Text fontWeight="500">{$item.name}</Text>
-            <SpaceFiller />
-            <DropdownMenu alignment="end">
-              <property name="triggerTemplate">
-                <Button icon="dotmenu" variant="ghost" size="sm" themeColor="secondary" />
-              </property>
-              <MenuItem icon="pencil" onClick="tagModal.open($item)">Edit</MenuItem>
-              <MenuSeparator />
-              <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">Delete</MenuItem>
-            </DropdownMenu>
-          </HStack>
+          <VStack gap="0">
+            <HStack
+              verticalAlignment="center"
+              paddingVertical="$space-3"
+              paddingHorizontal="$space-2"
+              gap="$space-3"
+            >
+              <Stack backgroundColor="{$item.color}" width="16px" height="16px" borderRadius="3px" />
+              <Text fontWeight="500">{$item.name}</Text>
+              <SpaceFiller />
+              <DropdownMenu alignment="end">
+                <property name="triggerTemplate">
+                  <Button icon="dotmenu" variant="ghost" size="sm" themeColor="secondary" />
+                </property>
+                <MenuItem icon="pencil" onClick="tagModal.open($item)">Edit</MenuItem>
+                <MenuSeparator />
+                <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">Delete</MenuItem>
+              </DropdownMenu>
+            </HStack>
+            <ContentSeparator when="{!$isLast}" />
+          </VStack>
         </Items>
       </Card>
 
