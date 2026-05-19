@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "start": "xmlui start",
-    "build": "xmlui build",
+    "build": "xmlui build --buildMode=INLINE_ALL",
     "preview": "xmlui preview",
     "build-prod": "npm run build -- --prod",
     "release-ci": "npm run build-prod && xmlui zip-dist",
-    "build:demo": "VITE_ANIMO_DEMO=true xmlui build --prod",
+    "build:demo": "VITE_ANIMO_DEMO=true xmlui build --prod --buildMode=INLINE_ALL",
     "preview:demo": "npm run build:demo && xmlui preview",
     "check": "xmlui check src --format gnu"
   },
