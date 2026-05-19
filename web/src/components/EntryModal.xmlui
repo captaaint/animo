@@ -79,6 +79,8 @@
     method="DELETE"
     url="{apiBase + '/time-entries/' + (editItem ? editItem.id : '')}"
     credentials="include"
+    confirmTitle="Delete entry"
+    confirmMessage="Delete this entry?"
     onSuccess="() => {
       toast.success('Entry deleted');
       emitEvent('saved');
@@ -98,6 +100,12 @@
     closeButtonVisible="false"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">
     <VStack gap="$space-4" padding="$space-2">
+      <HStack when="{editItem}" width="*" verticalAlignment="center">
+        <SpaceFiller />
+        <Button icon="trash" variant="ghost" themeColor="attention" size="sm"
+          onClick="deleteCall.execute()" />
+      </HStack>
+
       <TextBox id="descrInput"
         label="Description"
         width="*"

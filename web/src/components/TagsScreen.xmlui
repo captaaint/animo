@@ -18,8 +18,9 @@
     onError="() => toast.error('Delete failed')"
   />
 
-  <VStack gap="$space-4" padding="0" width="*" height="*" overflowY="auto">
-    <Card padding="$space-2">
+  <VStack gap="$space-4" padding="0" width="100%" maxWidth="800px" marginHorizontal="auto"
+    height="*" overflowY="auto">
+    <Card when-xs="false" when-sm="true" padding="$space-2">
       <Table
         data="{tagsDs.value || []}"
         when="{(tagsDs.value || []).length > 0}"
@@ -29,27 +30,16 @@
             backgroundColor="{$item.color}"
             width="20px"
             height="20px"
-            borderRadius="50%"
+            borderRadius="3px"
           />
         </Column>
         <Column bindTo="name" header="Name" />
-        <Column header="Actions" width="200px">
-          <HStack gap="$space-2">
-            <Button
-              label="Edit"
-              icon="pencil"
-              size="sm"
-              variant="outlined"
-              onClick="tagModal.open($item)"
-            />
-            <Button
-              label="Delete"
-              icon="trash"
-              size="sm"
-              variant="outlined"
-              themeColor="attention"
-              onClick="deleteCall.execute($item.id)"
-            />
+        <Column header="Actions" width="100px">
+          <HStack gap="$space-1" verticalAlignment="center">
+            <Button icon="pencil" size="xs" variant="ghost" padding="$space-2"
+              onClick="tagModal.open($item)" />
+            <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
+              onClick="deleteCall.execute($item.id)" />
           </HStack>
         </Column>
       </Table>
@@ -60,6 +50,58 @@
       />
       <Spinner when="{!tagsDs.loaded}" />
     </Card>
+
+    <VStack when-xs="true" when-sm="false" gap="0">
+      <Card when="{(tagsDs.value || []).length > 0}" padding="$space-2" width="100%">
+        <Theme
+          padding-summary-ExpandableItem="$space-1 $space-4"
+          paddingHorizontal-content-ExpandableItem="$space-4"
+          paddingVertical-content-ExpandableItem="$space-1"
+          backgroundColor-summary-ExpandableItem="$color-primary-50">
+          <Items data="{tagsDs.value || []}">
+            <ExpandableItem fullWidthSummary="true" initiallyExpanded="true">
+              <property name="summary">
+                <HStack verticalAlignment="center" gap="$space-3">
+                  <Stack
+                    backgroundColor="{$item.color}"
+                    width="14px"
+                    height="14px"
+                    borderRadius="3px"
+                  />
+                  <Text fontWeight="600">{$item.name}</Text>
+                </HStack>
+              </property>
+
+              <VStack gap="$space-2" paddingVertical="0">
+                <HStack gap="$space-2" width="100%" verticalAlignment="center">
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="bold">Color</Text>
+                  <Stack
+                    backgroundColor="{$item.color}"
+                    width="14px"
+                    height="14px"
+                    borderRadius="3px"
+                  />
+                  <SpaceFiller />
+                  <HStack gap="$space-1" verticalAlignment="center">
+                    <Button icon="pencil" size="xs" variant="ghost" padding="$space-2"
+                      onClick="tagModal.open($item)" />
+                    <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
+                      onClick="deleteCall.execute($item.id)" />
+                  </HStack>
+                </HStack>
+              </VStack>
+            </ExpandableItem>
+          </Items>
+        </Theme>
+      </Card>
+
+      <Card when="{tagsDs.loaded &amp;&amp; (tagsDs.value || []).length === 0}"
+        padding="$space-2" width="100%">
+        <NoResult label="No tags yet" />
+      </Card>
+      <Spinner when="{!tagsDs.loaded}" />
+    </VStack>
+
     <HStack verticalAlignment="center">
       <Button
         label="New tag"

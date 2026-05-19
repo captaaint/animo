@@ -195,7 +195,6 @@ export function Picker(props: PickerProps) {
                         key={it.value}
                         item={it}
                         selected={value.includes(it.value)}
-                        showCheck={multiSelect}
                         onClick={() => toggle(it.value)}
                       />
                     ))}
@@ -206,7 +205,6 @@ export function Picker(props: PickerProps) {
                     key={it.value}
                     item={it}
                     selected={value.includes(it.value)}
-                    showCheck={multiSelect}
                     onClick={() => toggle(it.value)}
                   />
                 ))}
@@ -223,12 +221,10 @@ export function Picker(props: PickerProps) {
 function ItemRow({
   item,
   selected,
-  showCheck,
   onClick,
 }: {
   item: { value: string; label: string; color: string };
   selected: boolean;
-  showCheck: boolean;
   onClick: () => void;
 }) {
   return (
@@ -253,23 +249,13 @@ function ItemRow({
         }
       }}
     >
-      {showCheck && (
-        <PickerIcon
-          name={selected ? "checkmark" : "square"}
-          color={
-            selected
-              ? "var(--xmlui-color-primary, rgb(37, 99, 235))"
-              : "var(--xmlui-textColor-secondary, rgb(148, 163, 184))"
-          }
-        />
-      )}
       {item.color && (
         <span
           style={{
             display: "inline-block",
             width: 10,
             height: 10,
-            borderRadius: "50%",
+            borderRadius: 3,
             backgroundColor: item.color,
             flexShrink: 0,
           }}

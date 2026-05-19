@@ -199,6 +199,18 @@ function groupEntriesByDay(entriesList) {
   return Object.values(groups).sort((a, b) => b.date.localeCompare(a.date));
 }
 
+function groupReportEntriesByDay(entriesList) {
+  const groups = {};
+  for (const e of entriesList || []) {
+    const day = (e.startTime || '').slice(0, 10);
+    if (!day) continue;
+    if (!groups[day]) groups[day] = { date: day, entries: [], totalSec: 0 };
+    groups[day].entries.push(e);
+    groups[day].totalSec += e.durationSeconds || 0;
+  }
+  return Object.values(groups).sort((a, b) => b.date.localeCompare(a.date));
+}
+
 function parseTimeToSec(hhmm) {
   if (!hhmm) return 0;
   const parts = String(hhmm).split(':');
