@@ -9,7 +9,9 @@
     "build-prod": "npm run build -- --prod",
     "release-ci": "npm run build-prod && xmlui zip-dist",
     "build:demo": "VITE_ANIMO_DEMO=true xmlui build --prod --buildMode=INLINE_ALL",
+    "build:demo-ssg": "VITE_ANIMO_DEMO=true NODE_OPTIONS=\"--import ./scripts/ssg-register-css-noop.mjs\" xmlui ssg",
     "preview:demo": "npm run build:demo && xmlui preview",
+    "preview:demo-ssg": "npm run build:demo-ssg && npx -y http-server ./dist-ssg",
     "check": "xmlui check src --format gnu"
   },
   "dependencies": {

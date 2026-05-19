@@ -1,29 +1,45 @@
 # Netlify config for the demo deployment.
 #
+# Deployment mode: XMLUI SSG (static site generation).
+#
 # What this configures:
 #   * `base` — Netlify cd's into web/ before running anything. Treats web/ as
 #     the project root for both `npm install` and the build command.
-#   * `command` — XMLUI build with the in-browser API handler bundled in.
-#     `VITE_ANIMO_DEMO=true` makes index.ts install the handler and point
-#     the frontend at the relative `/api` prefix instead of a real backend.
+#   * `command` — `xmlui ssg` pre-renders every static <Page> route in
+#     Main.xmlui into its own HTML file under dist-ssg/. The shell ships
+#     the brand theme inline so the first paint is the full Animo
+#     chrome; the JS bundle hydrates the dynamic content after.
+#     `VITE_ANIMO_DEMO=true` flips the runtime onto the in-browser MSW
+#     API handler so /api/* resolves against the local demo data instead
+#     of a real backend.
+#     `NODE_OPTIONS=--import ./scripts/ssg-register-css-noop.mjs`
+#     registers a tiny Node ESM loader. The published `xmlui@0.12.27`
+#     ships browser-only `import './xmlui.css'` side-effects and
+#     `import.meta.env.X` references that Vite normally rewrites at
+#     consumer build time but that survive untouched when the SSR build
+#     externalizes xmlui. The loader stubs CSS specifiers and guards the
+#     env reads at Node `import()` time. See
+#     web/scripts/ssg-css-noop-loader.mjs.
 #   * `publish` — relative to `base`, so the final dir on Netlify is
-#     `web/dist/`.
+#     `web/dist-ssg/`. The SSG output includes per-route index.html files
+#     plus a `200.html` fallback for unknown routes.
 #   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`
-#     postinstall step that 404s in fresh installs. The package still works
-#     for our use case.
-#   * SPA rewrite — every unmatched path falls back to `/index.html` so
-#     XMLUI's client-side router can pick it up.
+#     postinstall step that 404s in fresh installs. The package still
+#     works for our use case.
 
 [build]
 base = "web"
-publish = "dist"
-command = "npm run build:demo"
+publish = "dist-ssg"
+command = "npm run build:demo-ssg"
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"
 NODE_VERSION = "20"
 
+# SPA fallback for any path that doesn't have a pre-rendered HTML file.
+# SSG writes `200.html` exactly for this purpose — Netlify will serve it
+# while keeping the URL intact, then XMLUI's client-side router takes over.
 [[redirects]]
 from = "/*"
 status = 200
-to = "/index.html"
+to = "/200.html"
