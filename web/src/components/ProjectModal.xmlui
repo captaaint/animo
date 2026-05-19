@@ -17,7 +17,12 @@
     onError="() => toast.error('Save failed')"
   />
 
-  <ModalDialog id="modal" padding="$space-4" title="{editItem ? 'Edit project' : 'New project'}">
+  <ModalDialog
+    id="modal"
+    padding="$space-4"
+    maxWidth="560px"
+    closeButtonVisible="false"
+  >
     <Form
       data="{editItem
         ? { name: editItem.name, clientId: editItem.clientId, color: editItem.color,
@@ -29,23 +34,52 @@
         hourlyRate: Number(data.hourlyRate) || 0,
         currency: data.currency || 'EUR'
       })"
+      hideButtonRow="true"
     >
-      <TextBox bindTo="name" label="Name" required="true" />
-      <Select bindTo="clientId" label="Client" placeholder="(no client)">
-        <Items data="{$props.clients || []}">
-          <Option value="{$item.id}" label="{$item.name}" />
-        </Items>
-      </Select>
-      <ColorPicker bindTo="color" label="Color" />
-      <HStack gap="$space-2" width="*">
-        <NumberBox bindTo="hourlyRate" label="Hourly rate" width="*" minValue="0" step="1" />
-        <Select bindTo="currency" label="Currency" width="120px">
-          <Option value="EUR" label="EUR" />
-          <Option value="USD" label="USD" />
-          <Option value="GBP" label="GBP" />
-          <Option value="HUF" label="HUF" />
+      <VStack gap="$space-4" width="100%">
+        <HStack width="100%" verticalAlignment="center">
+          <Button
+            icon="close"
+            type="button"
+            variant="outlined"
+            themeColor="secondary"
+            width="48px"
+            height="48px"
+            borderRadius="50%"
+            onClick="modal.close()"
+          />
+          <SpaceFiller />
+          <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+            {editItem ? 'Edit project' : 'New project'}
+          </Text>
+          <SpaceFiller />
+          <Button
+            icon="checkmark"
+            type="submit"
+            themeColor="primary"
+            width="48px"
+            height="48px"
+            borderRadius="50%"
+          />
+        </HStack>
+
+        <TextBox bindTo="name" label="Name" required="true" />
+        <Select bindTo="clientId" label="Client" placeholder="(no client)">
+          <Items data="{$props.clients || []}">
+            <Option value="{$item.id}" label="{$item.name}" />
+          </Items>
         </Select>
-      </HStack>
+        <ColorPicker bindTo="color" label="Color" />
+        <HStack gap="$space-2" width="*">
+          <NumberBox bindTo="hourlyRate" label="Hourly rate" width="*" minValue="0" step="1" />
+          <Select bindTo="currency" label="Currency" width="120px">
+            <Option value="EUR" label="EUR" />
+            <Option value="USD" label="USD" />
+            <Option value="GBP" label="GBP" />
+            <Option value="HUF" label="HUF" />
+          </Select>
+        </HStack>
+      </VStack>
     </Form>
   </ModalDialog>
 </Component>

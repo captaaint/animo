@@ -212,7 +212,7 @@
                   <DropdownMenu alignment="end">
                     <property name="triggerTemplate">
                       <Button
-                        icon="dotmenuvertical"
+                        icon="dotmenu"
                         variant="ghost"
                         size="sm"
                         themeColor="secondary"
