@@ -7,7 +7,8 @@ const App: StandaloneAppDescription = {
   themes: [TrackerTheme],
   defaultTheme: "tracker-theme",
   appGlobals: {
-    xsVerbose: true,
+    xsVerbose: false,
+    useHashBasedRouting: false,
   },
   resources: {
     // In-app brand mark (rendered by the AppHeader's <Logo> component).

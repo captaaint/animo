@@ -3,7 +3,7 @@
   scrollWholePage="true"
   global.apiBase="{window.__ANIMO_API_BASE__ || 'http://127.0.0.1:8080/api'}"
   global.token="{readToken()}"
-  global.pageTitle="{pageTitleFromPath(window.location.hash ? window.location.hash.slice(1) : window.location.pathname)}"
+  global.pageTitle="{pageTitleFromPath(window.location.pathname)}"
   global.entriesTick="{0}"
   onDidNavigate="(to) => pageTitle = pageTitleFromPath(to)"
 >
@@ -42,7 +42,7 @@
     <Text
       fontWeight="700"
       fontSize="$fontSize-large">
-      {pageTitle}
+      {pageTitle || pageTitleFromPath(window.location.pathname)}
     </Text>
     <TimerBar when="{(!appVp.value || !appVp.value.isMobile) &amp;&amp; (pageTitle === 'Calendar' || pageTitle === 'List')}"
       projects="{appProjectsDs.value || []}"
