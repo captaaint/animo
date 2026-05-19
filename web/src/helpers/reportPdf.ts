@@ -9,7 +9,8 @@
 //   - "Detailed Report" headline + date range
 //   - Avatar circle (initials) in the top-right
 //   - "TOTAL HOURS" big number
-//   - Table: TIME ENTRY (description), TAGS, DURATION, DATE
+//   - Table: TIME ENTRY (description), TAGS, DURATION, DATE,
+//     grouped by client and project when the report spans multiple groups
 //
 // pdfmake is loaded eagerly (one ~600 KB chunk), but the actual rendering
 // is deferred to the first call. Roboto (the default vfs font) covers
@@ -194,6 +195,8 @@ const TEXT = "#1E2328"; // Deep Charcoal
 const TEXT_MUTED = "#76716D"; // surface-500
 const BORDER = "#E0DCD7"; // surface-200
 const BORDER_FAINT = "#F0EDEA"; // surface-100
+const GROUP_HEADER_BG = "#F7F4F1";
+const SQUARE = "■";
 
 function buildDocDefinition(opts: ReportPdfOptions) {
   const totalText = formatHms(opts.totalSeconds);
@@ -340,18 +343,130 @@ function buildTableBody(entries: ReportEntry[]) {
     ];
   }
 
-  const rows = entries.map((e) => [
-    timeEntryCell(e),
-    tagsCell(e.tags || []),
-    { text: formatHms(e.durationSeconds), color: TEXT, alignment: "left" },
-    { text: formatDate(e.date), color: TEXT, alignment: "left" },
-  ]);
+  const grouped = groupEntriesByClientAndProject(entries);
+  const shouldGroup =
+    grouped.length > 1 ||
+    grouped.some((clientGroup) => clientGroup.projects.length > 1);
+
+  const rows = shouldGroup
+    ? grouped.flatMap((clientGroup) => clientGroupRows(clientGroup))
+    : entries.map(entryRow);
 
   return [headerRow, ...rows];
 }
 
+type ProjectEntryGroup = {
+  name: string;
+  color: string | null;
+  clientName: string;
+  entries: ReportEntry[];
+};
+
+type ClientEntryGroup = {
+  name: string;
+  projects: ProjectEntryGroup[];
+};
+
+function groupEntriesByClientAndProject(entries: ReportEntry[]): ClientEntryGroup[] {
+  const clientMap = new Map<string, ClientEntryGroup>();
+
+  for (const entry of entries) {
+    const clientName = entry.clientName || "(no client)";
+    const projectName = entry.projectName || "(no project)";
+    const clientKey = clientName.toLocaleLowerCase();
+    const projectKey = projectName.toLocaleLowerCase();
+
+    let clientGroup = clientMap.get(clientKey);
+    if (!clientGroup) {
+      clientGroup = { name: clientName, projects: [] };
+      clientMap.set(clientKey, clientGroup);
+    }
+
+    let projectGroup = clientGroup.projects.find(
+      (group) => group.name.toLocaleLowerCase() === projectKey,
+    );
+    if (!projectGroup) {
+      projectGroup = {
+        name: projectName,
+        color: entry.projectColor || null,
+        clientName,
+        entries: [],
+      };
+      clientGroup.projects.push(projectGroup);
+    }
+
+    projectGroup.entries.push(entry);
+  }
+
+  return Array.from(clientMap.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+  ).map((clientGroup) => ({
+    ...clientGroup,
+    projects: clientGroup.projects.sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { sensitivity: "base" }),
+    ),
+  }));
+}
+
+function clientGroupRows(group: ClientEntryGroup) {
+  const rows: unknown[][] = [];
+
+  for (const project of group.projects) {
+    rows.push(projectHeaderRow(project));
+    rows.push(...project.entries.map(entryRow));
+  }
+
+  return rows;
+}
+
+function projectHeaderRow(project: ProjectEntryGroup) {
+  return [
+    {
+      stack: [
+        {
+          text: [
+            { text: `${SQUARE}  `, color: project.color || PRIMARY },
+            { text: project.name, bold: true, color: TEXT },
+          ],
+        },
+        {
+          text: project.clientName,
+          color: TEXT_MUTED,
+          fontSize: 8,
+          margin: [14, 0, 0, 0],
+        },
+      ],
+      colSpan: 2,
+      fillColor: GROUP_HEADER_BG,
+      margin: [6, 2, 0, 2],
+    },
+    { text: "", fillColor: GROUP_HEADER_BG },
+    {
+      text: formatHms(sumEntrySeconds(project.entries)),
+      color: TEXT_MUTED,
+      bold: true,
+      fillColor: GROUP_HEADER_BG,
+      margin: [0, 7, 6, 0],
+    },
+    { text: "", fillColor: GROUP_HEADER_BG, margin: [0, 2, 6, 2] },
+  ];
+}
+
+function entryRow(e: ReportEntry) {
+  return [
+    timeEntryCell(e),
+    tagsCell(e.tags || []),
+    { text: formatHms(e.durationSeconds), color: TEXT, alignment: "left" },
+    { text: formatDate(e.date), color: TEXT, alignment: "left" },
+  ];
+}
+
+function sumEntrySeconds(entries: ReportEntry[]) {
+  return entries.reduce((acc, entry) => acc + entry.durationSeconds, 0);
+}
+
 /**
- * Tags cell — each tag rendered as "● name", coloured bullet matching the
+ * Tags cell — each tag rendered as a coloured square plus name, matching the
  * tag's colour from the in-app list. pdfmake's inline text array supports
  * mixed colours within one logical paragraph, so tags wrap as a single run.
  */
@@ -362,7 +477,7 @@ function tagsCell(tags: ReportEntryTag[]) {
   const runs: unknown[] = [];
   tags.forEach((t, i) => {
     if (i > 0) runs.push({ text: "  ", color: TEXT });
-    runs.push({ text: "● ", color: t.color || TEXT_MUTED });
+    runs.push({ text: `${SQUARE} `, color: t.color || TEXT_MUTED });
     runs.push({ text: t.name, color: TEXT });
   });
   return { text: runs, fontSize: 11 };
@@ -383,7 +498,7 @@ function timeEntryCell(e: ReportEntry) {
 /**
  * Builds the right-hand side of the TOTAL HOURS header — a list of
  * project + client pairs found in the report range, deduplicated and stacked
- * vertically (project with its color bullet, client with a muted bullet).
+ * vertically (project with its color square, client with a muted square).
  */
 function projectClientStack(entries: ReportEntry[]): unknown[] {
   const seen = new Set<string>();
@@ -391,7 +506,7 @@ function projectClientStack(entries: ReportEntry[]): unknown[] {
   for (const e of entries) {
     const projectName = e.projectName || "";
     const clientName = e.clientName || "";
-    const key = `${projectName} ${clientName}`;
+    const key = `${projectName}\u0000${clientName}`;
     if (!projectName && !clientName) continue;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -408,7 +523,7 @@ function projectClientStack(entries: ReportEntry[]): unknown[] {
     if (p.projectName) {
       stack.push({
         text: [
-          { text: "●  ", color: p.projectColor || PRIMARY },
+          { text: `${SQUARE}  `, color: p.projectColor || PRIMARY },
           { text: p.projectName, color: TEXT },
         ],
         fontSize: 11,
@@ -418,7 +533,7 @@ function projectClientStack(entries: ReportEntry[]): unknown[] {
     if (p.clientName) {
       stack.push({
         text: [
-          { text: "●  ", color: TEXT_MUTED },
+          { text: `${SQUARE}  `, color: TEXT_MUTED },
           { text: p.clientName, color: TEXT_MUTED },
         ],
         fontSize: 11,
@@ -493,4 +608,3 @@ function formatDate(iso: string): string {
 function pad2(n: number): string {
   return n < 10 ? "0" + n : "" + n;
 }
-
