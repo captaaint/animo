@@ -77,6 +77,33 @@ function formatDuration(seconds) {
   return h + 'h ' + (m < 10 ? '0' + m : m) + 'm';
 }
 
+function formatDurationCompact(seconds) {
+  const h = Math.floor((seconds || 0) / 3600);
+  const m = Math.floor(((seconds || 0) % 3600) / 60);
+  if (h <= 0) return m + 'm';
+  return h + 'h ' + m + 'm';
+}
+
+function formatLongDate(iso) {
+  if (!iso) return '';
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const d = new Date(iso + 'T00:00:00Z');
+  return d.getUTCFullYear() + '. ' + (d.getUTCMonth() + 1) + '. ' + d.getUTCDate() + '. (' + weekdays[d.getUTCDay()] + ')';
+}
+
+function formatDatePart(iso) {
+  if (!iso) return '';
+  const d = new Date(iso + 'T00:00:00Z');
+  return d.getUTCFullYear() + '. ' + (d.getUTCMonth() + 1) + '. ' + d.getUTCDate() + '.';
+}
+
+function formatDayPart(iso) {
+  if (!iso) return '';
+  const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const d = new Date(iso + 'T00:00:00Z');
+  return '(' + weekdays[d.getUTCDay()] + ')';
+}
+
 function projectName(projectId, projectsList) {
   if (!projectId) return '(no project)';
   const p = projectsList.find(p => p.id === projectId);
@@ -208,6 +235,9 @@ function groupEntriesByDay(entriesList) {
     if (!groups[day]) groups[day] = { date: day, entries: [], totalSec: 0 };
     groups[day].entries.push(e);
     groups[day].totalSec += durationSeconds(e.startTime, e.endTime);
+  }
+  for (const g of Object.values(groups)) {
+    g.entries.sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
   }
   return Object.values(groups).sort((a, b) => b.date.localeCompare(a.date));
 }

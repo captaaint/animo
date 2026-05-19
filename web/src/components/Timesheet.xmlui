@@ -86,12 +86,7 @@
        Timesheet content, while the current view fills the remaining space. -->
   <Stack when="{vp.value && vp.value.isMobile}"
     height="*" width="*" gap="$space-2">
-      <TimerBar
-        dock="top"
-        compact="true"
-        projects="{projectsDs.value || []}"
-        onCounterStop="(p) => entryModal.openForCounter(p)"
-      />
+
       <CalendarScreen when="{$props.view !== 'list'}"
         id="calendarScreenMobile"
         dock="stretch"
