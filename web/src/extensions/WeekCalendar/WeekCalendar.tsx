@@ -1258,19 +1258,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
           background: tokens["backgroundColor-toolbar"],
         }}
       >
-        {isMobile && (
-          <div
-            style={{
-              fontWeight: 600,
-              marginRight: 4,
-              color: tokens["textColor-strong"],
-              fontSize: 14,
-            }}
-          >
-            {weekStartLabel}
-          </div>
-        )}
-        <div style={{ display: "inline-flex", gap: 8 }}>
+        <div style={{ display: "inline-flex", gap: 8, ...(isMobile ? { margin: "0 auto" } : {}) }}>
           <Button
             variant="solid"
             size="sm"
@@ -1352,19 +1340,21 @@ export function WeekCalendar(props: WeekCalendarProps) {
           style={{
             display: "grid",
             gridTemplateColumns: isMobile
-              ? `${TIME_GUTTER_WIDTH}px repeat(${dayCount}, minmax(150px, 1fr))`
+              ? `repeat(${dayCount}, 1fr)`
               : `${TIME_GUTTER_WIDTH}px repeat(${dayCount}, 1fr)`,
             height: "100%",
           }}
         >
-          <div
-            style={{
-              position: "sticky",
-              left: 0,
-              zIndex: 2,
-              background: tokens["backgroundColor-header"],
-            }}
-          />
+          {!isMobile && (
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                zIndex: 2,
+                background: tokens["backgroundColor-header"],
+              }}
+            />
+          )}
         {visibleDates.map((d, i) => {
           const dow = new Date(d + "T00:00:00Z").getUTCDay();
           const labelIdx = (dow - weekStartsOn + 7) % 7;
