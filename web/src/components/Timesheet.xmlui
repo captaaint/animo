@@ -82,39 +82,39 @@
       />
   </VStack>
 
-  <!-- Mobile layout: main content (Calendar or List) fills the screen via
-       the flex chain in index.html; the compact TimerBar docks at the
-       bottom. -->
-  <VStack when="{vp.value && vp.value.isMobile}"
+  <!-- Mobile layout: the compact TimerBar is docked to the top of the
+       Timesheet content, while the current view fills the remaining space. -->
+  <Stack when="{vp.value && vp.value.isMobile}"
     height="*" width="*" gap="$space-2">
-    <CalendarScreen when="{$props.view !== 'list'}"
-      id="calendarScreenMobile"
-      height="*"
-      weekStart="{weekStart}"
-      entries="{entriesDs.value || []}"
-      projects="{projectsDs.value || []}"
-      onWeekChange="(v) => weekStart = v"
-      onOpenEntry="(e) => entryModal.open(e)"
-      onAddSlot="(slot) => entryModal.openForSlot(slot)"
-      onSaved="() => entriesDs.refetch()"
-    />
-    <ListScreen when="{$props.view === 'list'}"
-      weekStart="{weekStart}"
-      entries="{entriesDs.value || []}"
-      projects="{projectsDs.value || []}"
-      tags="{tagsDs.value || []}"
-      clients="{clientsDs.value || []}"
-      onWeekChange="(v) => weekStart = v"
-      onOpenEntry="(e) => entryModal.open(e)"
-      onAddNew="() => entryModal.open()"
-      onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
-    />
-
-    <TimerBar
-      compact="true"
-      projects="{projectsDs.value || []}"
-      onSaved="() => entriesDs.refetch()"
-      onCounterStop="(p) => entryModal.openForCounter(p)"
-    />
-  </VStack>
+      <TimerBar
+        dock="top"
+        compact="true"
+        projects="{projectsDs.value || []}"
+        onCounterStop="(p) => entryModal.openForCounter(p)"
+      />
+      <CalendarScreen when="{$props.view !== 'list'}"
+        id="calendarScreenMobile"
+        dock="stretch"
+        height="*"
+        weekStart="{weekStart}"
+        entries="{entriesDs.value || []}"
+        projects="{projectsDs.value || []}"
+        onWeekChange="(v) => weekStart = v"
+        onOpenEntry="(e) => entryModal.open(e)"
+        onAddSlot="(slot) => entryModal.openForSlot(slot)"
+        onSaved="() => entriesDs.refetch()"
+      />
+      <ListScreen when="{$props.view === 'list'}"
+        dock="stretch"
+        weekStart="{weekStart}"
+        entries="{entriesDs.value || []}"
+        projects="{projectsDs.value || []}"
+        tags="{tagsDs.value || []}"
+        clients="{clientsDs.value || []}"
+        onWeekChange="(v) => weekStart = v"
+        onOpenEntry="(e) => entryModal.open(e)"
+        onAddNew="() => entryModal.open()"
+        onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
+      />
+  </Stack>
 </Component>

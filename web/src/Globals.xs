@@ -23,6 +23,19 @@ function writeSession(session) {
   } catch (e) {}
 }
 
+function pageTitleFromPath(path) {
+  const to = path || '/';
+  if (to === '/projects') return 'Projects';
+  if (to === '/clients') return 'Clients';
+  if (to === '/tags') return 'Tags';
+  if (to === '/reports') return 'Reports';
+  if (to === '/login') return 'Sign in';
+  if (to === '/register') return 'Create account';
+  if (to === '/list') return 'List';
+  if (to === '/settings') return 'Settings';
+  return 'Calendar';
+}
+
 function authHeaders(token) {
   return token ? { Authorization: 'Bearer ' + token } : {};
 }
@@ -197,6 +210,14 @@ function groupEntriesByDay(entriesList) {
     groups[day].totalSec += durationSeconds(e.startTime, e.endTime);
   }
   return Object.values(groups).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function entriesForListTable(entriesList, projectsList) {
+  return (entriesList || []).map(e => ({
+    ...e,
+    projectName: projectName(e.projectId, projectsList || []),
+    durationSeconds: durationSeconds(e.startTime, e.endTime)
+  }));
 }
 
 function groupReportEntriesByDay(entriesList) {

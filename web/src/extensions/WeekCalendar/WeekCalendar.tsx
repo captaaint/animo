@@ -254,7 +254,7 @@ type Popover = {
 };
 
 const TIME_GUTTER_WIDTH = 56;
-const HEADER_HEIGHT = 44;
+const HEADER_HEIGHT = 56;
 
 // =====================================================================================================================
 // Theme token bridge — resolves component-scoped XMLUI theme variables to CSS values.
@@ -1183,7 +1183,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
             <Button
               size="sm"
               themeColor="attention"
-              variant="outlined"
+              variant="ghost"
               onClick={deleteFromPopover}
             >
               Delete
@@ -1270,28 +1270,31 @@ export function WeekCalendar(props: WeekCalendarProps) {
             {weekStartLabel}
           </div>
         )}
-        <Button
-          variant="outlined"
-          size="sm"
-          onClick={() => navigate(-dayCount)}
-        >
-          ◀
-        </Button>
-        <Button variant="outlined" size="sm" onClick={goToday}>
-          Today
-        </Button>
-        <Button
-          variant="outlined"
-          size="sm"
-          onClick={() => navigate(dayCount)}
-        >
-          ▶
-        </Button>
+        <div style={{ display: "inline-flex", gap: 8 }}>
+          <Button
+            variant="solid"
+            size="sm"
+            onClick={() => navigate(-dayCount)}
+          >
+            ◀
+          </Button>
+          <Button variant="solid" size="sm" onClick={goToday}>
+            Today
+          </Button>
+          <Button
+            variant="solid"
+            size="sm"
+            onClick={() => navigate(dayCount)}
+          >
+            ▶
+          </Button>
+        </div>
         {/* Range label, view-mode switcher, zoom, and totals — hidden on
             mobile to keep the toolbar to a single compact row. */}
         {!isMobile && (
           <>
-            <div style={{ fontWeight: 600, marginLeft: 8, color: tokens["textColor-strong"] }}>
+            <div style={{ flex: 1 }} />
+            <div style={{ fontWeight: 600, color: tokens["textColor-strong"] }}>
               {rangeLabel}
             </div>
             <div style={{ flex: 1 }} />
@@ -1301,7 +1304,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
                   key={m}
                   size="sm"
                   themeColor={viewMode === m ? "primary" : "secondary"}
-                  variant={viewMode === m ? "solid" : "outlined"}
+                  variant={viewMode === m ? "solid" : "ghost"}
                   onClick={() => setViewMode(m)}
                 >
                   {m === "day" ? "Day" : m === "workweek" ? "5d" : "Week"}
@@ -1310,7 +1313,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
             </div>
             <div style={{ display: "inline-flex", gap: 4, marginLeft: 8 }}>
               <Button
-                variant="outlined"
+                variant="ghost"
                 size="sm"
                 onClick={() => setPxPerHour((v) => Math.max(12, v - 12))}
                 title="Zoom out"
@@ -1318,7 +1321,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
                 −
               </Button>
               <Button
-                variant="outlined"
+                variant="ghost"
                 size="sm"
                 onClick={() => setPxPerHour((v) => Math.min(120, v + 12))}
                 title="Zoom in"
@@ -1376,6 +1379,9 @@ export function WeekCalendar(props: WeekCalendarProps) {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
+                paddingTop: 6,
+                paddingBottom: 8,
+                boxSizing: "border-box",
                 borderLeft: i === 0 ? "none" : `1px solid ${tokens["borderColor-hour"]}`,
                 color: isToday ? tokens["textColor-today"] : tokens["textColor-secondary"],
                 fontWeight: isToday ? 700 : 600,

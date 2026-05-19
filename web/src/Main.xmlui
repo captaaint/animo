@@ -3,19 +3,9 @@
   scrollWholePage="true"
   global.apiBase="{window.__ANIMO_API_BASE__ || 'http://127.0.0.1:8080/api'}"
   global.token="{readToken()}"
-  global.pageTitle="{'Calendar'}"
+  global.pageTitle="{pageTitleFromPath(window.location.hash ? window.location.hash.slice(1) : window.location.pathname)}"
   global.entriesTick="{0}"
-  onDidNavigate="(to) => {
-    if (to === '/projects') pageTitle = 'Projects';
-    else if (to === '/clients') pageTitle = 'Clients';
-    else if (to === '/tags') pageTitle = 'Tags';
-    else if (to === '/reports') pageTitle = 'Reports';
-    else if (to === '/login') pageTitle = 'Sign in';
-    else if (to === '/register') pageTitle = 'Create account';
-    else if (to === '/list') pageTitle = 'List';
-    else if (to === '/settings') pageTitle = 'Settings';
-    else pageTitle = 'Calendar';
-  }"
+  onDidNavigate="(to) => pageTitle = pageTitleFromPath(to)"
 >
   <AuthGate
     id="auth"
@@ -49,6 +39,11 @@
   <TonePersist />
 
   <AppHeader when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+    <Text
+      fontWeight="700"
+      fontSize="$fontSize-large">
+      {pageTitle}
+    </Text>
     <TimerBar when="{(!appVp.value || !appVp.value.isMobile) &amp;&amp; (pageTitle === 'Calendar' || pageTitle === 'List')}"
       projects="{appProjectsDs.value || []}"
       clients="{appClientsDs.value || []}"

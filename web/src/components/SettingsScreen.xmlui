@@ -27,7 +27,7 @@
         Account
       </Text>
       <Button label="Sign out" icon="exit"
-        themeColor="attention" variant="outlined"
+        themeColor="attention" variant="ghost"
         onClick="emitEvent('signOut')" />
     </VStack>
   </Card>

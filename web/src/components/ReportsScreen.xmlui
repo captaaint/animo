@@ -72,7 +72,7 @@
       >
         <Button
           label="Discard"
-          variant="outlined"
+          variant="ghost"
           onClick="pdfPreview.close()"
         />
         <SpaceFiller />
@@ -270,7 +270,7 @@
           label="Export PDF"
           icon="doc"
           width="fit-content"
-          variant="outlined"
+          variant="ghost"
           testId="header-export-pdf"
           onClick="window.ttExportReport()"
         />

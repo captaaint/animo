@@ -194,7 +194,7 @@
 
       <HStack gap="$space-2" verticalAlignment="center" width="*">
         <SpaceFiller />
-        <Button label="Cancel" variant="outlined" size="sm"
+        <Button label="Cancel" variant="ghost" size="sm"
           onClick="modal.close()" />
         <Button label="{editItem ? 'Save' : 'Add'}" themeColor="primary" size="sm"
           onClick="if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) { saveCall.execute(); } else { toast.error('End must be after start'); }" />
