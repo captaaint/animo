@@ -55,20 +55,29 @@
   <ModalDialog
     id="pdfPreview"
     closeButtonVisible="false"
-    maxWidth="600px"
+    maxWidth="980px"
     height="95vh"
     padding="$space-0"
     onClose="if ($param &amp;&amp; $param.url) window.revokeBlobUrl($param.url);"
   >
-    <VStack height="*" width="*" gap="$space-0">
-      <Stack height="*" width="*" overflowY="auto">
-        <Pdf src="{$param.url}" />
+    <VStack height="*" width="*" gap="$space-0" backgroundColor="$color-surface-100">
+      <Stack height="*" width="*" minHeight="0" padding="$space-5">
+        <Pdf
+          id="pdfPreviewViewer"
+          src="{$param.url}"
+          width="*"
+          height="*"
+          horizontalAlignment="center"
+          scrollStyle="whenScrolling"
+          onDocumentLoad="pdfPreviewViewer.fitWidth()"
+        />
       </Stack>
       <HStack
         width="*"
         verticalAlignment="center"
         padding="$space-3"
-        backgroundColor="$color-surface-50"
+        backgroundColor="$color-surface-0"
+        borderTop="1px solid $color-surface-200"
       >
         <Button
           label="Discard"
