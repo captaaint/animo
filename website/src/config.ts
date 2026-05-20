@@ -18,6 +18,13 @@ const App: StandaloneAppDescription = {
     "icon.clock": "resources/clock.svg",
     "icon.filetext": "resources/file-text.svg",
     "icon.trending_up": "resources/trending-up.svg",
+    "icon.shield": "resources/shield.svg",
+    "icon.external": "resources/external.svg",
+    "icon.settings": "resources/settings.svg",
+    "icon.app": "resources/app.svg",
+    "icon.cloud": "resources/cloud.svg",
+    "icon.github": "resources/github.svg",
+    "icon.file": "resources/file.svg",
     "font.sora":
       "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap",
   },

@@ -95,6 +95,8 @@ export const WebsiteTheme: ThemeDefinition = {
     "shadow-mockup": "0 20px 60px rgba(30, 35, 40, 0.14)",
     "shadow-section": "0 18px 45px rgba(30, 35, 40, 0.07)",
 
+    "hero-image": "url(/resources/hero-calendar.png)",
+
     "backgroundColor-Card": "$color-panel",
     "backgroundColor-Card--hover": "$color-panel",
     "borderColor-Card": "$color-border",
@@ -154,6 +156,8 @@ export const WebsiteTheme: ThemeDefinition = {
         "color-event-neutral-bg": "rgb(250 248 246 / 0.07)",
         "shadow-mockup": "0 24px 80px rgba(0, 0, 0, 0.44)",
         "shadow-section": "none",
+
+        "hero-image": "url(/resources/hero-calendar-dark.png)",
 
         "backgroundColor-Card": "rgb(30 35 40 / 0.72)",
         "backgroundColor-Card--hover": "rgb(30 35 40 / 0.72)",

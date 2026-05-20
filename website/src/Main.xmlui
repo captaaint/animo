@@ -21,11 +21,16 @@
             </Link>
             <SpaceFiller />
             <HStack when-xs="false" when-sm="true" gap="$space-7" verticalAlignment="center">
-              <Link to="#features"><Text fontSize="14px" color="$color-muted">Features</Text></Link>
-              <Link to="#privacy"><Text fontSize="14px" color="$color-muted">Privacy</Text></Link>
-              <Link to="https://github.com/captaaint/animo/tree/main/docs" target="_blank"><Text fontSize="14px" color="$color-muted">Docs</Text></Link>
+              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text fontSize="14px" color="$color-muted">Docs</Text></Link>
               <Link to="/demo"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
+            <Button
+              icon="github"
+              size="sm"
+              variant="outlined"
+              themeColor="secondary"
+              onClick="window.open('https://github.com/captaaint/animo', '_blank')"
+            />
             <Button
               label="Download"
               icon="download"
@@ -35,237 +40,102 @@
           </HStack>
         </Stack>
 
-        <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" gap="$space-9">
-          <HStack
+        <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" gap="$space-9" horizontalAlignment="center">
+          <VStack
             width="100%"
-            wrapContent="true"
-            gap="$space-5"
-            verticalAlignment="center"
+            gap="$space-7"
             paddingTop="$space-10"
             paddingTop-xs="$space-7"
             paddingBottom="$space-8"
+            horizontalAlignment="center"
           >
-            <VStack width="560px" maxWidth="100%" gap="$space-5">
-              <VStack gap="$space-1">
-                <Text fontSize="40px" fontSize-md="48px" lineHeight="1.05" fontWeight="700" color="$color-text" ellipses="false">
-                  Time tracking,
-                </Text>
-                <HStack wrapContent="true" gap="$space-2">
-                  <Text fontSize="40px" fontSize-md="48px" lineHeight="1.05" fontWeight="700" color="$color-accent" ellipses="false">without</Text>
-                  <Text fontSize="40px" fontSize-md="48px" lineHeight="1.05" fontWeight="700" color="$color-text" ellipses="false">compromise.</Text>
-                </HStack>
-              </VStack>
-
-              <Text fontSize="17px" lineHeight="1.8" color="$color-muted" maxWidth="390px" ellipses="false">
-                Animo is a self-hosted, single-user time tracker. No cloud. No telemetry. No accounts. Your data stays on your own machine.
+            <VStack gap="$space-1" horizontalAlignment="center">
+              <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" textAlign="center" ellipses="false">
+                Time tracking,
               </Text>
-
-              <VStack gap="$space-3">
-                <HStack gap="$space-3" verticalAlignment="center">
-                  <Icon name="shield" size="18px" color="$color-accent" />
-                  <Text color="$color-text" fontSize="14px" ellipses="false">Track work against projects and clients</Text>
-                </HStack>
-                <HStack gap="$space-3" verticalAlignment="center">
-                  <Icon name="clock" size="18px" color="$color-accent" />
-                  <Text color="$color-text" fontSize="14px" ellipses="false">Live header stopwatch or manual time entries</Text>
-                </HStack>
-                <HStack gap="$space-3" verticalAlignment="center">
-                  <Icon name="date" size="18px" color="$color-accent" />
-                  <Text color="$color-text" fontSize="14px" ellipses="false">Weekly calendar grid or list grouped by day</Text>
-                </HStack>
-                <HStack gap="$space-3" verticalAlignment="center">
-                  <Icon name="filetext" size="18px" color="$color-accent" />
-                  <Text color="$color-text" fontSize="14px" ellipses="false">Powerful filters and PDF export</Text>
-                </HStack>
-              </VStack>
-
-              <HStack wrapContent="true" gap="$space-2">
-                <Button
-                  label="Download for Windows, macOS, Linux"
-                  icon="download"
-                  size="md"
-                  onClick="window.open('https://github.com/captaaint/animo/releases/latest', '_blank')"
-                />
-                <Button
-                  label="View Demo"
-                  icon="external"
-                  iconPosition="end"
-                  variant="outlined"
-                  themeColor="secondary"
-                  size="md"
-                  onClick="Actions.navigate('/demo')"
-                />
-              </HStack>
-
-              <HStack gap="$space-2" wrapContent="true" verticalAlignment="center">
-                <Text fontSize="12px" color="$color-subtle">v0.1.0</Text>
-                <Text fontSize="12px" color="$color-subtle">Open Source</Text>
-                <Text fontSize="12px" color="$color-subtle">MIT License</Text>
-              </HStack>
+              <CenterRow gap="$space-2">
+                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-accent" ellipses="false">without</Text>
+                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" ellipses="false">compromise.</Text>
+              </CenterRow>
             </VStack>
 
-            <Stack width="600px" maxWidth="100%" overflowX="auto">
-              <VStack
-                minWidth="580px"
-                border="1px solid $color-border-strong"
-                borderRadius="8px"
-                backgroundColor="$color-panel-deep"
-                boxShadow="$shadow-mockup"
-                overflowX="hidden"
-                gap="0"
-              >
-                <HStack height="52px" paddingHorizontal="$space-4" borderBottom="1px solid $color-border" verticalAlignment="center" gap="$space-3">
-                  <Image src="/resources/logo.svg" alt="" width="20px" height="20px" />
-                  <Text color="$color-text" fontWeight="700">Animo</Text>
-                  <SpaceFiller />
-                  <Stack width="6px" height="6px" borderRadius="50%" backgroundColor="$color-border-strong" />
-                  <Stack width="6px" height="6px" borderRadius="50%" backgroundColor="$color-border-strong" />
-                  <Stack width="6px" height="6px" borderRadius="50%" backgroundColor="$color-border-strong" />
-                </HStack>
+            <Text fontSize="17px" lineHeight="1.8" color="$color-muted" maxWidth="640px" textAlign="center" ellipses="false">
+              Animo is a self-hosted, single-user time tracker. No cloud. No telemetry. No accounts. Your data stays on your own machine.
+            </Text>
 
-                <HStack height="430px" gap="0">
-                  <VStack
-                    width="132px"
-                    padding="$space-4"
-                    gap="$space-5"
-                    backgroundColor="$color-sidebar-bg"
-                    borderRight="1px solid $color-border"
-                  >
-                    <VStack gap="$space-2">
-                      <Text color="$color-subtle" fontSize="11px">Track</Text>
-                      <HStack backgroundColor="$color-nav-active-bg" border="1px solid $color-nav-active-border" borderRadius="5px" padding="$space-2" gap="$space-2" verticalAlignment="center">
-                        <Icon name="date" size="13px" color="$color-accent-soft" />
-                        <Text color="$color-text" fontSize="12px">Calendar</Text>
-                      </HStack>
-                      <HStack paddingHorizontal="$space-2" gap="$space-2" verticalAlignment="center">
-                        <Icon name="board" size="13px" color="$color-subtle" />
-                        <Text color="$color-muted" fontSize="12px">List</Text>
-                      </HStack>
-                    </VStack>
-                    <VStack gap="$space-2">
-                      <Text color="$color-subtle" fontSize="11px">Analyze</Text>
-                      <HStack paddingHorizontal="$space-2" gap="$space-2" verticalAlignment="center">
-                        <Icon name="trending_up" size="13px" color="$color-subtle" />
-                        <Text color="$color-muted" fontSize="12px">Reports</Text>
-                      </HStack>
-                    </VStack>
-                    <VStack gap="$space-2">
-                      <Text color="$color-subtle" fontSize="11px">Manage</Text>
-                      <HStack paddingHorizontal="$space-2" gap="$space-2" verticalAlignment="center">
-                        <Icon name="folder" size="13px" color="$color-subtle" />
-                        <Text color="$color-muted" fontSize="12px">Projects</Text>
-                      </HStack>
-                      <HStack paddingHorizontal="$space-2" gap="$space-2" verticalAlignment="center">
-                        <Icon name="users" size="13px" color="$color-subtle" />
-                        <Text color="$color-muted" fontSize="12px">Clients</Text>
-                      </HStack>
-                    </VStack>
-                    <SpaceFiller />
-                    <HStack gap="$space-2" verticalAlignment="center">
-                      <Stack width="22px" height="22px" borderRadius="50%" backgroundColor="$color-border-strong" />
-                      <Text color="$color-muted" fontSize="11px">Demo User</Text>
-                    </HStack>
-                  </VStack>
+            <Image
+              when="{activeThemeTone !== 'dark'}"
+              src="/resources/hero-calendar.png"
+              alt="Animo calendar view"
+              width="1040px"
+              maxWidth="100%"
+              borderRadius="8px"
+              border="1px solid $color-border-strong"
+              boxShadow="$shadow-mockup"
+            />
+            <Image
+              when="{activeThemeTone === 'dark'}"
+              src="/resources/hero-calendar-dark.png"
+              alt="Animo calendar view"
+              width="1040px"
+              maxWidth="100%"
+              borderRadius="8px"
+              border="1px solid $color-border-strong"
+              boxShadow="$shadow-mockup"
+            />
 
-                  <VStack width="*" padding="$space-4" gap="$space-4">
-                    <HStack verticalAlignment="center" gap="$space-3">
-                      <Text color="$color-text" fontWeight="700" fontSize="14px">Calendar</Text>
-                      <Stack width="250px" height="26px" borderRadius="4px" backgroundColor="$color-field-bg" border="1px solid $color-border" paddingHorizontal="$space-3" verticalAlignment="center">
-                        <Text color="$color-subtle" fontSize="11px">What are you working on?</Text>
-                      </Stack>
-                      <SpaceFiller />
-                      <Text color="$color-text" fontSize="13px" fontFamily="$fontFamily-monospace">0:00:00</Text>
-                      <Stack width="28px" height="28px" borderRadius="5px" backgroundColor="$color-accent" horizontalAlignment="center" verticalAlignment="center">
-                        <Icon name="play" size="13px" color="$color-on-accent" />
-                      </Stack>
-                    </HStack>
+            <CenterRow gap="$space-3">
+              <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
+                <Icon name="shield" size="14px" color="$color-accent" />
+                <Text color="$color-text" fontSize="13px" ellipses="false">Projects &amp; clients</Text>
+              </HStack>
+              <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
+                <Icon name="clock" size="14px" color="$color-accent" />
+                <Text color="$color-text" fontSize="13px" ellipses="false">Live stopwatch</Text>
+              </HStack>
+              <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
+                <Icon name="date" size="14px" color="$color-accent" />
+                <Text color="$color-text" fontSize="13px" ellipses="false">Weekly calendar</Text>
+              </HStack>
+              <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
+                <Icon name="filetext" size="14px" color="$color-accent" />
+                <Text color="$color-text" fontSize="13px" ellipses="false">PDF export</Text>
+              </HStack>
+            </CenterRow>
 
-                    <HStack verticalAlignment="center">
-                      <Text color="$color-text" fontWeight="700" fontSize="13px">May 18 - May 24, 2026</Text>
-                      <SpaceFiller />
-                      <Stack border="1px solid $color-border" borderRadius="5px" paddingHorizontal="$space-2" paddingVertical="$space-1">
-                        <Text color="$color-muted" fontSize="11px">Week</Text>
-                      </Stack>
-                    </HStack>
+            <CenterRow gap="$space-2">
+              <Button
+                label="Download for Windows, macOS, Linux"
+                icon="download"
+                size="md"
+                onClick="window.open('https://github.com/captaaint/animo/releases/latest', '_blank')"
+              />
+              <Button
+                label="View Demo"
+                icon="external"
+                iconPosition="end"
+                variant="outlined"
+                themeColor="secondary"
+                size="md"
+                onClick="Actions.navigate('/demo')"
+              />
+            </CenterRow>
 
-                    <HStack gap="0" height="300px" borderTop="1px solid $color-border" borderLeft="1px solid $color-border">
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center">
-                          <Text color="$color-muted" fontSize="10px" textAlign="center">MON 18</Text>
-                        </Stack>
-                        <VStack padding="$space-1" gap="$space-1">
-                          <Stack height="30px" />
-                          <Stack padding="$space-2" height="62px" borderRadius="4px" backgroundColor="rgb(from $color-warn r g b / 0.30)" border="1px solid rgb(from $color-warn r g b / 0.36)">
-                            <Text color="$color-warn" fontSize="10px" fontWeight="700">07:04 - 08:49</Text>
-                            <Text color="$color-text" fontSize="10px">Hubspot form map</Text>
-                          </Stack>
-                          <Stack padding="$space-2" height="52px" borderRadius="4px" backgroundColor="rgb(from $color-warn r g b / 0.28)" border="1px solid rgb(from $color-warn r g b / 0.30)">
-                            <Text color="$color-warn" fontSize="10px" fontWeight="700">08:51 - 09:36</Text>
-                            <Text color="$color-text" fontSize="10px">Logo variations</Text>
-                          </Stack>
-                          <Stack padding="$space-2" height="60px" borderRadius="4px" backgroundColor="rgb(from $color-accent r g b / 0.26)" border="1px solid rgb(from $color-accent r g b / 0.34)">
-                            <Text color="$color-accent-soft" fontSize="10px" fontWeight="700">10:36 - 13:10</Text>
-                            <Text color="$color-text" fontSize="10px">Cohort chart</Text>
-                          </Stack>
-                        </VStack>
-                      </VStack>
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center">
-                          <Text color="$color-muted" fontSize="10px" textAlign="center">TUE 19</Text>
-                        </Stack>
-                        <VStack padding="$space-1" gap="$space-1">
-                          <Stack height="48px" />
-                          <Stack padding="$space-2" height="132px" borderRadius="4px" backgroundColor="$color-event-neutral-bg" border="1px solid $color-border">
-                            <Text color="$color-text" fontSize="10px" fontWeight="700">07:21 - 10:22</Text>
-                            <Text color="$color-muted" fontSize="10px">Inbox triage</Text>
-                          </Stack>
-                        </VStack>
-                      </VStack>
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center">
-                          <Text color="$color-muted" fontSize="10px" textAlign="center">WED 20</Text>
-                        </Stack>
-                        <VStack padding="$space-1" gap="$space-1">
-                          <Stack height="135px" />
-                          <Stack padding="$space-2" height="72px" borderRadius="4px" backgroundColor="rgb(from $color-warn r g b / 0.30)" border="1px solid rgb(from $color-warn r g b / 0.32)">
-                            <Text color="$color-warn" fontSize="10px" fontWeight="700">10:22 - 12:17</Text>
-                            <Text color="$color-text" fontSize="10px">SEO cleanup</Text>
-                          </Stack>
-                        </VStack>
-                      </VStack>
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center">
-                          <Text color="$color-muted" fontSize="10px" textAlign="center">THU 21</Text>
-                        </Stack>
-                        <Stack height="124px" borderBottom="1px solid $color-border" />
-                        <HStack height="2px" backgroundColor="$const-color-danger-500">
-                          <Stack width="6px" height="6px" borderRadius="50%" backgroundColor="$const-color-danger-500" marginTop="-2px" />
-                        </HStack>
-                      </VStack>
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center"><Text color="$color-muted" fontSize="10px">FRI 22</Text></Stack>
-                      </VStack>
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center"><Text color="$color-muted" fontSize="10px">SAT 23</Text></Stack>
-                      </VStack>
-                      <VStack width="14.285%" borderRight="1px solid $color-border">
-                        <Stack height="42px" borderBottom="1px solid $color-border" horizontalAlignment="center" verticalAlignment="center"><Text color="$color-muted" fontSize="10px">SUN 24</Text></Stack>
-                      </VStack>
-                    </HStack>
-                  </VStack>
-                </HStack>
-              </VStack>
-            </Stack>
-          </HStack>
+            <CenterRow gap="$space-2" verticalAlignment="center">
+              <Text fontSize="12px" color="$color-subtle">v0.1.0</Text>
+              <Text fontSize="12px" color="$color-subtle">Open Source</Text>
+              <Text fontSize="12px" color="$color-subtle">MIT License</Text>
+            </CenterRow>
+          </VStack>
 
           <VStack id="features" gap="$space-5" paddingVertical="$space-8" borderTop="1px solid $color-border">
-            <HStack horizontalAlignment="center" wrapContent="true" gap="$space-1">
+            <CenterRow gap="$space-1">
               <Text color="$color-text" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">Everything you need.</Text>
               <Text color="$color-accent" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">Nothing</Text>
               <Text color="$color-text" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">you don't.</Text>
-            </HStack>
+            </CenterRow>
 
-            <HStack wrapContent="true" gap="$space-4">
+            <CenterRow gap="$space-4">
               <Card width="270px" maxWidth="100%" minHeight="214px" padding="$space-5">
                 <VStack gap="$space-4">
                   <Icon name="clock" size="34px" color="$color-accent" />
@@ -294,12 +164,12 @@
                   <Text color="$color-muted" lineHeight="1.65" fontSize="14px" ellipses="false">Generate a clean PDF report for billing, invoicing, or your own records.</Text>
                 </VStack>
               </Card>
-            </HStack>
+            </CenterRow>
           </VStack>
 
           <VStack gap="$space-5" paddingVertical="$space-7" borderTop="1px solid $color-border">
             <Text color="$color-text" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">Built with a modern, secure stack.</Text>
-            <HStack wrapContent="true" gap="$space-4">
+            <CenterRow gap="$space-4">
               <HStack width="270px" maxWidth="100%" gap="$space-3" verticalAlignment="center" padding="$space-4">
                 <Icon name="app" size="34px" color="$color-accent-soft" />
                 <VStack gap="$space-1">
@@ -328,19 +198,20 @@
                   <Text color="$color-muted" fontSize="13px" lineHeight="1.55" ellipses="false">Lightweight desktop shell. Small, secure, cross-platform.</Text>
                 </VStack>
               </HStack>
-            </HStack>
+            </CenterRow>
           </VStack>
 
-          <HStack id="privacy" wrapContent="true" gap="$space-7" paddingVertical="$space-8" borderTop="1px solid $color-border" verticalAlignment="center">
-            <VStack width="440px" maxWidth="100%" gap="$space-4">
-              <HStack wrapContent="true" gap="$space-1">
+          <VStack id="privacy" width="100%" paddingVertical="$space-8" borderTop="1px solid $color-border" overflowX="hidden">
+            <CenterRow gap="$space-7" verticalAlignment="center">
+            <VStack width="440px" maxWidth="100%" gap="$space-4" horizontalAlignment="center">
+              <CenterRow gap="$space-1">
                 <Text color="$color-text" fontSize="28px" fontWeight="700">100% on</Text>
                 <Text color="$color-accent" fontSize="28px" fontWeight="700">your machine.</Text>
-              </HStack>
-              <Text color="$color-muted" fontSize="16px" lineHeight="1.8" maxWidth="410px" ellipses="false">
+              </CenterRow>
+              <Text color="$color-muted" fontSize="16px" lineHeight="1.8" maxWidth="410px" textAlign="center" ellipses="false">
                 Animo is designed for privacy and control. No accounts. No cloud sync. No telemetry. You own your time data - always.
               </Text>
-              <HStack wrapContent="true" gap="$space-2">
+              <CenterRow gap="$space-2">
                 <HStack border="1px solid $color-border" borderRadius="6px" paddingHorizontal="$space-4" paddingVertical="$space-2" gap="$space-2" verticalAlignment="center">
                   <Icon name="cloud" size="15px" color="$color-accent" />
                   <Text color="$color-text" fontSize="13px">No Cloud</Text>
@@ -353,7 +224,7 @@
                   <Icon name="user" size="15px" color="$color-accent" />
                   <Text color="$color-text" fontSize="13px">No Accounts</Text>
                 </HStack>
-              </HStack>
+              </CenterRow>
             </VStack>
 
             <VStack width="620px" maxWidth="100%" border="1px solid $color-border-strong" borderRadius="8px" backgroundColor="$color-panel" boxShadow="$shadow-section" overflowX="hidden">
@@ -364,7 +235,7 @@
                 </Stack>
               </HStack>
               <VStack padding="$space-4" gap="$space-3">
-                <HStack verticalAlignment="center">
+                <HStack gap="0" verticalAlignment="center">
                   <HStack width="42%" gap="$space-3" verticalAlignment="center">
                     <Icon name="file" size="17px" color="$color-accent" />
                     <Text color="$color-text" fontSize="13px">database</Text>
@@ -372,7 +243,7 @@
                   <Text width="35%" color="$color-muted" fontSize="13px">SQLite Database</Text>
                   <Text width="23%" textAlign="right" color="$color-muted" fontSize="13px">4.2 MB</Text>
                 </HStack>
-                <HStack verticalAlignment="center">
+                <HStack gap="0" verticalAlignment="center">
                   <HStack width="42%" gap="$space-3" verticalAlignment="center">
                     <Icon name="folder" size="17px" color="$color-accent" />
                     <Text color="$color-text" fontSize="13px">backups</Text>
@@ -380,7 +251,7 @@
                   <Text width="35%" color="$color-muted" fontSize="13px">Folder</Text>
                   <Text width="23%" textAlign="right" color="$color-muted" fontSize="13px">--</Text>
                 </HStack>
-                <HStack verticalAlignment="center">
+                <HStack gap="0" verticalAlignment="center">
                   <HStack width="42%" gap="$space-3" verticalAlignment="center">
                     <Icon name="folder" size="17px" color="$color-accent" />
                     <Text color="$color-text" fontSize="13px">exports</Text>
@@ -388,7 +259,7 @@
                   <Text width="35%" color="$color-muted" fontSize="13px">Folder</Text>
                   <Text width="23%" textAlign="right" color="$color-muted" fontSize="13px">--</Text>
                 </HStack>
-                <HStack verticalAlignment="center">
+                <HStack gap="0" verticalAlignment="center">
                   <HStack width="42%" gap="$space-3" verticalAlignment="center">
                     <Icon name="filetext" size="17px" color="$color-subtle" />
                     <Text color="$color-text" fontSize="13px">settings.json</Text>
@@ -398,7 +269,8 @@
                 </HStack>
               </VStack>
             </VStack>
-          </HStack>
+            </CenterRow>
+          </VStack>
 
           <VStack paddingVertical="$space-8" borderTop="1px solid $color-border" horizontalAlignment="center" gap="$space-3">
             <Text color="$color-text" fontSize="28px" fontWeight="700" textAlign="center" ellipses="false">Ready to take control of your time?</Text>
@@ -412,44 +284,55 @@
             />
           </VStack>
 
-          <HStack wrapContent="true" gap="$space-7" paddingTop="$space-6" paddingBottom="$space-8" borderTop="1px solid $color-border" verticalAlignment="start">
-            <VStack width="280px" maxWidth="100%" gap="$space-4">
+        </VStack>
+
+        <Stack width="100%" borderTop="1px solid $color-border" backgroundColor="rgb(from $color-header-bg r g b / 0.94)">
+          <HStack
+            when-xs="false"
+            when-sm="true"
+            width="100%"
+            maxWidth="1240px"
+            marginHorizontal="auto"
+            paddingHorizontal="$space-5"
+            paddingVertical="$space-6"
+            verticalAlignment="center"
+            gap="$space-6"
+          >
+            <VStack gap="$space-2" horizontalAlignment="start">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.8" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
             </VStack>
-            <VStack width="150px" maxWidth="100%" gap="$space-3">
-              <Text color="$color-text" fontWeight="700" fontSize="13px">Product</Text>
-              <Link to="#features"><Text color="$color-muted" fontSize="13px">Features</Text></Link>
+            <SpaceFiller />
+            <HStack gap="$space-6" verticalAlignment="center">
               <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
-              <Link to="https://github.com/captaaint/animo/tree/main/docs" target="_blank"><Text color="$color-muted" fontSize="13px">Docs</Text></Link>
+              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text color="$color-muted" fontSize="13px">Docs</Text></Link>
+              <Link to="https://github.com/captaaint/animo/releases" target="_blank"><Text color="$color-muted" fontSize="13px">Changelog</Text></Link>
+              <Link to="https://github.com/captaaint/animo" target="_blank"><Text color="$color-muted" fontSize="13px">GitHub</Text></Link>
+            </HStack>
+          </HStack>
+          <VStack
+            when-xs="true"
+            when-sm="false"
+            width="100%"
+            maxWidth="1240px"
+            marginHorizontal="auto"
+            paddingHorizontal="$space-4"
+            paddingVertical="$space-6"
+            gap="$space-5"
+            horizontalAlignment="center"
+          >
+            <VStack gap="$space-2" horizontalAlignment="center">
+              <Logo height="$space-7" alt="Animo" />
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
             </VStack>
-            <VStack width="150px" maxWidth="100%" gap="$space-3">
-              <Text color="$color-text" fontWeight="700" fontSize="13px">Resources</Text>
-              <Link to="#privacy"><Text color="$color-muted" fontSize="13px">Privacy</Text></Link>
+            <VStack gap="$space-3" horizontalAlignment="center">
+              <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text color="$color-muted" fontSize="13px">Docs</Text></Link>
               <Link to="https://github.com/captaaint/animo/releases" target="_blank"><Text color="$color-muted" fontSize="13px">Changelog</Text></Link>
               <Link to="https://github.com/captaaint/animo" target="_blank"><Text color="$color-muted" fontSize="13px">GitHub</Text></Link>
             </VStack>
-            <VStack width="150px" maxWidth="100%" gap="$space-3">
-              <Text color="$color-text" fontWeight="700" fontSize="13px">Legal</Text>
-              <Link to="https://github.com/captaaint/animo/blob/main/LICENSE" target="_blank"><Text color="$color-muted" fontSize="13px">MIT License</Text></Link>
-              <Link to="#privacy"><Text color="$color-muted" fontSize="13px">Privacy Policy</Text></Link>
-            </VStack>
-            <Card width="230px" maxWidth="100%" padding="$space-5">
-              <VStack gap="$space-3">
-                <HStack gap="$space-3" verticalAlignment="center">
-                  <Icon name="github" size="26px" color="$color-text" />
-                  <Text color="$color-muted" fontSize="13px">Open Source</Text>
-                </HStack>
-                <Link to="https://github.com/captaaint/animo" target="_blank">
-                  <HStack gap="$space-2" verticalAlignment="center">
-                    <Text color="$color-text" fontSize="13px">Star on GitHub</Text>
-                    <Icon name="arrowright" size="14px" color="$color-text" />
-                  </HStack>
-                </Link>
-              </VStack>
-            </Card>
-          </HStack>
-        </VStack>
+          </VStack>
+        </Stack>
       </VStack>
     </Page>
 
