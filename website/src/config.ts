@@ -14,7 +14,7 @@ const App: StandaloneAppDescription = {
   resources: {
     logo: "resources/full-logo.svg",
     "logo-dark": "resources/dark-full-logo.svg",
-    favicon: "resources/favicon.ico",
+    favicon: "resources/favicon.svg",
     "icon.clock": "resources/clock.svg",
     "icon.filetext": "resources/file-text.svg",
     "icon.trending_up": "resources/trending-up.svg",

@@ -20,7 +20,7 @@
               <Logo height="$space-7" alt="Animo" />
             </Link>
             <SpaceFiller />
-            <HStack when-xs="false" when-sm="true" gap="$space-7" verticalAlignment="center">
+            <HStack id="site-header-nav" gap="$space-7" verticalAlignment="center">
               <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text fontSize="14px" color="$color-muted">Docs</Text></Link>
               <Link to="/demo"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
@@ -286,14 +286,13 @@
 
         </VStack>
 
-        <Stack width="100%" borderTop="1px solid $color-border" backgroundColor="rgb(from $color-header-bg r g b / 0.94)">
+        <Stack id="site-footer" width="100%" borderTop="1px solid $color-border" backgroundColor="rgb(from $color-header-bg r g b / 0.94)">
           <HStack
-            when-xs="false"
-            when-sm="true"
             width="100%"
             maxWidth="1240px"
             marginHorizontal="auto"
             paddingHorizontal="$space-5"
+            paddingHorizontal-xs="$space-4"
             paddingVertical="$space-6"
             verticalAlignment="center"
             gap="$space-6"
@@ -310,28 +309,6 @@
               <Link to="https://github.com/captaaint/animo" target="_blank"><Text color="$color-muted" fontSize="13px">GitHub</Text></Link>
             </HStack>
           </HStack>
-          <VStack
-            when-xs="true"
-            when-sm="false"
-            width="100%"
-            maxWidth="1240px"
-            marginHorizontal="auto"
-            paddingHorizontal="$space-4"
-            paddingVertical="$space-6"
-            gap="$space-5"
-            horizontalAlignment="center"
-          >
-            <VStack gap="$space-2" horizontalAlignment="center">
-              <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
-            </VStack>
-            <VStack gap="$space-3" horizontalAlignment="center">
-              <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
-              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text color="$color-muted" fontSize="13px">Docs</Text></Link>
-              <Link to="https://github.com/captaaint/animo/releases" target="_blank"><Text color="$color-muted" fontSize="13px">Changelog</Text></Link>
-              <Link to="https://github.com/captaaint/animo" target="_blank"><Text color="$color-muted" fontSize="13px">GitHub</Text></Link>
-            </VStack>
-          </VStack>
         </Stack>
       </VStack>
     </Page>
@@ -347,7 +324,6 @@
           gap="$space-4"
           backgroundColor="rgb(from $color-header-bg r g b / 0.96)"
         >
-          <SpaceFiller />
           <Button
             label="Back to website"
             icon="arrowleft"
