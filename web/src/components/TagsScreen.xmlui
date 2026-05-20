@@ -54,7 +54,7 @@
         </Column>
         <Column header="" width="100px">
           <HStack gap="$space-1" verticalAlignment="center">
-            <Button icon="pencil" size="xs" variant="ghost" padding="$space-2"
+            <Button icon="pencil" size="xs" variant="ghost" themeColor="secondary" padding="$space-2"
               onClick="tagModal.open($item)" />
             <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
               onClick="deleteCall.execute($item.id)" />

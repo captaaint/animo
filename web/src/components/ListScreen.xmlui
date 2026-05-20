@@ -138,7 +138,7 @@
               </property>
 
               <Table data="{$item.entries || []}">
-                <Column bindTo="description" header="Description" width="2*">
+                <Column bindTo="description" header="Description" width="3*">
                   <VStack gap="$space-1">
                     <Text>
                       {$item.description || '(no description)'}
@@ -168,7 +168,7 @@
                 <Column
                   bindTo="projectName"
                   header="Project"
-                  width="160px"
+                  width="2*"
                   canSort="true"
                 >
                   <HStack gap="$space-2" verticalAlignment="center">
@@ -178,33 +178,33 @@
                       height="14px"
                       borderRadius="3px"
                     />
-                    <Text variant="secondary">
+                    <Text>
                       {$item.projectName}
                     </Text>
                   </HStack>
                 </Column>
-                <Column header="Time" width="120px">
-                  <Text variant="secondary">
+                <Column header="Time" width="*">
+                  <Text>
                     {$item.startTime.slice(11,16)} – {$item.endTime.slice(11,16)}
                   </Text>
                 </Column>
                 <Column
                   bindTo="durationSeconds"
                   header="Duration"
-                  width="100px"
+                  width="*"
                   canSort="true"
                 >
-                  <Text fontWeight="bold">
+                  <Text>
                     {formatDuration($item.durationSeconds)}
                   </Text>
                 </Column>
                 <Column
                   bindTo="billable"
                   header="Billable"
-                  width="90px"
+                  width="*"
                   canSort="true"
                 >
-                  <Text variant="secondary">
+                  <Text>
                     {$item.billable ? 'Yes' : 'No'}
                   </Text>
                 </Column>

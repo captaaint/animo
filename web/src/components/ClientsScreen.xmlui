@@ -69,6 +69,7 @@
               icon="pencil"
               size="xs"
               variant="ghost"
+              themeColor="secondary"
               padding="$space-2"
               onClick="clientModal.open($item)"
             />

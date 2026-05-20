@@ -88,6 +88,11 @@
   <NavPanel when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
     <property name="footerTemplate">
       <Stack width="100%">
+      <Theme
+        textColor-Button-secondary-ghost="$textColor-NavLink"
+        textColor-Button-secondary-ghost--hover="$textColor-NavLink--hover"
+        backgroundColor-Button-secondary-ghost--hover="$backgroundColor-NavLink--hover"
+      >
       <DropdownMenu alignment="start" width="100%">
         <property name="triggerTemplate">
           <Button
@@ -111,11 +116,11 @@
                   {userInitials(auth.value &amp;&amp; auth.value.user ? auth.value.user.name : '')}
                 </Text>
               </Stack>
-              <Text fontWeight="500" fontSize="14px" color="$color-surface-500">
+              <Text fontWeight="500" fontSize="14px">
                 {auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}
               </Text>
               <SpaceFiller />
-              <Icon name="chevrondown" size="16px" color="$color-surface-500" />
+              <Icon name="chevrondown" size="16px" />
             </HStack>
           </Button>
         </property>
@@ -123,10 +128,13 @@
           <Text fontSize="$fontSize-small" fontWeight="600">Settings</Text>
         </MenuItem>
         <MenuSeparator />
-        <MenuItem icon="exit" onClick="signOutConfirm.open()">
-          <Text color="$color-danger-600" fontSize="$fontSize-small" fontWeight="700">Sign out</Text>
-        </MenuItem>
+        <Theme color-MenuItem="$color-danger-600" color-MenuItem--hover="$color-danger-600">
+          <MenuItem icon="exit" onClick="signOutConfirm.open()">
+            <Text color="$color-danger-600" fontSize="$fontSize-small" fontWeight="600">Sign out</Text>
+          </MenuItem>
+        </Theme>
       </DropdownMenu>
+      </Theme>
       </Stack>
     </property>
 

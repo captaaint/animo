@@ -47,7 +47,9 @@
         <Column header="Color" width="80px">
           <Stack backgroundColor="{$item.color}" width="20px" height="20px" borderRadius="3px" />
         </Column>
-        <Column bindTo="name" header="Name" />
+        <Column bindTo="name" header="Name">
+          <Text>{$item.name}</Text>
+        </Column>
         <Column header="Client">
           <Text>
             {((clientsDs.value || []).find(c => c.id === $item.clientId) || {}).name || '—'}
@@ -62,7 +64,7 @@
         </Column>
         <Column header="Actions" width="100px">
           <HStack gap="$space-1" verticalAlignment="center">
-            <Button icon="pencil" size="xs" variant="ghost" padding="$space-2"
+            <Button icon="pencil" size="xs" variant="ghost" themeColor="secondary" padding="$space-2"
               onClick="projectModal.open($item)" />
             <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
               onClick="deleteCall.execute($item.id)" />
