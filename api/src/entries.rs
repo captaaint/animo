@@ -315,7 +315,7 @@ pub async fn update(
     let final_tag_ids = if let Some(ts) = payload.tag_ids {
         ts
     } else {
-        let map = fetch_tag_ids_for_entries(&state, &[id.clone()]).await?;
+        let map = fetch_tag_ids_for_entries(&state, std::slice::from_ref(&id)).await?;
         map.get(&id).cloned().unwrap_or_default()
     };
     Ok(Json(TimeEntry::from((row, final_tag_ids))))
