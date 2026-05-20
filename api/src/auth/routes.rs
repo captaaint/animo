@@ -76,11 +76,7 @@ fn same_site_from_cfg(cfg: CookieSameSite) -> SameSite {
     }
 }
 
-fn build_session_cookie(
-    token: String,
-    same_site: CookieSameSite,
-    secure: bool,
-) -> Cookie<'static> {
+fn build_session_cookie(token: String, same_site: CookieSameSite, secure: bool) -> Cookie<'static> {
     let max_age = TimeDuration::days(SESSION_ABSOLUTE_DAYS);
     Cookie::build((SESSION_COOKIE, token))
         .http_only(true)
@@ -186,10 +182,7 @@ pub async fn me(user: AuthUser) -> AppResult<Json<serde_json::Value>> {
     Ok(Json(json!({ "user": payload })))
 }
 
-pub async fn logout(
-    State(state): State<AppState>,
-    jar: CookieJar,
-) -> AppResult<impl IntoResponse> {
+pub async fn logout(State(state): State<AppState>, jar: CookieJar) -> AppResult<impl IntoResponse> {
     if let Some(c) = jar.get(SESSION_COOKIE) {
         let _ = revoke_session_by_token(&state, c.value()).await;
     }

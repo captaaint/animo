@@ -16,7 +16,9 @@
 // Safe to re-run: only the demo user's rows are wiped before reseeding.
 
 use anyhow::{Context, Result};
-use chrono::{DateTime, Datelike, Duration, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc, Weekday};
+use chrono::{
+    DateTime, Datelike, Duration, NaiveDate, NaiveDateTime, NaiveTime, TimeZone, Utc, Weekday,
+};
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use sqlx::sqlite::SqlitePoolOptions;
@@ -65,11 +67,10 @@ async fn main() -> Result<()> {
     let demo_name = "Demo User";
     let password_hash = hash_password(demo_password)?;
 
-    let existing: Option<(String,)> =
-        sqlx::query_as("SELECT id FROM users WHERE email = ?")
-            .bind(demo_email)
-            .fetch_optional(&db)
-            .await?;
+    let existing: Option<(String,)> = sqlx::query_as("SELECT id FROM users WHERE email = ?")
+        .bind(demo_email)
+        .fetch_optional(&db)
+        .await?;
     let user_id = match existing {
         Some((id,)) => {
             sqlx::query("UPDATE users SET password_hash = ?, name = ? WHERE id = ?")
@@ -112,7 +113,7 @@ async fn main() -> Result<()> {
     }
 
     // -- deterministic RNG so the demo data is reproducible ------------------
-    let mut rng = StdRng::seed_from_u64(2026_05_13);
+    let mut rng = StdRng::seed_from_u64(20_260_513);
 
     // -- clients -------------------------------------------------------------
     // Animo palette only — Sage Teal, Warm Amber, Soft Coral, Deep
@@ -138,7 +139,15 @@ async fn main() -> Result<()> {
     }
 
     // -- projects: (name, optional client idx, color, hourly_rate, currency, descriptions)
-    let projects: [(&str, Option<usize>, &str, f64, &str, &[&str]); 8] = [
+    type ProjectSeed = (
+        &'static str,
+        Option<usize>,
+        &'static str,
+        f64,
+        &'static str,
+        &'static [&'static str],
+    );
+    let projects: [ProjectSeed; 8] = [
         (
             "Website Redesign",
             Some(0),
@@ -314,13 +323,15 @@ async fn main() -> Result<()> {
             let project_idx = rng.gen_range(0..project_ids.len());
             let descs = projects[project_idx].5;
             let description = descs[rng.gen_range(0..descs.len())];
-            let billable: i64 = if project_idx == internal_ops_idx { 0 } else { 1 };
+            let billable: i64 = if project_idx == internal_ops_idx {
+                0
+            } else {
+                1
+            };
 
             // local wall-clock → UTC by subtracting the demo offset
             let local_dt: NaiveDateTime = NaiveDateTime::new(day, start_local);
-            let start_utc = Utc
-                .from_utc_datetime(&local_dt)
-                - Duration::hours(LOCAL_OFFSET_HOURS);
+            let start_utc = Utc.from_utc_datetime(&local_dt) - Duration::hours(LOCAL_OFFSET_HOURS);
             let end_utc = start_utc + Duration::minutes(duration_min);
 
             let entry_id = Uuid::new_v4().to_string();
@@ -388,7 +399,9 @@ fn make_workday(rng: &mut StdRng) -> Vec<(NaiveTime, i64)> {
     let start_minute = rng.gen_range(0..30u32);
     let mut cursor_min: i64 = (start_hour * 60 + start_minute) as i64;
 
-    let raw_chunks: Vec<i64> = (0..entry_count).map(|_| rng.gen_range(45..=120) as i64).collect();
+    let raw_chunks: Vec<i64> = (0..entry_count)
+        .map(|_| rng.gen_range(45..=120) as i64)
+        .collect();
     let raw_sum: i64 = raw_chunks.iter().sum();
     let mut chunks: Vec<i64> = raw_chunks
         .into_iter()
