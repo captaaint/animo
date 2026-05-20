@@ -1,34 +1,85 @@
 <Component name="SettingsScreen">
-  <Card padding="$space-6" gap="$space-4">
-    <H2>Settings</H2>
+  <HStack width="*" horizontalAlignment="center">
+    <Card maxWidth="720px" width="*" padding="$space-4" gap="$space-4">
+      <VStack gap="$space-2">
+        <Text
+          fontSize="$fontSize-small"
+          fontWeight="600"
+          color="$color-surface-500"
+        >
+          Signed in as
+        </Text>
 
-    <VStack gap="$space-2">
-      <Text variant="secondary" fontSize="$fontSize-small">
-        Signed in as
-      </Text>
-      <HStack verticalAlignment="center" gap="$space-3">
-        <Avatar size="md" name="{$props.userName || ''}" />
-        <Text fontWeight="bold">{$props.userName || ''}</Text>
-      </HStack>
-    </VStack>
+        <Stack padding="$space-3" border="1px solid $color-surface-200" borderRadius="$space-2">
+          <HStack verticalAlignment="center" gap="$space-3">
+            <Avatar
+              size="md"
+              name="{$props.userName || ''}"
+              backgroundColor="$color-surface-100"
+              color="$color-surface-900"
+            />
+            <VStack gap="$space-0">
+              <Text fontWeight="700">{$props.userName || ''}</Text>
+              <Text
+                when="{$props.userEmail}"
+                fontSize="$fontSize-small"
+                color="$color-surface-500"
+              >
+                {$props.userEmail}
+              </Text>
+            </VStack>
+          </HStack>
+        </Stack>
+      </VStack>
 
-    <VStack gap="$space-2">
-      <Text variant="secondary" fontSize="$fontSize-small">
-        Appearance
-      </Text>
-      <HStack verticalAlignment="center" gap="$space-2">
-        <Text>Tone</Text>
-        <ToneSwitch />
-      </HStack>
-    </VStack>
+      <VStack gap="$space-2">
+        <Text
+          fontSize="$fontSize-small"
+          fontWeight="600"
+          color="$color-surface-500"
+        >
+          Appearance
+        </Text>
 
-    <VStack gap="$space-2">
-      <Text variant="secondary" fontSize="$fontSize-small">
-        Account
-      </Text>
-      <Button label="Sign out" icon="exit"
-        themeColor="attention" variant="ghost"
-        onClick="emitEvent('signOut')" />
-    </VStack>
-  </Card>
+        <Stack border="1px solid $color-surface-200" borderRadius="$space-2">
+          <HStack
+            verticalAlignment="center"
+            gap="$space-3"
+            paddingVertical="$space-3"
+            paddingHorizontal="$space-4"
+          >
+            <Icon name="sun" size="18px" color="$color-surface-700" />
+            <Text fontWeight="600">Theme</Text>
+            <SpaceFiller />
+            <Text fontSize="$fontSize-small" color="$color-surface-600">Light</Text>
+            <ToneSwitch />
+          </HStack>
+        </Stack>
+      </VStack>
+
+      <VStack gap="$space-2">
+        <Text
+          fontSize="$fontSize-small"
+          fontWeight="600"
+          color="$color-surface-500"
+        >
+          Account
+        </Text>
+
+        <Stack border="1px solid $color-surface-200" borderRadius="$space-2">
+          <HStack
+            verticalAlignment="center"
+            gap="$space-3"
+            paddingVertical="$space-3"
+            paddingHorizontal="$space-4"
+          >
+            <Icon name="shield" size="18px" color="$color-surface-700" />
+            <Text fontWeight="600">Account &amp; Security</Text>
+            <SpaceFiller />
+            <Icon name="chevronright" size="16px" color="$color-surface-600" />
+          </HStack>
+        </Stack>
+      </VStack>
+    </Card>
+  </HStack>
 </Component>

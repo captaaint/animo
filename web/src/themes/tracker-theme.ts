@@ -117,6 +117,9 @@ export const TrackerTheme: ThemeDefinition = {
     "marginBottom-logo-NavPanel": "0",
     "paddingHorizontal-NavPanel": "$space-4",
     "paddingHorizontal-md-NavPanel": "0",
+    "padding-footer-NavPanel": "0",
+    "paddingHorizontal-footer-NavPanel": "0",
+    "paddingVertical-footer-NavPanel": "$space-2",
     // Make the NavPanel share the AppHeader's surface so the sidebar
     // and the top bar read as one continuous chrome.
     "backgroundColor-NavPanel": "$backgroundColor-AppHeader",
@@ -148,12 +151,23 @@ export const TrackerTheme: ThemeDefinition = {
     "backgroundColor-MenuItem--hover": "$color-surface-100",
     "backgroundColor-dropdown-item--hover": "$color-surface-200",
     "textColor-indicator-Select": "$color-primary-500",
+    "backgroundColor-checked-Checkbox": "$color-primary-500",
+    "borderColor-checked-Checkbox": "$color-primary-500",
+    "backgroundColor-indicator-Checkbox": "$color-surface-0",
+    "backgroundColor-checked-Switch": "$color-primary-500",
+    "borderColor-checked-Switch": "$color-primary-500",
+    "backgroundColor-indicator-checked-Switch": "$color-surface-0",
+    "backgroundColor-checked-RadioGroupOption": "$color-primary-500",
+    "borderColor-checked-RadioGroupOption": "$color-primary-500",
+    "backgroundColor-checked-selectionCheckbox-List": "$color-primary-500",
+    "borderColor-checked-selectionCheckbox-List": "$color-primary-500",
     "backgroundColor-popover-WeekCalendar": "$backgroundColor-primary",
     "backgroundColor-popoverPrimary-WeekCalendar": "$backgroundColor-primary",
 
     // --- Colors & typography
     "color-surface": "$color-surface-500",
     backgroundColor: "$color-surface-50",
+    fontFamily: "Sora,system-ui,-apple-system,Segoe UI,sans-serif",
     fontSize: "15px",
     "fontFamily-monospace": "Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace",
     "font-feature-settings": "'cv03', 'ss03'",
@@ -179,6 +193,8 @@ export const TrackerTheme: ThemeDefinition = {
     "paddingVertical-NavLink": "$space-1_5",
     "paddingLeft-level1-NavLink": "$space-0",
     "paddingLeft-level2-NavGroup": "$space-0",
+    "backgroundColor-Button-secondary-ghost--hover": "$color-surface-50",
+    "backgroundColor-Button-secondary-ghost--active": "$color-surface-50",
 
     // --- Content layout
     "textColor-Heading": "$color-surface-900",

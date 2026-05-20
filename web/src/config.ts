@@ -14,8 +14,8 @@ const App: StandaloneAppDescription = {
     logo: "resources/full-logo.svg",
     "logo-dark": "resources/dark-full-logo.svg",
     favicon: "resources/logo.svg",
-    "font.inter":
-      "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+    "font.sora":
+      "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap",
     "icon.clock": "resources/clock.svg",
     "icon.credit-card": "resources/credit-card.svg",
     "icon.file-text": "resources/file-text.svg",

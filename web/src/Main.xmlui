@@ -38,6 +38,39 @@
   />
   <TonePersist />
 
+  <ModalDialog
+    id="signOutConfirm"
+    closeButtonVisible="false"
+    maxWidth="380px"
+    padding="$space-0"
+  >
+    <VStack padding="$space-5" gap="$space-4">
+      <Text fontWeight="700" fontSize="$fontSize-medium">
+        Sign out
+      </Text>
+      <Text textAlign="center" color="$color-surface-700" fontSize="$fontSize-small">
+        Are you sure you want to sign out?
+      </Text>
+      <HStack gap="$space-2">
+        <Button
+          label="Sign out"
+          themeColor="primary"
+          width="*"
+          size="sm"
+          onClick="auth.signOut(); signOutConfirm.close()"
+        />
+        <Button
+          label="Cancel"
+          variant="outlined"
+          themeColor="secondary"
+          width="*"
+          size="sm"
+          onClick="signOutConfirm.close()"
+        />
+      </HStack>
+    </VStack>
+  </ModalDialog>
+
   <AppHeader when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
     <Text
       fontWeight="700"
@@ -53,6 +86,50 @@
   </AppHeader>
 
   <NavPanel when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+    <property name="footerTemplate">
+      <Stack width="100%">
+      <DropdownMenu alignment="start" width="100%">
+        <property name="triggerTemplate">
+          <Button
+            variant="ghost"
+            themeColor="secondary"
+            width="100%"
+            paddingVertical="$space-1_5"
+            paddingHorizontal="$space-3"
+            borderRadius="$space-2"
+          >
+            <HStack verticalAlignment="center" gap="$space-3" width="100%">
+              <Stack
+                width="28px"
+                height="28px"
+                borderRadius="999px"
+                backgroundColor="$color-surface-200"
+                verticalAlignment="center"
+                horizontalAlignment="center"
+              >
+                <Text fontSize="10px" fontWeight="700" color="$color-surface-600">
+                  {userInitials(auth.value &amp;&amp; auth.value.user ? auth.value.user.name : '')}
+                </Text>
+              </Stack>
+              <Text fontWeight="500" fontSize="14px" color="$color-surface-500">
+                {auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}
+              </Text>
+              <SpaceFiller />
+              <Icon name="chevrondown" size="16px" color="$color-surface-500" />
+            </HStack>
+          </Button>
+        </property>
+        <MenuItem icon="cog" onClick="Actions.navigate('/settings')">
+          <Text fontSize="$fontSize-small" fontWeight="600">Settings</Text>
+        </MenuItem>
+        <MenuSeparator />
+        <MenuItem icon="exit" onClick="signOutConfirm.open()">
+          <Text color="$color-danger-600" fontSize="$fontSize-small" fontWeight="700">Sign out</Text>
+        </MenuItem>
+      </DropdownMenu>
+      </Stack>
+    </property>
+
     <NavGroup label="Track" initiallyExpanded="true">
       <NavLink to="/" label="Calendar" icon="date" />
       <NavLink to="/list" label="List" icon="board" />
@@ -66,10 +143,6 @@
       <NavLink to="/projects" label="Projects" icon="folder" />
       <NavLink to="/clients" label="Clients" icon="users" />
       <NavLink to="/tags" label="Tags" icon="hash" />
-    </NavGroup>
-
-    <NavGroup label="Account" initiallyExpanded="true">
-      <NavLink to="/settings" label="Settings" icon="cog" />
     </NavGroup>
   </NavPanel>
 
@@ -118,7 +191,7 @@
       <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
       <SettingsScreen
         userName="{auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}"
-        onSignOut="() => auth.signOut()"
+        userEmail="{auth.value &amp;&amp; auth.value.user ? auth.value.user.email : ''}"
       />
     </Page>
   </Pages>

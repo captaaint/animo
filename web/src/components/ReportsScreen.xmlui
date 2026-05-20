@@ -199,7 +199,6 @@
           weekStartsOn="1"
           showWeekNumber="true"
           dateFormat="yyyy-MM-dd"
-          borderRadius="0"
           initialValue="{{ from: fromDate, to: toDate }}"
           onDidChange="(v) => {
               if (!v || typeof v !== 'object') return;
