@@ -57,7 +57,7 @@
         </Column>
         <Column header="Rate" width="120px">
           <Text>
-            {$item.hourlyRate &amp;&amp; $item.hourlyRate > 0
+            {$item.hourlyRate && $item.hourlyRate > 0
             ? ($item.hourlyRate + ' ' + ($item.currency || 'EUR') + '/h')
             : '—'}
           </Text>
@@ -73,7 +73,7 @@
       </Table>
 
       <NoResult
-        when="{projectsDs.loaded &amp;&amp; (projectsDs.value || []).length === 0}"
+        when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
         label="No projects yet"
       />
       <Spinner when="{!projectsDs.loaded}" />
@@ -104,7 +104,7 @@
               </VStack>
               <SpaceFiller />
               <Text variant="secondary" fontSize="$fontSize-small">
-                {$item.hourlyRate &amp;&amp; $item.hourlyRate > 0
+                {$item.hourlyRate && $item.hourlyRate > 0
                 ? ($item.hourlyRate + ' ' + ($item.currency || 'EUR') + '/h')
                 : '—'}
               </Text>
@@ -122,7 +122,7 @@
         </Items>
       </Card>
 
-      <Card when="{projectsDs.loaded &amp;&amp; (projectsDs.value || []).length === 0}"
+      <Card when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
         padding="$space-2" width="100%">
         <NoResult label="No projects yet" />
       </Card>

@@ -86,7 +86,7 @@
       </Table>
 
       <NoResult
-        when="{clientsDs.loaded &amp;&amp; (clientsDs.value || []).length === 0}"
+        when="{clientsDs.loaded && (clientsDs.value || []).length === 0}"
         label="No clients yet"
       />
       <Spinner when="{!clientsDs.loaded}" />
@@ -141,7 +141,7 @@
       </Card>
 
       <Card
-        when="{clientsDs.loaded &amp;&amp; (clientsDs.value || []).length === 0}"
+        when="{clientsDs.loaded && (clientsDs.value || []).length === 0}"
         padding="$space-2"
         width="100%"
       >

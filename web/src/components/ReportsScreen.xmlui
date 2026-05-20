@@ -60,7 +60,7 @@
     maxWidth="980px"
     height="95vh"
     padding="$space-0"
-    onClose="if ($param &amp;&amp; $param.url) window.revokeBlobUrl($param.url);"
+    onClose="if ($param && $param.url) window.revokeBlobUrl($param.url);"
   >
     <VStack height="*" width="*" gap="$space-0" backgroundColor="$color-surface-100">
       <Stack height="*" width="*" minHeight="0" padding="$space-5">
@@ -140,7 +140,7 @@
       const allTags = tagsDs.value || [];
       const enriched = filtered.map((e) => {
         const p = projects.find((pp) => pp.id === e.projectId);
-        const c = p &amp;&amp; clients.find((cc) => cc.id === p.clientId);
+        const c = p && clients.find((cc) => cc.id === p.clientId);
         return {
           description: e.description || '',
           projectName: p ? p.name : (e.projectName || null),
@@ -202,8 +202,8 @@
           initialValue="{{ from: fromDate, to: toDate }}"
           onDidChange="(v) => {
               if (!v || typeof v !== 'object') return;
-              if (v.from &amp;&amp; v.from !== fromDate) fromDate = v.from;
-              if (v.to &amp;&amp; v.to !== toDate) toDate = v.to;
+              if (v.from && v.from !== fromDate) fromDate = v.from;
+              if (v.to && v.to !== toDate) toDate = v.to;
             }"
         />
 
@@ -285,7 +285,7 @@
           variant="ghost"
           size="sm"
           testId="filter-clear"
-          enabled="{(projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)}"
+          enabled="{(projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)}"
           onClick="
             projectFilter = [];
             tagFilter = [];
@@ -457,7 +457,7 @@
     </HStack>
 
     <VStack
-      when="{vp.value &amp;&amp; vp.value.isMobile}"
+      when="{vp.value && vp.value.isMobile}"
       width="*"
       gap="$space-4"
     >
@@ -520,7 +520,7 @@
     <Card height="*" when-xs="false" when-sm="true">
       <NoResult
         when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
-        label="{searchText || (projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)
+        label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
           ? 'No entries match your filters'
           : 'No entries in this date range'}"
       />
@@ -673,7 +673,7 @@
       </Card>
       <Card when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
         <NoResult
-          label="{searchText || (projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)
+          label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
             ? 'No entries match your filters'
             : 'No entries in this date range'}"
         />

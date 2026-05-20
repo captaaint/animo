@@ -63,7 +63,7 @@
       </Table>
 
       <NoResult
-        when="{tagsDs.loaded &amp;&amp; (tagsDs.value || []).length === 0}"
+        when="{tagsDs.loaded && (tagsDs.value || []).length === 0}"
         label="No tags yet"
       />
       <Spinner when="{!tagsDs.loaded}" />
@@ -97,7 +97,7 @@
         </Items>
       </Card>
 
-      <Card when="{tagsDs.loaded &amp;&amp; (tagsDs.value || []).length === 0}"
+      <Card when="{tagsDs.loaded && (tagsDs.value || []).length === 0}"
         padding="$space-2" width="100%">
         <NoResult label="No tags yet" />
       </Card>

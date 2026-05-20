@@ -14,7 +14,7 @@
       emitEvent('saved');
       modal.close();
     }"
-    onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
+    onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
   />
 
   <ModalDialog

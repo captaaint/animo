@@ -32,9 +32,9 @@
   }"
   method.openForSlot="(slot) => {
     editItem = null;
-    entryDate = slot &amp;&amp; slot.date ? slot.date : toIsoDate(new Date());
-    startStr = slot &amp;&amp; slot.startTime ? slot.startTime : '09:00';
-    endStr = slot &amp;&amp; slot.endTime ? slot.endTime : '10:00';
+    entryDate = slot && slot.date ? slot.date : toIsoDate(new Date());
+    startStr = slot && slot.startTime ? slot.startTime : '09:00';
+    endStr = slot && slot.endTime ? slot.endTime : '10:00';
     descr = '';
     projectId = null;
     billable = false;
@@ -44,11 +44,11 @@
   }"
   method.openForCounter="(data) => {
     editItem = null;
-    entryDate = data &amp;&amp; data.startTime ? data.startTime.slice(0, 10) : toIsoDate(new Date());
-    startStr = data &amp;&amp; data.startTime ? data.startTime.slice(11, 16) : '09:00';
-    endStr = data &amp;&amp; data.endTime ? data.endTime.slice(11, 16) : '10:00';
-    descr = data &amp;&amp; data.description ? data.description : '';
-    projectId = data &amp;&amp; data.projectId ? data.projectId : null;
+    entryDate = data && data.startTime ? data.startTime.slice(0, 10) : toIsoDate(new Date());
+    startStr = data && data.startTime ? data.startTime.slice(11, 16) : '09:00';
+    endStr = data && data.endTime ? data.endTime.slice(11, 16) : '10:00';
+    descr = data && data.description ? data.description : '';
+    projectId = data && data.projectId ? data.projectId : null;
     billable = false;
     entryTagIds = [];
     modalOpen = true;
@@ -72,7 +72,7 @@
       emitEvent('saved');
       modal.close();
     }"
-    onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
+    onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
   />
 
   <APICall id="deleteCall"

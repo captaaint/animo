@@ -22,19 +22,19 @@
     id="appProjectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
-    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <DataSource
     id="appClientsDs"
     url="{apiBase + '/clients'}"
     credentials="include"
-    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <DataSource
     id="appTagsDs"
     url="{apiBase + '/tags'}"
     credentials="include"
-    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <TonePersist />
 
@@ -71,13 +71,13 @@
     </VStack>
   </ModalDialog>
 
-  <AppHeader when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+  <AppHeader when="{auth.value && auth.value.kind === 'authenticated'}">
     <Text
       fontWeight="700"
       fontSize="$fontSize-large">
       {pageTitle || pageTitleFromPath(window.location.pathname)}
     </Text>
-    <TimerBar when="{(!appVp.value || !appVp.value.isMobile) &amp;&amp; (pageTitle === 'Calendar' || pageTitle === 'List')}"
+    <TimerBar when="{(!appVp.value || !appVp.value.isMobile) && (pageTitle === 'Calendar' || pageTitle === 'List')}"
       projects="{appProjectsDs.value || []}"
       clients="{appClientsDs.value || []}"
       tags="{appTagsDs.value || []}"
@@ -85,7 +85,7 @@
     />
   </AppHeader>
 
-  <NavPanel when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+  <NavPanel when="{auth.value && auth.value.kind === 'authenticated'}">
     <property name="footerTemplate">
       <Stack width="100%">
       <Theme
@@ -113,11 +113,11 @@
                 horizontalAlignment="center"
               >
                 <Text fontSize="10px" fontWeight="700" color="$color-surface-600">
-                  {userInitials(auth.value &amp;&amp; auth.value.user ? auth.value.user.name : '')}
+                  {userInitials(auth.value && auth.value.user ? auth.value.user.name : '')}
                 </Text>
               </Stack>
               <Text fontWeight="500" fontSize="14px">
-                {auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}
+                {auth.value && auth.value.user ? auth.value.user.name : ''}
               </Text>
               <SpaceFiller />
               <Icon name="chevrondown" size="16px" />
@@ -156,50 +156,50 @@
 
   <Pages>
     <Page url="/login">
-      <Redirect to="/" when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}" />
+      <Redirect to="/" when="{auth.value && auth.value.kind === 'authenticated'}" />
       <LoginScreen
         signIn="{auth.signIn}"
-        loading="{auth.value &amp;&amp; auth.value.loading}"
-        error="{auth.value &amp;&amp; auth.value.error}"
+        loading="{auth.value && auth.value.loading}"
+        error="{auth.value && auth.value.error}"
       />
     </Page>
     <Page url="/register">
-      <Redirect to="/" when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}" />
+      <Redirect to="/" when="{auth.value && auth.value.kind === 'authenticated'}" />
       <RegisterScreen
         register="{auth.register}"
-        loading="{auth.value &amp;&amp; auth.value.loading}"
-        error="{auth.value &amp;&amp; auth.value.error}"
+        loading="{auth.value && auth.value.loading}"
+        error="{auth.value && auth.value.error}"
       />
     </Page>
     <Page url="/">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <Timesheet view="calendar" />
     </Page>
     <Page url="/list">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <Timesheet view="list" />
     </Page>
     <Page url="/projects">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ProjectsScreen />
     </Page>
     <Page url="/clients">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ClientsScreen />
     </Page>
     <Page url="/tags">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <TagsScreen />
     </Page>
     <Page url="/reports">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ReportsScreen />
     </Page>
     <Page url="/settings">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <SettingsScreen
-        userName="{auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}"
-        userEmail="{auth.value &amp;&amp; auth.value.user ? auth.value.user.email : ''}"
+        userName="{auth.value && auth.value.user ? auth.value.user.name : ''}"
+        userEmail="{auth.value && auth.value.user ? auth.value.user.email : ''}"
       />
     </Page>
   </Pages>
