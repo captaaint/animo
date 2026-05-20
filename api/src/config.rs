@@ -37,8 +37,8 @@ impl Config {
             .parse()?;
         let database_url =
             std::env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:data.db?mode=rwc".into());
-        let jwt_secret = std::env::var("JWT_SECRET")
-            .unwrap_or_else(|_| "dev-secret-change-me".into());
+        let jwt_secret =
+            std::env::var("JWT_SECRET").unwrap_or_else(|_| "dev-secret-change-me".into());
         let cors_origins = std::env::var("CORS_ORIGINS")
             .unwrap_or_else(|_| {
                 // Vite picks the first free port in 5173..=5176, so allow them all in dev.

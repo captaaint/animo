@@ -96,15 +96,22 @@ impl FromRequestParts<AppState> for AuthUser {
 
         let hash = hash_token(&token);
         // Session row + user identity in a single round-trip.
-        let row: Option<(String, String, String, String, String, Option<String>, String)> =
-            sqlx::query_as(
-                "SELECT s.id, s.user_id, s.last_seen_at, s.expires_at, u.email, u.name, u.id \
+        let row: Option<(
+            String,
+            String,
+            String,
+            String,
+            String,
+            Option<String>,
+            String,
+        )> = sqlx::query_as(
+            "SELECT s.id, s.user_id, s.last_seen_at, s.expires_at, u.email, u.name, u.id \
                  FROM sessions s JOIN users u ON u.id = s.user_id \
                  WHERE s.token_hash = ? AND s.revoked_at IS NULL",
-            )
-            .bind(&hash)
-            .fetch_optional(&state.db)
-            .await?;
+        )
+        .bind(&hash)
+        .fetch_optional(&state.db)
+        .await?;
 
         let (session_id, user_id, last_seen_at, expires_at, email, name, _) =
             row.ok_or(AppError::Unauthorized)?;

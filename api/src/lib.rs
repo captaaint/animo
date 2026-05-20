@@ -49,11 +49,20 @@ pub fn build_app(state: AppState) -> Router {
         .route("/auth/logout", post(auth::routes::logout))
         .route("/auth/me", get(auth::routes::me))
         .route("/clients", get(clients::list).post(clients::create))
-        .route("/clients/:id", patch(clients::update).delete(clients::delete))
+        .route(
+            "/clients/:id",
+            patch(clients::update).delete(clients::delete),
+        )
         .route("/projects", get(projects::list).post(projects::create))
-        .route("/projects/:id", patch(projects::update).delete(projects::delete))
+        .route(
+            "/projects/:id",
+            patch(projects::update).delete(projects::delete),
+        )
         .route("/time-entries", get(entries::list).post(entries::create))
-        .route("/time-entries/:id", patch(entries::update).delete(entries::delete))
+        .route(
+            "/time-entries/:id",
+            patch(entries::update).delete(entries::delete),
+        )
         .route("/tags", get(tags::list).post(tags::create))
         .route("/tags/:id", patch(tags::update).delete(tags::delete))
         .route("/reports/summary", get(reports::summary))
