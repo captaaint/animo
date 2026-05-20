@@ -274,7 +274,7 @@
         paddingVertical-content-ExpandableItem="$space-0"
         backgroundColor-ExpandableItem="$color-surface-raised"
         backgroundColor-summary-ExpandableItem="$color-surface-raised"
-        backgroundColor-summary-ExpandableItem--hover="$color-surface-raised"
+        backgroundColor-summary-ExpandableItem--hover="transparent"
       >
         <Items
           data="{groupEntriesByDay(entriesForListTable(filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []), $props.projects || []))}"

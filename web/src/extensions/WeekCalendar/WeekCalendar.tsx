@@ -269,6 +269,7 @@ const TOKEN_NAMES = [
   "backgroundColor-toolbar",
   "backgroundColor-header",
   "backgroundColor-gutter",
+  "backgroundColor-columnAlt",
   "borderColor-hour",
   "borderColor-halfHour",
   "backgroundColor-today",
@@ -278,6 +279,7 @@ const TOKEN_NAMES = [
   "textColor-today",
   "backgroundColor-entry",
   "textColor-entry",
+  "borderColor-entry",
   "borderRadius-entry",
   "boxShadow-entry",
   "backgroundColor-create",
@@ -955,6 +957,9 @@ export function WeekCalendar(props: WeekCalendarProps) {
     const widthPct = 100 / cols;
     const leftPct = col * widthPct;
     const color = projectColor(entry.projectId);
+    const entryShadow = tokens["boxShadow-entry"]
+      ? `${tokens["boxShadow-entry"]}, inset 0 1px 0 rgba(255,255,255,0.16)`
+      : "inset 0 1px 0 rgba(255,255,255,0.16)";
 
     return (
       <div
@@ -970,15 +975,16 @@ export function WeekCalendar(props: WeekCalendarProps) {
           height,
           left: `calc(${leftPct}% + 2px)`,
           width: `calc(${widthPct}% - 4px)`,
-          background: color,
+          background: `linear-gradient(180deg, ${color} 0%, color-mix(in srgb, ${color} 78%, black 22%) 100%)`,
           color: tokens["textColor-entry"],
+          border: `1px solid ${tokens["borderColor-entry"] || "rgba(255,255,255,0.16)"}`,
           borderRadius: tokens["borderRadius-entry"],
           padding: "4px 6px",
           fontSize: 12,
           lineHeight: 1.3,
           cursor: "grab",
           overflow: "hidden",
-          boxShadow: tokens["boxShadow-entry"],
+          boxShadow: entryShadow,
           userSelect: "none",
         }}
       >
@@ -1487,6 +1493,11 @@ export function WeekCalendar(props: WeekCalendarProps) {
         {/* Day columns */}
         {visibleDates.map((d, i) => {
           const isToday = d === nowIsoDate;
+          const columnBackground = isToday
+            ? tokens["backgroundColor-today"]
+            : i % 2 === 1 && tokens["backgroundColor-columnAlt"]
+            ? tokens["backgroundColor-columnAlt"]
+            : tokens["backgroundColor"];
           return (
             <div
               key={d}
@@ -1509,9 +1520,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
                 position: "relative",
                 height: gridHeight,
                 borderLeft: i === 0 ? "none" : `1px solid ${tokens["borderColor-hour"]}`,
-                background: isToday
-                  ? tokens["backgroundColor-today"]
-                  : tokens["backgroundColor"],
+                background: columnBackground,
                 cursor: "crosshair",
                 // Desktop uses pointer-drag for create/move/resize; mobile
                 // lets the browser handle pan gestures so the grid stays

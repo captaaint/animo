@@ -688,7 +688,7 @@
           paddingVertical-content-ExpandableItem="$space-0"
           backgroundColor-ExpandableItem="$color-surface-raised"
           backgroundColor-summary-ExpandableItem="$color-surface-raised"
-          backgroundColor-summary-ExpandableItem--hover="$color-surface-raised"
+          backgroundColor-summary-ExpandableItem--hover="transparent"
         >
           <Items
             data="{groupEntriesByDay(entriesForListTable(filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
