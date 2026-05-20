@@ -23,6 +23,7 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
+      e2e: ${{ steps.filter.outputs.e2e }}
     steps:
       - uses: actions/checkout@v4
 
@@ -44,6 +45,12 @@ jobs:
               - 'api/**'
               - 'Cargo.toml'
               - 'Cargo.lock'
+            e2e:
+              - 'web/**'
+              - 'api/**'
+              - 'e2e/**'
+              - 'package.json'
+              - 'package-lock.json'
 
   web:
     name: Web (XMLUI build sanity)
@@ -141,9 +148,10 @@ jobs:
 
   e2e-smoke:
     name: E2E smoke
+    needs: changes
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    if: needs.changes.outputs.e2e == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
 
