@@ -32,9 +32,31 @@ the manual Gatekeeper steps below.
 ### First launch — handling Gatekeeper
 
 The app isn't signed with an Apple Developer ID (Animo is on-prem
-distribution, not App Store), so on first launch macOS Gatekeeper warns
-about an "unidentified developer." This happens **once** — the system
-remembers it.
+distribution, not App Store), so on first launch macOS shows one of two
+warnings depending on your macOS version and how you downloaded the DMG.
+
+#### Case 1 (most common on Sonoma+): *"Animo.app is damaged and can't be opened. You should move it to the Trash."*
+
+This is **not** an actual corruption — it's macOS's hard-block for
+unsigned apps downloaded via a browser (the `com.apple.quarantine`
+extended attribute). **Don't move it to Trash.** Run this once in
+**Terminal**:
+
+```sh
+xattr -dr com.apple.quarantine /Applications/Animo.app
+```
+
+Then double-click **Animo** — it launches normally.
+
+> If the app is still in `~/Downloads` (not yet copied to Applications),
+> point the command there instead, e.g.
+> `xattr -dr com.apple.quarantine ~/Downloads/Animo.app`.
+
+#### Case 2: *"Animo cannot be opened because the developer cannot be verified"*
+
+On some macOS versions you get the milder "unidentified developer"
+dialog with an **Open Anyway** path through System Settings. This
+happens **once** — the system remembers your decision.
 
 1. Double-click **Animo** to try launching it. A dialog appears saying
    the system couldn't verify the developer. Click **Done** / **Cancel**.
@@ -45,21 +67,12 @@ remembers it.
 4. In the confirmation dialog, choose **Open Anyway** and authenticate
    with your password / Touch ID.
 
-After this, the app launches normally — just double-click.
+After this the app launches normally — just double-click.
 
 > On macOS Sonoma 14 or earlier, **Finder → Applications → right-click
-> Animo → Open** also works. Since Sequoia (macOS 15) the Privacy &
-> Security panel is the only path.
-
-### Manual quarantine clear (alternative)
-
-If you'd rather skip the Gatekeeper dance entirely:
-
-```sh
-sudo xattr -dr com.apple.quarantine /Applications/Animo.app
-```
-
-After this the app launches like any installed Mac app.
+> Animo → Open** also works for Case 2. Since Sequoia (macOS 15) the
+> Privacy & Security panel is the only path. For Case 1 the `xattr`
+> command above is always the cleanest fix on every version.
 
 ## First use
 
