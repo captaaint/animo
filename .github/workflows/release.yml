@@ -251,7 +251,7 @@ jobs:
           version="${{ needs.verify.outputs.version }}"
           name="animo-api_${version}_${{ matrix.label }}"
           mkdir -p staging "$name"
-          cp "api/target/${{ matrix.target }}/release/${{ matrix.bin }}" "$name/"
+          cp "target/${{ matrix.target }}/release/${{ matrix.bin }}" "$name/"
           cp LICENSE "$name/"
           cp api/.env.example "$name/" 2>/dev/null || true
           tar -czf "staging/${name}.tar.gz" "$name"
@@ -264,7 +264,7 @@ jobs:
           $version = "${{ needs.verify.outputs.version }}"
           $name = "animo-api_${version}_${{ matrix.label }}"
           New-Item -ItemType Directory -Path staging,$name -Force | Out-Null
-          Copy-Item "api/target/${{ matrix.target }}/release/${{ matrix.bin }}" "$name/"
+          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.bin }}" "$name/"
           Copy-Item LICENSE "$name/"
           if (Test-Path "api/.env.example") { Copy-Item "api/.env.example" "$name/" }
           Compress-Archive -Path "$name/*" -DestinationPath "staging/$name.zip"
