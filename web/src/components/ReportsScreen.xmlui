@@ -6,6 +6,8 @@
   var.searchText="{''}"
   var.projectFilter="{[]}"
   var.tagFilter="{[]}"
+  var.sliceBy="{'billable'}"
+  var.distData="{((fe) => sliceBy === 'project' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const key = p ? String(p.id) : '__none__'; if (!acc[key]) acc[key] = { label: p ? p.name : 'No project', seconds: 0, color: p ? p.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'client' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const c = p ? (clientsDs.value || []).find(cc => cc.id === p.clientId) : null; const key = c ? String(c.id) : '__none__'; if (!acc[key]) acc[key] = { label: c ? c.name : 'No client', seconds: 0, color: c ? c.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'tag' ? fe.reduce((acc, e) => { const tags = tagsForIds(e.tagIds || [], tagsDs.value || []); if (tags.length === 0) { const ex = acc.find(a => a.label === 'No tag'); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: 'No tag', seconds: e.durationSeconds || 0, color: '#C2BDB7' }); } else { tags.forEach(t => { const ex = acc.find(a => a.label === t.name); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: t.name, seconds: e.durationSeconds || 0, color: t.color }); }); } return acc; }, []) : [{ label: 'Billable', seconds: sumBillableSeconds(fe) }, { label: 'Non-billable', seconds: sumDurationSeconds(fe) - sumBillableSeconds(fe) }])(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))}"
 >
   <Viewport id="vp" />
 
@@ -55,24 +57,33 @@
   <ModalDialog
     id="pdfPreview"
     closeButtonVisible="false"
-    maxWidth="600px"
+    maxWidth="980px"
     height="95vh"
     padding="$space-0"
-    onClose="if ($param &amp;&amp; $param.url) window.revokeBlobUrl($param.url);"
+    onClose="if ($param && $param.url) window.revokeBlobUrl($param.url);"
   >
-    <VStack height="*" width="*" gap="$space-0">
-      <Stack height="*" width="*" overflowY="auto">
-        <Pdf src="{$param.url}" />
+    <VStack height="*" width="*" gap="$space-0" backgroundColor="$color-surface-100">
+      <Stack height="*" width="*" minHeight="0" padding="$space-5">
+        <Pdf
+          id="pdfPreviewViewer"
+          src="{$param.url}"
+          width="*"
+          height="*"
+          horizontalAlignment="center"
+          scrollStyle="whenScrolling"
+          onDocumentLoad="pdfPreviewViewer.fitWidth()"
+        />
       </Stack>
       <HStack
         width="*"
         verticalAlignment="center"
         padding="$space-3"
-        backgroundColor="$color-surface-50"
+        backgroundColor="$color-surface-0"
+        borderTop="1px solid $color-surface-200"
       >
         <Button
           label="Discard"
-          variant="outlined"
+          variant="ghost"
           onClick="pdfPreview.close()"
         />
         <SpaceFiller />
@@ -86,6 +97,13 @@
     </VStack>
   </ModalDialog>
 
+  <EntryModal
+    id="entryModal"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => summaryDs.refetch()"
+  />
+
   <APICall
     id="duplicateCall"
     method="POST"
@@ -94,6 +112,17 @@
     body="{$param}"
     onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); }"
     onError="() => toast.error('Duplicate failed')"
+  />
+
+  <APICall
+    id="deleteCall"
+    method="DELETE"
+    url="{apiBase + '/time-entries/' + $param}"
+    credentials="include"
+    confirmTitle="Delete entry"
+    confirmMessage="Delete this entry?"
+    onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
+    onError="() => toast.error('Delete failed')"
   />
 
   <!-- Cross-tree export trigger: AppHeader's "Export PDF" button dispatches
@@ -111,7 +140,7 @@
       const allTags = tagsDs.value || [];
       const enriched = filtered.map((e) => {
         const p = projects.find((pp) => pp.id === e.projectId);
-        const c = p &amp;&amp; clients.find((cc) => cc.id === p.clientId);
+        const c = p && clients.find((cc) => cc.id === p.clientId);
         return {
           description: e.description || '',
           projectName: p ? p.name : (e.projectName || null),
@@ -170,12 +199,11 @@
           weekStartsOn="1"
           showWeekNumber="true"
           dateFormat="yyyy-MM-dd"
-          borderRadius="0"
           initialValue="{{ from: fromDate, to: toDate }}"
           onDidChange="(v) => {
               if (!v || typeof v !== 'object') return;
-              if (v.from &amp;&amp; v.from !== fromDate) fromDate = v.from;
-              if (v.to &amp;&amp; v.to !== toDate) toDate = v.to;
+              if (v.from && v.from !== fromDate) fromDate = v.from;
+              if (v.to && v.to !== toDate) toDate = v.to;
             }"
         />
 
@@ -209,7 +237,7 @@
                 <Stack
                   width="10px"
                   height="10px"
-                  borderRadius="50%"
+                  borderRadius="3px"
                   backgroundColor="{$item.color}"
                 />
                 <Text>
@@ -240,7 +268,7 @@
                 <Stack
                   width="10px"
                   height="10px"
-                  borderRadius="50%"
+                  borderRadius="3px"
                   backgroundColor="{$item.color}"
                 />
                 <Text>
@@ -257,7 +285,7 @@
           variant="ghost"
           size="sm"
           testId="filter-clear"
-          enabled="{(projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)}"
+          enabled="{(projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)}"
           onClick="
             projectFilter = [];
             tagFilter = [];
@@ -270,79 +298,111 @@
           label="Export PDF"
           icon="doc"
           width="fit-content"
-          variant="outlined"
+          variant="ghost"
           testId="header-export-pdf"
           onClick="window.ttExportReport()"
         />
       </HStack>
     </Card>
 
-    <!-- KPI bar -->
-    <Card padding="0">
-      <HStack verticalAlignment="center" width="*" gap="$space-0">
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Total Hours
-          </Text>
-          <H3 marginBottom="0">
-            {formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}
-          </H3>
-        </VStack>
-        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Billable Hours
-          </Text>
-          <H3 marginBottom="0">
-            {sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0
-              ? '—'
-              : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}
-          </H3>
-        </VStack>
-        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Amount
-          </Text>
-          <H3 marginBottom="0">
-            {amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0
-              ? '—'
-              : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))
-                  .map(a => a.amount.toFixed(2) + ' ' + a.currency)
-                  .join(' + ')}
-          </H3>
-        </VStack>
-        <Stack width="1px" height="48px" backgroundColor="$color-surface-300" />
-        <VStack
-          width="*"
-          paddingHorizontal="$space-6"
-          paddingVertical="$space-4"
-          gap="$space-2"
-        >
-          <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-small">
-            Average Daily Hours
-          </Text>
-          <H3 marginBottom="0">
-            {formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}
-          </H3>
-        </VStack>
+    <!-- KPI cards – desktop: single row, mobile: 2×2 -->
+    <HStack when-xs="false" when-sm="true" gap="$space-4">
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="clock" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="file-text" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0 ? '—' : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="credit-card" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0 ? '—' : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+      <Card width="*">
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+            <Icon name="trending-up" size="md" />
+          </Stack>
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}</Text>
+          </VStack>
+        </HStack>
+      </Card>
+    </HStack>
+
+    <VStack when-xs="true" when-sm="false" gap="$space-4">
+      <HStack gap="$space-4">
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="clock" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+            </VStack>
+          </HStack>
+        </Card>
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="file-text" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0 ? '—' : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+            </VStack>
+          </HStack>
+        </Card>
       </HStack>
-    </Card>
+      <HStack gap="$space-4">
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="credit-card" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0 ? '—' : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+            </VStack>
+          </HStack>
+        </Card>
+        <Card width="*">
+          <HStack gap="$space-3" verticalAlignment="center">
+            <Stack backgroundColor="$color-primary-100" borderRadius="$borderRadius" padding="$space-3" color="$color-primary-500">
+              <Icon name="trending-up" size="md" />
+            </Stack>
+            <VStack gap="$space-1">
+              <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}</Text>
+            </VStack>
+          </HStack>
+        </Card>
+      </HStack>
+    </VStack>
 
     <!-- Charts: side-by-side on desktop, stacked on mobile -->
     <HStack
@@ -366,27 +426,38 @@
       </Card>
 
       <Card width="*" minWidth="0" padding="$space-6" gap="$space-4">
-        <H3>
-          Billable distribution
-        </H3>
+        <HStack verticalAlignment="center">
+          <H3>{sliceBy === 'project' ? 'Project' : sliceBy === 'client' ? 'Client' : sliceBy === 'tag' ? 'Tag' : 'Billable'} distribution</H3>
+          <SpaceFiller />
+          <DropdownMenu alignment="end">
+            <property name="triggerTemplate">
+              <Button
+                variant="outlined"
+                size="sm"
+                label="{sliceBy === 'project' ? 'Projects' : sliceBy === 'client' ? 'Clients' : sliceBy === 'tag' ? 'Tags' : 'Billable'}"
+                icon="chevrondown" />
+            </property>
+            <MenuItem onClick="sliceBy = 'billable'">Billable</MenuItem>
+            <MenuItem onClick="sliceBy = 'project'">Projects</MenuItem>
+            <MenuItem onClick="sliceBy = 'client'">Clients</MenuItem>
+            <MenuItem onClick="sliceBy = 'tag'">Tags</MenuItem>
+          </DropdownMenu>
+        </HStack>
         <Stack height="280px" width="*" horizontalAlignment="center" verticalAlignment="center">
           <PieChart
             cutout="65%"
             showLegend="true"
-            data="{[
-              { label: 'Billable', seconds: sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) },
-              { label: 'Non-billable', seconds: sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) - sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) }
-            ]}"
+            data="{distData}"
             dataKey="seconds"
             nameKey="label"
-            colors="{['#7c3aed', '#334155']}"
+            colors="{sliceBy === 'billable' ? ['#3F8F8C', '#C2BDB7'] : (distData || []).map(d => d.color)}"
           />
         </Stack>
       </Card>
     </HStack>
 
     <VStack
-      when="{vp.value &amp;&amp; vp.value.isMobile}"
+      when="{vp.value && vp.value.isMobile}"
       width="*"
       gap="$space-4"
     >
@@ -405,26 +476,37 @@
       </Card>
 
       <Card width="*" padding="$space-6" gap="$space-4">
-        <H3>
-          Billable distribution
-        </H3>
+        <HStack verticalAlignment="center">
+          <H3>{sliceBy === 'project' ? 'Project' : sliceBy === 'client' ? 'Client' : sliceBy === 'tag' ? 'Tag' : 'Billable'} distribution</H3>
+          <SpaceFiller />
+          <DropdownMenu alignment="end">
+            <property name="triggerTemplate">
+              <Button
+                variant="outlined"
+                size="sm"
+                label="{sliceBy === 'project' ? 'Projects' : sliceBy === 'client' ? 'Clients' : sliceBy === 'tag' ? 'Tags' : 'Billable'}"
+                icon="chevrondown" />
+            </property>
+            <MenuItem onClick="sliceBy = 'billable'">Billable</MenuItem>
+            <MenuItem onClick="sliceBy = 'project'">Projects</MenuItem>
+            <MenuItem onClick="sliceBy = 'client'">Clients</MenuItem>
+            <MenuItem onClick="sliceBy = 'tag'">Tags</MenuItem>
+          </DropdownMenu>
+        </HStack>
         <Stack height="280px" width="*" horizontalAlignment="center" verticalAlignment="center">
           <PieChart
             cutout="65%"
             showLegend="true"
-            data="{[
-              { label: 'Billable', seconds: sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) },
-              { label: 'Non-billable', seconds: sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) - sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) }
-            ]}"
+            data="{distData}"
             dataKey="seconds"
             nameKey="label"
-            colors="{['#7c3aed', '#334155']}"
+            colors="{sliceBy === 'billable' ? ['#3F8F8C', '#C2BDB7'] : (distData || []).map(d => d.color)}"
           />
         </Stack>
       </Card>
     </VStack>
 
-    <Card>
+    <Card when-xs="false" when-sm="true" gap="$space-4">
       <TextBox
         width="*"
         placeholder="Search description, project, client, tag…"
@@ -433,112 +515,413 @@
         initialValue="{searchText}"
         onDidChange="(v) => searchText = v || ''"
       />
-      <List
-        maxHeight="100%"
-        backgroundColor="transparent"
-        data="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || [])}"
-        groupBy="{(e) => (e.startTime || '').slice(0, 10)}"
-      >
-        <property name="emptyListTemplate">
-          <NoResult
-            label="{searchText || (projectFilter &amp;&amp; projectFilter.length > 0) || (tagFilter &amp;&amp; tagFilter.length > 0)
-              ? 'No entries match your filters'
-              : 'No entries in this date range'}"
-          />
-        </property>
-        <property name="groupHeaderTemplate">
-          <HStack
-            verticalAlignment="center"
-            gap="$space-3"
-            paddingVertical="$space-2"
-            paddingHorizontal="$space-3"
-            backgroundColor="$color-surface-50"
-            borderRadius="$borderRadius"
-            cursor="pointer"
-            onClick="$group.toggle()"
-          >
-            <Icon name="{$group.isExpanded ? 'chevrondown' : 'chevronright'}" />
-            <Text fontWeight="bold">
-              {$group.key}
-            </Text>
-            <SpaceFiller />
-            <Text variant="secondary" fontWeight="bold">
-              {formatDuration(($group.items || []).reduce((s, e) => s + (e.durationSeconds || 0), 0))}
-            </Text>
-          </HStack>
-        </property>
-
-        <property name="itemTemplate">
-          <HStack
-            testId="reports-entry-row"
-            verticalAlignment="center"
-            gap="$space-3"
-            paddingVertical="$space-2"
-            paddingHorizontal="$space-3"
-          >
-            <VStack width="*" minWidth="220px" gap="$space-1">
-              <Text>
-                {$item.description || '(no description)'}
-              </Text>
-              <HStack
-                gap="$space-1"
-                wrapContent="true"
-                when="{($item.tagIds || []).length > 0}"
-              >
-                <Items data="{tagsForIds($item.tagIds, tagsDs.value || [])}">
-                  <Stack
-                    backgroundColor="{$item.color}"
-                    paddingHorizontal="$space-2"
-                    paddingVertical="$space-0"
-                    borderRadius="$borderRadius-small"
-                  >
-                    <Text fontSize="$fontSize-tiny" color="white">
-                      {$item.name}
-                    </Text>
-                  </Stack>
-                </Items>
-              </HStack>
-            </VStack>
-            <Text width="140px" variant="secondary">
-              {$item.projectName || '(no project)'}
-            </Text>
-            <Text width="110px" variant="secondary">
-              {$item.startTime.slice(11,16)} – {$item.endTime.slice(11,16)}
-            </Text>
-            <Text width="80px" fontWeight="bold">
-              {formatDuration($item.durationSeconds)}
-            </Text>
-            <Text width="40px" variant="secondary">
-              {$item.billable ? '$' : ''}
-            </Text>
-            <DropdownMenu alignment="end">
-              <property name="triggerTemplate">
-                <Button
-                  icon="dotmenuhorizontal"
-                  variant="ghost"
-                  size="sm"
-                  themeColor="secondary"
-                  testId="row-actions"
-                />
-              </property>
-              <MenuItem
-                icon="play"
-                testId="resume-entry"
-                onClick="publishResume($item.description, $item.projectId)"
-              >
-                Resume
-              </MenuItem>
-              <MenuItem
-                icon="copy"
-                testId="duplicate-entry"
-                onClick="duplicateCall.execute(duplicateEntryPayload($item))"
-              >
-                Duplicate
-              </MenuItem>
-            </DropdownMenu>
-          </HStack>
-        </property>
-      </List>
     </Card>
+
+    <Card height="*" when-xs="false" when-sm="true">
+      <NoResult
+        when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
+        label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+          ? 'No entries match your filters'
+          : 'No entries in this date range'}"
+      />
+      <VStack
+        when-xs="false"
+        when-sm="true"
+        when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
+        gap="0"
+      >
+        <Theme
+          padding-summary-ExpandableItem="$space-2 $space-3"
+          paddingHorizontal-content-ExpandableItem="$space-0"
+          paddingVertical-content-ExpandableItem="$space-1"
+          backgroundColor-summary-ExpandableItem="$color-surface-50"
+        >
+          <Items
+            data="{groupEntriesByDay(entriesForListTable(filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
+          >
+            <ExpandableItem fullWidthSummary="true" initiallyExpanded="true">
+              <property name="summary">
+                <HStack verticalAlignment="center" gap="$space-3" width="100%">
+                  <Text fontWeight="bold">
+                    {$item.date}
+                  </Text>
+                  <SpaceFiller />
+                  <Text variant="secondary" fontWeight="bold">
+                    {formatDuration($item.totalSec)}
+                  </Text>
+                </HStack>
+              </property>
+
+              <Table data="{$item.entries || []}">
+                <Column bindTo="description" header="Description" width="3*">
+                  <VStack gap="$space-1">
+                    <Text>
+                      {$item.description || '(no description)'}
+                    </Text>
+                    <HStack
+                      gap="$space-1"
+                      wrapContent="true"
+                      when="{($item.tagIds || []).length > 0}"
+                    >
+                      <Items data="{tagsForIds($item.tagIds, tagsDs.value || [])}">
+                        <Stack
+                          backgroundColor="{$item.color}"
+                          paddingHorizontal="$space-2"
+                          paddingVertical="$space-0"
+                          borderRadius="$borderRadius-small"
+                        >
+                          <Text fontSize="$fontSize-tiny" color="white">
+                            {$item.name}
+                          </Text>
+                        </Stack>
+                      </Items>
+                    </HStack>
+                  </VStack>
+                </Column>
+                <Column
+                  bindTo="projectName"
+                  header="Project"
+                  width="2*"
+                  canSort="true"
+                >
+                  <HStack gap="$space-2" verticalAlignment="center">
+                    <Stack
+                      backgroundColor="{projectColor($item.projectId, projectsDs.value || [])}"
+                      width="14px"
+                      height="14px"
+                      borderRadius="3px"
+                    />
+                    <Text>
+                      {$item.projectName}
+                    </Text>
+                  </HStack>
+                </Column>
+                <Column header="Time" width="*">
+                  <Text>
+                    {$item.startTime.slice(11,16)} – {$item.endTime.slice(11,16)}
+                  </Text>
+                </Column>
+                <Column
+                  bindTo="durationSeconds"
+                  header="Duration"
+                  width="*"
+                  canSort="true"
+                >
+                  <Text>
+                    {formatDuration($item.durationSeconds)}
+                  </Text>
+                </Column>
+                <Column
+                  bindTo="billable"
+                  header="Billable"
+                  width="*"
+                  canSort="true"
+                >
+                  <Text>
+                    {$item.billable ? 'Yes' : 'No'}
+                  </Text>
+                </Column>
+                <Column header="Actions" width="70px">
+                  <DropdownMenu alignment="end">
+                    <property name="triggerTemplate">
+                      <Button
+                        icon="dotmenu"
+                        variant="ghost"
+                        size="sm"
+                        themeColor="secondary"
+                        testId="row-actions"
+                      />
+                    </property>
+                    <MenuItem
+                      icon="copy"
+                      onClick="duplicateCall.execute(duplicateEntryPayload($item))"
+                    >
+                      Duplicate
+                    </MenuItem>
+                    <MenuItem
+                      icon="pencil"
+                      onClick="entryModal.open($item)"
+                    >
+                      Edit
+                    </MenuItem>
+                    <MenuSeparator />
+                    <MenuItem
+                      icon="trash"
+                      onClick="deleteCall.execute($item.id)"
+                    >
+                      Delete
+                    </MenuItem>
+                  </DropdownMenu>
+                </Column>
+              </Table>
+            </ExpandableItem>
+          </Items>
+        </Theme>
+      </VStack>
+    </Card>
+
+    <VStack when-xs="true" when-sm="false" gap="$space-2">
+      <Card>
+        <TextBox
+          width="100%"
+          placeholder="Search description, project, client, tag…"
+          startIcon="search"
+          testId="reports-search"
+          initialValue="{searchText}"
+          onDidChange="(v) => searchText = v || ''"
+        />
+      </Card>
+      <Card when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
+        <NoResult
+          label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+            ? 'No entries match your filters'
+            : 'No entries in this date range'}"
+        />
+      </Card>
+      <VStack
+        when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
+        gap="$space-4"
+      >
+        <Theme
+          padding-summary-ExpandableItem="$space-3"
+          paddingHorizontal-content-ExpandableItem="$space-1"
+          paddingVertical-content-ExpandableItem="$space-0"
+          backgroundColor-ExpandableItem="$color-surface-raised"
+          backgroundColor-summary-ExpandableItem="$color-surface-raised"
+          backgroundColor-summary-ExpandableItem--hover="transparent"
+        >
+          <Items
+            data="{groupEntriesByDay(entriesForListTable(filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
+          >
+            <ExpandableItem
+              fullWidthSummary="true"
+              initiallyExpanded="true"
+              border="1px solid $color-surface-200"
+              borderRadius="$borderRadius"
+            >
+              <property name="summary">
+                <HStack verticalAlignment="center" gap="$space-2" width="100%">
+                  <Stack
+                    width="30px"
+                    height="30px"
+                    borderRadius="50%"
+                    backgroundColor="$color-primary-50"
+                    horizontalAlignment="center"
+                    verticalAlignment="center"
+                  >
+                    <Icon name="date" color="$color-primary-600" size="14px" />
+                  </Stack>
+                  <HStack
+                    gap="$space-1"
+                    verticalAlignment="center"
+                    width="*"
+                    minWidth="0"
+                  >
+                    <Text fontWeight="700" fontSize="$fontSize-small">
+                      {formatDatePart($item.date)}
+                    </Text>
+                    <Text variant="secondary" fontSize="$fontSize-tiny">
+                      {formatDayPart($item.date)}
+                    </Text>
+                  </HStack>
+                  <Text
+                    color="$color-primary-700"
+                    fontWeight="700"
+                    fontSize="$fontSize-small"
+                    width="68px"
+                  >
+                    {formatDurationCompact($item.totalSec)}
+                  </Text>
+                </HStack>
+              </property>
+
+              <VStack
+                gap="$space-3"
+                paddingTop="$space-3"
+                paddingBottom="$space-3"
+              >
+                <Items data="{$item.entries || []}">
+                  <HStack
+                    testId="reports-entry-row"
+                    gap="$space-1"
+                    width="100%"
+                    verticalAlignment="stretch"
+                  >
+                    <VStack
+                      width="32px"
+                      gap="$space-1"
+                      horizontalAlignment="center"
+                    >
+                      <HStack gap="$space-0" verticalAlignment="center">
+                        <Text
+                          color="{projectColor($item.projectId, projectsDs.value || [])}"
+                          fontWeight="700"
+                          fontSize="$fontSize-tiny"
+                        >
+                          {$item.startTime.slice(11,16)}
+                        </Text>
+                      </HStack>
+                      <Stack
+                        width="1px"
+                        height="*"
+                        minHeight="88px"
+                        backgroundColor="$color-surface-200"
+                      />
+                    </VStack>
+
+                    <VStack
+                      width="*"
+                      minWidth="0"
+                      gap="$space-2"
+                      padding="$space-3"
+                      backgroundColor="$color-surface-raised"
+                      border="1px solid $color-surface-200"
+                      borderRadius="$borderRadius"
+                    >
+                      <HStack
+                        verticalAlignment="start"
+                        gap="$space-1"
+                        width="100%"
+                      >
+                        <VStack gap="$space-2" width="*" minWidth="0">
+                          <HStack
+                            gap="$space-1"
+                            verticalAlignment="center"
+                            width="100%"
+                          >
+                            <Text
+                              variant="secondary"
+                              fontWeight="600"
+                              fontSize="$fontSize-tiny"
+                              width="104px"
+                              whiteSpace="nowrap"
+                            >
+                              {$item.startTime.slice(11,16)} – {$item.endTime.slice(11,16)}
+                            </Text>
+                            <SpaceFiller />
+                            <Text
+                              color="{projectColor($item.projectId, projectsDs.value || [])}"
+                              fontWeight="700"
+                              fontSize="$fontSize-small"
+                              width="64px"
+                              whiteSpace="nowrap"
+                            >
+                              {formatDurationCompact($item.durationSeconds)}
+                            </Text>
+                          </HStack>
+                          <Text
+                            fontWeight="700"
+                            fontSize="$fontSize-large"
+                            width="100%"
+                            minWidth="0"
+                          >
+                            {$item.description || '(no description)'}
+                          </Text>
+                          <HStack
+                            verticalAlignment="center"
+                            gap="$space-2"
+                            width="100%"
+                          >
+                            <Stack
+                              width="14px"
+                              height="14px"
+                              borderRadius="3px"
+                              backgroundColor="{projectColor($item.projectId, projectsDs.value || [])}"
+                            />
+                            <Text
+                              variant="secondary"
+                              fontWeight="600"
+                              fontSize="$fontSize-tiny"
+                              width="*"
+                              minWidth="0"
+                            >
+                              {$item.projectName}
+                            </Text>
+                          </HStack>
+                        </VStack>
+
+                        <DropdownMenu alignment="end">
+                          <property name="triggerTemplate">
+                            <Button
+                              icon="dotmenu"
+                              variant="ghost"
+                              size="sm"
+                              themeColor="secondary"
+                              testId="row-actions"
+                              width="28px"
+                            />
+                          </property>
+                          <MenuItem
+                            icon="copy"
+                            onClick="duplicateCall.execute(duplicateEntryPayload($item))"
+                          >
+                            Duplicate
+                          </MenuItem>
+                          <MenuItem
+                            icon="pencil"
+                            onClick="entryModal.open($item)"
+                          >
+                            Edit
+                          </MenuItem>
+                          <MenuSeparator />
+                          <MenuItem
+                            icon="trash"
+                            onClick="deleteCall.execute($item.id)"
+                          >
+                            Delete
+                          </MenuItem>
+                        </DropdownMenu>
+                      </HStack>
+
+                      <HStack
+                        gap="$space-2"
+                        width="100%"
+                        verticalAlignment="center"
+                        wrapContent="true"
+                      >
+                        <Items data="{tagsForIds($item.tagIds || [], tagsDs.value || [])}">
+                          <Stack
+                            backgroundColor="{$item.color}"
+                            paddingHorizontal="$space-2"
+                            paddingVertical="$space-1"
+                            borderRadius="$borderRadius-small"
+                          >
+                            <Text
+                              fontSize="$fontSize-tiny"
+                              color="white"
+                              fontWeight="700"
+                            >
+                              {$item.name}
+                            </Text>
+                          </Stack>
+                        </Items>
+                        <Stack
+                          when="{$item.billable}"
+                          backgroundColor="$color-primary-50"
+                          paddingHorizontal="$space-2"
+                          paddingVertical="$space-1"
+                          borderRadius="$borderRadius-small"
+                        >
+                          <HStack gap="$space-1" verticalAlignment="center">
+                            <Icon name="check" color="$color-primary-700" />
+                            <Text
+                              fontSize="$fontSize-tiny"
+                              color="$color-primary-700"
+                              fontWeight="700"
+                            >
+                              billable
+                            </Text>
+                          </HStack>
+                        </Stack>
+                      </HStack>
+                    </VStack>
+                  </HStack>
+                </Items>
+              </VStack>
+            </ExpandableItem>
+          </Items>
+        </Theme>
+      </VStack>
+    </VStack>
   </VStack>
 </Component>

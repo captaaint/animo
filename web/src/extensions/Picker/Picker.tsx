@@ -129,8 +129,12 @@ export function Picker(props: PickerProps) {
     if (multiSelect) {
       setValue(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);
     } else {
-      setValue([id]);
-      setOpen(false);
+      if (value.includes(id)) {
+        setValue([]);
+      } else {
+        setValue([id]);
+        setOpen(false);
+      }
     }
   };
 
@@ -195,7 +199,6 @@ export function Picker(props: PickerProps) {
                         key={it.value}
                         item={it}
                         selected={value.includes(it.value)}
-                        showCheck={multiSelect}
                         onClick={() => toggle(it.value)}
                       />
                     ))}
@@ -206,7 +209,6 @@ export function Picker(props: PickerProps) {
                     key={it.value}
                     item={it}
                     selected={value.includes(it.value)}
-                    showCheck={multiSelect}
                     onClick={() => toggle(it.value)}
                   />
                 ))}
@@ -223,12 +225,10 @@ export function Picker(props: PickerProps) {
 function ItemRow({
   item,
   selected,
-  showCheck,
   onClick,
 }: {
   item: { value: string; label: string; color: string };
   selected: boolean;
-  showCheck: boolean;
   onClick: () => void;
 }) {
   return (
@@ -253,29 +253,25 @@ function ItemRow({
         }
       }}
     >
-      {showCheck && (
-        <PickerIcon
-          name={selected ? "checkmark" : "square"}
-          color={
-            selected
-              ? "var(--xmlui-color-primary, rgb(37, 99, 235))"
-              : "var(--xmlui-textColor-secondary, rgb(148, 163, 184))"
-          }
-        />
-      )}
       {item.color && (
         <span
           style={{
             display: "inline-block",
             width: 10,
             height: 10,
-            borderRadius: "50%",
+            borderRadius: 3,
             backgroundColor: item.color,
             flexShrink: 0,
           }}
         />
       )}
       <span style={{ flex: 1, textAlign: "left" }}>{item.label}</span>
+      {selected && (
+        <PickerIcon
+          name="checkmark"
+          color="var(--xmlui-color-primary-500, #3F8F8C)"
+        />
+      )}
     </button>
   );
 }
@@ -362,7 +358,13 @@ const badgeStyle = (color: string): React.CSSProperties => ({
 });
 
 const contentStyle: React.CSSProperties = {
-  background: "var(--xmlui-color-surface-0, white)",
+  // Tone-aware popover surface. The theme defines
+  // `backgroundColor-popover-Picker` per tone:
+  //   light → `$color-primary-50` (Mist) — soft branded panel
+  //   dark  → `$backgroundColor-primary` (matches ModalDialog)
+  // Fallback chain keeps a sensible default if the theme isn't loaded.
+  background:
+    "var(--xmlui-backgroundColor-popover-Picker, var(--xmlui-backgroundColor-primary, white))",
   color: "var(--xmlui-textColor-primary, inherit)",
   boxShadow:
     "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",

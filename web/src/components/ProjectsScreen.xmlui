@@ -27,16 +27,29 @@
     onError="() => toast.error('Delete failed')"
   />
 
-  <VStack padding="$space-6" gap="$space-4" height="*" overflowY="auto">
-    <Card padding="$space-2">
+  <VStack gap="$space-4" padding="0" width="100%" maxWidth="800px" marginHorizontal="auto"
+    height="*" overflowY="auto">
+
+    <!-- Desktop/tablet -->
+    <Card when-xs="false" when-sm="true" padding="$space-4">
+      <HStack verticalAlignment="center">
+        <SpaceFiller />
+        <Button
+          label="New project"
+          icon="plus"
+          onClick="projectModal.open()"
+        />
+      </HStack>
       <Table
         data="{projectsDs.value || []}"
         when="{(projectsDs.value || []).length > 0}"
       >
         <Column header="Color" width="80px">
-          <Stack backgroundColor="{$item.color}" width="20px" height="20px" />
+          <Stack backgroundColor="{$item.color}" width="20px" height="20px" borderRadius="3px" />
         </Column>
-        <Column bindTo="name" header="Name" />
+        <Column bindTo="name" header="Name">
+          <Text>{$item.name}</Text>
+        </Column>
         <Column header="Client">
           <Text>
             {((clientsDs.value || []).find(c => c.id === $item.clientId) || {}).name || '—'}
@@ -44,44 +57,84 @@
         </Column>
         <Column header="Rate" width="120px">
           <Text>
-            {$item.hourlyRate &amp;&amp; $item.hourlyRate > 0
+            {$item.hourlyRate && $item.hourlyRate > 0
             ? ($item.hourlyRate + ' ' + ($item.currency || 'EUR') + '/h')
             : '—'}
           </Text>
         </Column>
-        <Column header="Actions" width="200px">
-          <HStack gap="$space-2">
-            <Button
-              label="Edit"
-              icon="pencil"
-              size="sm"
-              variant="outlined"
-              onClick="projectModal.open($item)"
-            />
-            <Button
-              label="Delete"
-              icon="trash"
-              size="sm"
-              variant="outlined"
-              themeColor="attention"
-              onClick="deleteCall.execute($item.id)"
-            />
+        <Column header="Actions" width="100px">
+          <HStack gap="$space-1" verticalAlignment="center">
+            <Button icon="pencil" size="xs" variant="ghost" themeColor="secondary" padding="$space-2"
+              onClick="projectModal.open($item)" />
+            <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
+              onClick="deleteCall.execute($item.id)" />
           </HStack>
         </Column>
       </Table>
 
       <NoResult
-        when="{projectsDs.loaded &amp;&amp; (projectsDs.value || []).length === 0}"
+        when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
         label="No projects yet"
       />
       <Spinner when="{!projectsDs.loaded}" />
     </Card>
-    <HStack verticalAlignment="center">
+
+    <!-- Mobile: flat list rows with two-line content and three-dot menu -->
+    <VStack when-xs="true" when-sm="false" gap="$space-3">
+      <Card when="{(projectsDs.value || []).length > 0}" padding="$space-2" width="100%">
+        <Items data="{projectsDs.value || []}">
+          <VStack gap="0">
+            <HStack
+              verticalAlignment="center"
+              paddingVertical="$space-3"
+              paddingHorizontal="$space-2"
+              gap="$space-3"
+            >
+              <VStack gap="$space-1">
+                <HStack verticalAlignment="center" gap="$space-2">
+                  <Stack backgroundColor="{$item.color}" width="14px" height="14px" borderRadius="3px" />
+                  <Text fontWeight="600" fontSize="$fontSize-small">{$item.name}</Text>
+                </HStack>
+                <HStack gap="$space-2">
+                  <Stack width="14px" />
+                  <Text variant="secondary" fontSize="$fontSize-xs">
+                    {((clientsDs.value || []).find(c => c.id === $item.clientId) || {}).name || '—'}
+                  </Text>
+                </HStack>
+              </VStack>
+              <SpaceFiller />
+              <Text variant="secondary" fontSize="$fontSize-small">
+                {$item.hourlyRate && $item.hourlyRate > 0
+                ? ($item.hourlyRate + ' ' + ($item.currency || 'EUR') + '/h')
+                : '—'}
+              </Text>
+              <DropdownMenu alignment="end">
+                <property name="triggerTemplate">
+                  <Button icon="dotmenu" variant="ghost" size="sm" themeColor="secondary" />
+                </property>
+                <MenuItem icon="pencil" onClick="projectModal.open($item)">Edit</MenuItem>
+                <MenuSeparator />
+                <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">Delete</MenuItem>
+              </DropdownMenu>
+            </HStack>
+            <ContentSeparator when="{!$isLast}" />
+          </VStack>
+        </Items>
+      </Card>
+
+      <Card when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
+        padding="$space-2" width="100%">
+        <NoResult label="No projects yet" />
+      </Card>
+      <Spinner when="{!projectsDs.loaded}" />
+
       <Button
+        width="100%"
         label="New project"
         icon="plus"
         onClick="projectModal.open()"
       />
-    </HStack>
+    </VStack>
+
   </VStack>
 </Component>

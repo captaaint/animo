@@ -10,6 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-ssg
+# Intermediate artefacts written by `xmlui ssg` during the SSR-bundle phase.
+.xmlui-ssg-entry.tsx
+.xmlui-ssg-ssr/
 *.local
 
 # Editor directories and files

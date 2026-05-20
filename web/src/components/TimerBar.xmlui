@@ -20,11 +20,11 @@
       }
     }"
     onResume="(p) => {
-      const newDescr = (p &amp;&amp; p.description) ? p.description : '';
+      const newDescr = (p && p.description) ? p.description : '';
       descr = newDescr;
-      projectId = (p &amp;&amp; p.projectId) ? p.projectId : null;
-      if (typeof descrFull !== 'undefined' &amp;&amp; descrFull) descrFull.setValue(newDescr);
-      if (typeof descrCompact !== 'undefined' &amp;&amp; descrCompact) descrCompact.setValue(newDescr);
+      projectId = (p && p.projectId) ? p.projectId : null;
+      if (typeof descrFull !== 'undefined' && descrFull) descrFull.setValue(newDescr);
+      if (typeof descrCompact !== 'undefined' && descrCompact) descrCompact.setValue(newDescr);
     }"
   />
 
@@ -60,14 +60,14 @@
         initialValue="{descr}"
         onDidChange="(v) => descr = v"
         variant="ghost" />
-      <Text when="{sw.value &amp;&amp; sw.value.running}"
+      <Text when="{sw.value && sw.value.running}"
         fontFamily="monospace" fontWeight="bold">
         {sw.value.display}
       </Text>
       <Button when="{!sw.value || !sw.value.running}"
         label="▶" themeColor="primary" size="sm"
         onClick="sw.start()" />
-      <Button when="{sw.value &amp;&amp; sw.value.running}"
+      <Button when="{sw.value && sw.value.running}"
         label="■" themeColor="attention" size="sm"
         onClick="sw.stop()" />
     </HStack>
@@ -109,12 +109,12 @@
       onDidChange="(v) => tagIds = v || []" />
 
     <Text fontFamily="monospace" fontSize="1.25rem" fontWeight="bold">
-      {sw.value &amp;&amp; sw.value.display ? sw.value.display : '0:00:00'}
+      {sw.value && sw.value.display ? sw.value.display : '0:00:00'}
     </Text>
     <Button when="{!sw.value || !sw.value.running}"
       label="▶" themeColor="primary"
       onClick="sw.start()" />
-    <Button when="{sw.value &amp;&amp; sw.value.running}"
+    <Button when="{sw.value && sw.value.running}"
       label="■" themeColor="attention"
       onClick="sw.stop()" />
   </HStack>

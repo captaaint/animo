@@ -76,7 +76,7 @@ pub async fn create(
     }
 
     let id = Uuid::new_v4().to_string();
-    let color = payload.color.unwrap_or_else(|| "#3b82f6".to_string());
+    let color = payload.color.unwrap_or_else(|| "#3F8F8C".to_string()); // Sage Teal
     let hourly_rate = payload.hourly_rate.unwrap_or(0.0).max(0.0);
     let currency = payload
         .currency
