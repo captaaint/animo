@@ -122,7 +122,7 @@ TOUCHED_FILES=(
   "desktop/Cargo.toml"
   "desktop/tauri.conf.json"
   "api/Cargo.lock"
-  "desktop/Cargo.lock"
+  "Cargo.lock"
 )
 
 rollback_disk() {
