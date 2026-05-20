@@ -65,12 +65,11 @@ pub async fn create(
         }
         return Err(AppError::Db(e));
     }
-    let row: Tag = sqlx::query_as(
-        "SELECT id, user_id, name, color, created_at FROM tags WHERE id = ?",
-    )
-    .bind(&id)
-    .fetch_one(&state.db)
-    .await?;
+    let row: Tag =
+        sqlx::query_as("SELECT id, user_id, name, color, created_at FROM tags WHERE id = ?")
+            .bind(&id)
+            .fetch_one(&state.db)
+            .await?;
     Ok(Json(row))
 }
 
@@ -99,12 +98,11 @@ pub async fn update(
         .execute(&state.db)
         .await?;
 
-    let row: Tag = sqlx::query_as(
-        "SELECT id, user_id, name, color, created_at FROM tags WHERE id = ?",
-    )
-    .bind(&id)
-    .fetch_one(&state.db)
-    .await?;
+    let row: Tag =
+        sqlx::query_as("SELECT id, user_id, name, color, created_at FROM tags WHERE id = ?")
+            .bind(&id)
+            .fetch_one(&state.db)
+            .await?;
     Ok(Json(row))
 }
 

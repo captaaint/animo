@@ -97,7 +97,9 @@ fn duration_secs(start: &str, end: &str) -> Result<i64, AppError> {
     let s = parse_iso(start)?;
     let e = parse_iso(end)?;
     if e <= s {
-        return Err(AppError::Validation("end_time must be after start_time".into()));
+        return Err(AppError::Validation(
+            "end_time must be after start_time".into(),
+        ));
     }
     Ok((e - s).num_seconds())
 }
@@ -156,11 +158,7 @@ async fn validate_tags(state: &AppState, user_id: &str, tag_ids: &[String]) -> A
     Ok(())
 }
 
-async fn replace_entry_tags(
-    state: &AppState,
-    entry_id: &str,
-    tag_ids: &[String],
-) -> AppResult<()> {
+async fn replace_entry_tags(state: &AppState, entry_id: &str, tag_ids: &[String]) -> AppResult<()> {
     sqlx::query("DELETE FROM entry_tags WHERE entry_id = ?")
         .bind(entry_id)
         .execute(&state.db)
