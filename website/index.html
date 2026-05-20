@@ -19,26 +19,6 @@
       button [data-part-id="icon"] svg {
         display: block;
       }
-      /* Site footer: collapse to a centered single column on narrow viewports. */
-      @media (max-width: 767px) {
-        #site-footer [class*="_horizontal_"] {
-          flex-direction: column !important;
-          align-items: center !important;
-          gap: 0.75rem !important;
-        }
-        #site-footer [class*="_spacer_"] {
-          display: none !important;
-        }
-        #site-footer [class*="_vertical_"] {
-          align-items: center !important;
-          text-align: center;
-        }
-        /* Hide secondary nav links in the header on narrow viewports —
-           keeps the row uncluttered when the logo + buttons already fill it. */
-        #site-header-nav {
-          display: none !important;
-        }
-      }
     </style>
   </head>
   <body>
