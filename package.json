@@ -13,7 +13,7 @@
     "dev:prod": "concurrently -k -n api,web -c green,cyan \"npm:api:prod\" \"npm:web\"",
     "tauri": "cd desktop && tauri",
     "tauri:dev": "cd desktop && tauri dev",
-    "tauri:build": "cd web && npm run build && cd ../desktop && tauri build",
+    "tauri:build": "cd desktop && tauri build",
     "build:demo": "cd web && npm run build:demo",
     "preview:demo": "cd web && npm run preview:demo",
     "e2e": "cd e2e && npm test",
