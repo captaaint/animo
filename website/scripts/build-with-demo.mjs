@@ -42,9 +42,18 @@ run(
   }
 );
 
-run("npm", ["run", "build-prod"], { cwd: websiteDir });
+// Build the public site with XMLUI's static-site generator. The CSS-stub
+// loader lets Node import the externalized xmlui library during SSR
+// without choking on its `.css` import and un-substituted
+// `import.meta.env` references.
+const loaderPath = resolve(websiteDir, "scripts/css-stub-loader.mjs");
+run("npx", ["xmlui", "ssg"], {
+  cwd: websiteDir,
+  env: { NODE_OPTIONS: `--loader ${loaderPath}` },
+});
 
-const demoOut = resolve(websiteDir, "dist", "demo-app");
+const ssgDir = resolve(websiteDir, "dist-ssg");
+const demoOut = resolve(ssgDir, "demo-app");
 rmSync(demoOut, { recursive: true, force: true });
 mkdirSync(demoOut, { recursive: true });
 cpSync(resolve(webDir, "dist"), demoOut, { recursive: true });

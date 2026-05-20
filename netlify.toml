@@ -17,7 +17,7 @@
 
 [build]
 base = "website"
-publish = "dist"
+publish = "dist-ssg"
 command = "npm run build:with-demo"
 
 [build.environment]
