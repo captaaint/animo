@@ -165,13 +165,13 @@ jobs:
         run: |
           mkdir -p staging
           version="${{ needs.verify.outputs.version }}"
-          cp desktop/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage \
+          cp target/${{ matrix.target }}/release/bundle/appimage/*.AppImage \
             "staging/Animo_${version}_amd64.AppImage" 2>/dev/null || \
-            cp desktop/target/release/bundle/appimage/*.AppImage \
+            cp target/release/bundle/appimage/*.AppImage \
               "staging/Animo_${version}_amd64.AppImage"
-          cp desktop/target/${{ matrix.target }}/release/bundle/deb/*.deb \
+          cp target/${{ matrix.target }}/release/bundle/deb/*.deb \
             "staging/Animo_${version}_amd64.deb" 2>/dev/null || \
-            cp desktop/target/release/bundle/deb/*.deb \
+            cp target/release/bundle/deb/*.deb \
               "staging/Animo_${version}_amd64.deb"
           ls -la staging
 
@@ -185,7 +185,7 @@ jobs:
             macos-arm64) arch=aarch64 ;;
             macos-intel) arch=x64 ;;
           esac
-          src=$(ls desktop/target/${{ matrix.target }}/release/bundle/dmg/*.dmg | head -n1)
+          src=$(ls target/${{ matrix.target }}/release/bundle/dmg/*.dmg | head -n1)
           cp "$src" "staging/Animo_${version}_${arch}.dmg"
           ls -la staging
 
@@ -195,7 +195,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path staging -Force | Out-Null
           $version = "${{ needs.verify.outputs.version }}"
-          $src = Get-ChildItem "desktop/target/${{ matrix.target }}/release/bundle/msi/*.msi" | Select-Object -First 1
+          $src = Get-ChildItem "target/${{ matrix.target }}/release/bundle/msi/*.msi" | Select-Object -First 1
           Copy-Item $src.FullName "staging/Animo_${version}_x64.msi"
           Get-ChildItem staging
 
