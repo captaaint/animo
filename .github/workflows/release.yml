@@ -1,0 +1,318 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (vN.N.N) — must already exist on origin'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ github.event.inputs.tag }}
+
+jobs:
+
+  verify:
+    name: Verify tag + changelog
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Parse + validate tag
+        id: parse
+        run: |
+          tag="${TAG}"
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::tag must match vN.N.N (got: $tag)"
+            exit 1
+          fi
+          version="${tag#v}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if ! git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "::error::tag $tag does not exist on origin"
+            exit 1
+          fi
+
+          if ! grep -qE "^##\s*\[?${version}\]?" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no entry for ${version}"
+            exit 1
+          fi
+
+  create-release:
+    name: Create GitHub release
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract changelog body for ${{ needs.verify.outputs.version }}
+        id: changelog
+        run: |
+          version="${{ needs.verify.outputs.version }}"
+          awk -v ver="$version" '
+            $0 ~ "^## *\\[?" ver "\\]?" { capture=1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > release-body.md
+
+          if ! [ -s release-body.md ]; then
+            echo "::warning::changelog body for $version is empty"
+            echo "_(see CHANGELOG.md)_" > release-body.md
+          fi
+
+          {
+            echo
+            echo "---"
+            echo
+            echo "**Install:** see [docs/install.md](docs/install.md) or run the one-liner from the README."
+          } >> release-body.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Animo ${{ env.TAG }}
+          body_path: release-body.md
+          draft: true
+          prerelease: false
+
+  build-desktop:
+    name: Desktop / ${{ matrix.label }}
+    needs: [verify, create-release]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: linux-amd64
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+          - label: macos-arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+          - label: macos-intel
+            os: macos-13
+            target: x86_64-apple-darwin
+          - label: windows-amd64
+            os: windows-2022
+            target: x86_64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: desktop
+          key: release-desktop-${{ matrix.label }}
+
+      - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libxdo-dev \
+            libssl-dev \
+            build-essential
+
+      - name: Install web dependencies
+        working-directory: web
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+
+      - name: Install tauri CLI
+        run: npm install -g @tauri-apps/cli@^2
+
+      - name: Build desktop bundle
+        working-directory: desktop
+        run: cargo tauri build --target ${{ matrix.target }}
+        env:
+          VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
+
+      - name: Stage artifacts (Linux)
+        if: matrix.os == 'ubuntu-22.04'
+        shell: bash
+        run: |
+          mkdir -p staging
+          version="${{ needs.verify.outputs.version }}"
+          cp desktop/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage \
+            "staging/Animo_${version}_amd64.AppImage" 2>/dev/null || \
+            cp desktop/target/release/bundle/appimage/*.AppImage \
+              "staging/Animo_${version}_amd64.AppImage"
+          cp desktop/target/${{ matrix.target }}/release/bundle/deb/*.deb \
+            "staging/Animo_${version}_amd64.deb" 2>/dev/null || \
+            cp desktop/target/release/bundle/deb/*.deb \
+              "staging/Animo_${version}_amd64.deb"
+          ls -la staging
+
+      - name: Stage artifacts (macOS)
+        if: startsWith(matrix.os, 'macos')
+        shell: bash
+        run: |
+          mkdir -p staging
+          version="${{ needs.verify.outputs.version }}"
+          case "${{ matrix.label }}" in
+            macos-arm64) arch=aarch64 ;;
+            macos-intel) arch=x64 ;;
+          esac
+          src=$(ls desktop/target/${{ matrix.target }}/release/bundle/dmg/*.dmg | head -n1)
+          cp "$src" "staging/Animo_${version}_${arch}.dmg"
+          ls -la staging
+
+      - name: Stage artifacts (Windows)
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path staging -Force | Out-Null
+          $version = "${{ needs.verify.outputs.version }}"
+          $src = Get-ChildItem "desktop/target/${{ matrix.target }}/release/bundle/msi/*.msi" | Select-Object -First 1
+          Copy-Item $src.FullName "staging/Animo_${version}_x64.msi"
+          Get-ChildItem staging
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          files: staging/*
+
+  build-api:
+    name: API / ${{ matrix.label }}
+    needs: [verify, create-release]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: linux-amd64
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bin: animo-api
+          - label: macos-arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+            bin: animo-api
+          - label: windows-amd64
+            os: windows-2022
+            target: x86_64-pc-windows-msvc
+            bin: animo-api.exe
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: api
+          key: release-api-${{ matrix.label }}
+
+      - name: Build animo-api (release)
+        working-directory: api
+        run: cargo build --release --target ${{ matrix.target }} --bin animo-api
+
+      - name: Package (POSIX)
+        if: matrix.os != 'windows-2022'
+        shell: bash
+        run: |
+          version="${{ needs.verify.outputs.version }}"
+          name="animo-api_${version}_${{ matrix.label }}"
+          mkdir -p staging "$name"
+          cp "api/target/${{ matrix.target }}/release/${{ matrix.bin }}" "$name/"
+          cp LICENSE "$name/"
+          cp api/.env.example "$name/" 2>/dev/null || true
+          tar -czf "staging/${name}.tar.gz" "$name"
+          ls -la staging
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-2022'
+        shell: pwsh
+        run: |
+          $version = "${{ needs.verify.outputs.version }}"
+          $name = "animo-api_${version}_${{ matrix.label }}"
+          New-Item -ItemType Directory -Path staging,$name -Force | Out-Null
+          Copy-Item "api/target/${{ matrix.target }}/release/${{ matrix.bin }}" "$name/"
+          Copy-Item LICENSE "$name/"
+          if (Test-Path "api/.env.example") { Copy-Item "api/.env.example" "$name/" }
+          Compress-Archive -Path "$name/*" -DestinationPath "staging/$name.zip"
+          Get-ChildItem staging
+
+      - name: Upload artifacts to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          files: staging/*
+
+  publish-checksums:
+    name: Publish SHA256SUMS + install scripts
+    needs: [verify, create-release, build-desktop, build-api]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Download all release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p dist
+          gh release download "${TAG}" --dir dist --skip-existing
+          ls -la dist
+
+      - name: Copy install scripts into release set
+        run: |
+          cp install.sh dist/install.sh
+          cp install.ps1 dist/install.ps1
+
+      - name: Generate SHA256SUMS
+        working-directory: dist
+        run: |
+          rm -f SHA256SUMS.txt
+          find . -maxdepth 1 -type f ! -name 'SHA256SUMS.txt' -printf '%f\n' \
+            | sort \
+            | xargs -r sha256sum > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload SHA256SUMS + install scripts
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          files: |
+            dist/SHA256SUMS.txt
+            dist/install.sh
+            dist/install.ps1

@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+#
+# .githooks/pre-commit — fast local checks before a commit lands.
+#
+# Activation:
+#   git config core.hooksPath .githooks
+# or run scripts/install-hooks.sh once after cloning.
+#
+# Design goals:
+#   - Under ~5 seconds on a typical change (cached cargo fmt is near-instant).
+#   - Only re-run cargo fmt against the crates that have staged changes.
+#   - Block obvious secret leaks (BEGIN PRIVATE KEY, *_TOKEN=hex literals).
+#   - Heavy checks (clippy, full test suite) live in CI, not here.
+#
+# Bypass for emergencies:
+#   git commit --no-verify
+# (but never as a habit — fix the underlying issue instead)
+
+set -euo pipefail
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+
+# --- Collect staged files --------------------------------------------
+
+# `git diff --cached --name-only --diff-filter=ACMR` lists files that will be
+# in the commit (Added, Copied, Modified, Renamed; skips Deletions).
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR)
+
+if [ -z "$STAGED" ]; then
+  # Nothing staged — nothing to check (e.g. `git commit --allow-empty`).
+  exit 0
+fi
+
+FAIL=0
+fail() { echo "  ✗ $1" >&2; FAIL=1; }
+pass() { echo "  ✓ $1"; }
+
+# --- 1. Rust formatting ----------------------------------------------
+
+API_STAGED=$(echo "$STAGED" | grep -E '^api/.*\.rs$' || true)
+DESKTOP_STAGED=$(echo "$STAGED" | grep -E '^desktop/.*\.rs$' || true)
+
+if [ -n "$API_STAGED" ]; then
+  echo "→ checking api/ formatting"
+  if (cd api && cargo fmt --all -- --check) >/dev/null 2>&1; then
+    pass "cargo fmt (api)"
+  else
+    fail "cargo fmt (api) — run 'cd api && cargo fmt' to fix"
+  fi
+fi
+
+if [ -n "$DESKTOP_STAGED" ]; then
+  echo "→ checking desktop/ formatting"
+  if (cd desktop && cargo fmt --all -- --check) >/dev/null 2>&1; then
+    pass "cargo fmt (desktop)"
+  else
+    fail "cargo fmt (desktop) — run 'cd desktop && cargo fmt' to fix"
+  fi
+fi
+
+# --- 2. Quick secret scan --------------------------------------------
+#
+# Greps staged content (not files on disk) for high-confidence leak markers.
+# Intentionally narrow — broader rules belong in a dedicated gitleaks pass
+# during CI or before publishing.
+
+echo "→ scanning staged content for secret markers"
+
+# Patterns: PEM-encoded private keys, AWS-style access keys, GitHub PATs,
+# and Slack bot tokens. Narrow on purpose — false positives are worse than
+# the occasional miss this hook will let through.
+LEAK_PATTERNS=$(cat <<'EOF'
+-----BEGIN [A-Z ]*PRIVATE KEY-----
+AKIA[0-9A-Z]{16}
+ghp_[A-Za-z0-9]{36}
+gho_[A-Za-z0-9]{36}
+github_pat_[A-Za-z0-9_]{82}
+xoxb-[0-9]+-[0-9]+-[A-Za-z0-9]+
+EOF
+)
+
+# Iterate the patterns and check each one against the staged diff.
+LEAK_FOUND=0
+while IFS= read -r pat; do
+  [ -z "$pat" ] && continue
+  if git diff --cached -U0 | grep -E "^\+" | grep -qE "$pat"; then
+    fail "potential secret in staged content: pattern matched: $pat"
+    LEAK_FOUND=1
+  fi
+done <<< "$LEAK_PATTERNS"
+
+if [ $LEAK_FOUND -eq 0 ]; then
+  pass "no obvious secret patterns"
+fi
+
+# --- 3. Sanity: no merge conflict markers ----------------------------
+
+if git diff --cached -U0 | grep -E "^\+" | grep -qE '^(\+<<<<<<<|\+=======$|\+>>>>>>>)'; then
+  fail "merge conflict markers in staged content"
+else
+  pass "no merge conflict markers"
+fi
+
+# --- Result ----------------------------------------------------------
+
+if [ $FAIL -ne 0 ]; then
+  echo
+  echo "pre-commit hook failed — fix the items above or use 'git commit --no-verify' to bypass." >&2
+  exit 1
+fi
+
+exit 0

@@ -44,6 +44,18 @@
         <Text>No account?</Text>
         <Link to="/register">Register</Link>
       </HStack>
+
+      <HStack gap="$space-2" verticalAlignment="center" marginTop="$space-6">
+        <Text fontSize="$fontSize-small" color="$color-surface-500">
+          Animo v{window.__ANIMO_VERSION__ || '0.1.0'}
+        </Text>
+        <Text fontSize="$fontSize-small" color="$color-surface-400">·</Text>
+        <Link to="https://github.com/captaaint/animo" target="_blank">
+          <Text fontSize="$fontSize-small" color="$color-surface-500">
+            github.com/captaaint/animo
+          </Text>
+        </Link>
+      </HStack>
     </VStack>
   </CVStack>
 </Component>

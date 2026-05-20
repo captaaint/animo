@@ -33,10 +33,7 @@ pub struct UpdateClientReq {
     pub archived: Option<bool>,
 }
 
-pub async fn list(
-    State(state): State<AppState>,
-    user: AuthUser,
-) -> AppResult<Json<Vec<Client>>> {
+pub async fn list(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Vec<Client>>> {
     let rows: Vec<Client> = sqlx::query_as(
         "SELECT id, user_id, name, color, archived, created_at \
          FROM clients WHERE user_id = ? ORDER BY name",
@@ -57,15 +54,13 @@ pub async fn create(
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let id = Uuid::new_v4().to_string();
     let color = payload.color.unwrap_or_else(|| "#3F8F8C".to_string()); // Sage Teal
-    sqlx::query(
-        "INSERT INTO clients (id, user_id, name, color) VALUES (?, ?, ?, ?)",
-    )
-    .bind(&id)
-    .bind(&user.id)
-    .bind(&payload.name)
-    .bind(&color)
-    .execute(&state.db)
-    .await?;
+    sqlx::query("INSERT INTO clients (id, user_id, name, color) VALUES (?, ?, ?, ?)")
+        .bind(&id)
+        .bind(&user.id)
+        .bind(&payload.name)
+        .bind(&color)
+        .execute(&state.db)
+        .await?;
     let row: Client = sqlx::query_as(
         "SELECT id, user_id, name, color, archived, created_at FROM clients WHERE id = ?",
     )

@@ -25,8 +25,8 @@
 use std::sync::mpsc;
 use std::thread;
 
-use tauri::{Manager, State};
 use animo_api::{bind, Config};
+use tauri::{Manager, State};
 
 /// Port assigned to the embedded axum server at startup. Exposed to the
 /// webview via the [`api_base`] command so the XMLUI frontend can build its

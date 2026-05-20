@@ -70,7 +70,12 @@ pub struct Summary {
     pub amounts: Vec<AmountByCurrency>,
 }
 
-async fn fetch_entries(state: &AppState, user_id: &str, from: &str, to: &str) -> AppResult<Vec<EntryRow>> {
+async fn fetch_entries(
+    state: &AppState,
+    user_id: &str,
+    from: &str,
+    to: &str,
+) -> AppResult<Vec<EntryRow>> {
     let from_iso = format!("{from}T00:00:00.000Z");
     let to_iso = format!("{to}T23:59:59.999Z");
     let rows: Vec<EntryRowRaw> = sqlx::query_as(
@@ -89,7 +94,8 @@ async fn fetch_entries(state: &AppState, user_id: &str, from: &str, to: &str) ->
     .fetch_all(&state.db)
     .await?;
 
-    let mut tag_map: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+    let mut tag_map: std::collections::HashMap<String, Vec<String>> =
+        std::collections::HashMap::new();
     if !rows.is_empty() {
         let placeholders = rows.iter().map(|_| "?").collect::<Vec<_>>().join(",");
         let sql = format!(
@@ -142,7 +148,10 @@ fn group_daily(entries: &[EntryRow], from: &str, to: &str) -> AppResult<Vec<DayT
             .filter(|e| e.start_time.starts_with(&key))
             .map(|e| e.duration_seconds)
             .sum();
-        out.push(DayTotal { date: key, seconds: secs });
+        out.push(DayTotal {
+            date: key,
+            seconds: secs,
+        });
         d = d.succ_opt().unwrap();
     }
     Ok(out)
@@ -263,12 +272,18 @@ fn render_pdf(
     let big_style = Style::new().bold().with_font_size(28);
     let small = Style::new().with_font_size(9);
 
-    doc.push(Paragraph::new(StyledString::new("Detailed Report", title_style)));
+    doc.push(Paragraph::new(StyledString::new(
+        "Detailed Report",
+        title_style,
+    )));
     doc.push(Paragraph::new(format!("Range: {from} → {to}")));
     doc.push(Paragraph::new(format!("User: {user_name}")));
     doc.push(Break::new(0.5));
 
-    doc.push(Paragraph::new(StyledString::new("TOTAL HOURS", label_style)));
+    doc.push(Paragraph::new(StyledString::new(
+        "TOTAL HOURS",
+        label_style,
+    )));
     doc.push(Paragraph::new(StyledString::new(
         fmt_duration(total_seconds),
         big_style,
@@ -280,21 +295,11 @@ fn render_pdf(
 
     let head_style = Style::new().bold();
     let mut row = table.row();
-    row.push_element(
-        Paragraph::new(StyledString::new("DATE", head_style)).padded(2),
-    );
-    row.push_element(
-        Paragraph::new(StyledString::new("DESCRIPTION", head_style)).padded(2),
-    );
-    row.push_element(
-        Paragraph::new(StyledString::new("PROJECT / CLIENT", head_style)).padded(2),
-    );
-    row.push_element(
-        Paragraph::new(StyledString::new("TIME", head_style)).padded(2),
-    );
-    row.push_element(
-        Paragraph::new(StyledString::new("DURATION", head_style)).padded(2),
-    );
+    row.push_element(Paragraph::new(StyledString::new("DATE", head_style)).padded(2));
+    row.push_element(Paragraph::new(StyledString::new("DESCRIPTION", head_style)).padded(2));
+    row.push_element(Paragraph::new(StyledString::new("PROJECT / CLIENT", head_style)).padded(2));
+    row.push_element(Paragraph::new(StyledString::new("TIME", head_style)).padded(2));
+    row.push_element(Paragraph::new(StyledString::new("DURATION", head_style)).padded(2));
     row.push().map_err(|e| anyhow::anyhow!("pdf row: {e}"))?;
 
     for e in entries {
