@@ -148,7 +148,7 @@ jobs:
 
       - name: Install web dependencies
         working-directory: web
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Install tauri CLI
         run: npm install -g @tauri-apps/cli@^2

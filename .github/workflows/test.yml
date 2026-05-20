@@ -31,7 +31,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: web
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Build demo (production)
         working-directory: web
@@ -128,11 +128,11 @@ jobs:
 
       - name: Install web dependencies
         working-directory: web
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Install e2e dependencies
         working-directory: e2e
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Install Playwright browsers
         working-directory: e2e
