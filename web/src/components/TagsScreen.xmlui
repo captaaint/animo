@@ -18,55 +18,99 @@
     onError="() => toast.error('Delete failed')"
   />
 
-  <VStack padding="$space-6" gap="$space-4" height="*" overflowY="auto">
-    <Card padding="$space-2">
+  <VStack gap="$space-4" padding="0" width="100%" maxWidth="800px" marginHorizontal="auto"
+    height="*" overflowY="auto">
+
+    <!-- Desktop/tablet: table with combined Tag column + Color hex column -->
+    <Card when-xs="false" when-sm="true" padding="$space-4">
+      <!-- Desktop/tablet: New tag button top-right -->
+      <HStack when-xs="false" when-sm="true" verticalAlignment="center">
+        <SpaceFiller />
+        <Button
+          label="New tag"
+          icon="plus"
+          onClick="tagModal.open()"
+        />
+      </HStack>
       <Table
         data="{tagsDs.value || []}"
         when="{(tagsDs.value || []).length > 0}"
       >
-        <Column header="Color" width="80px">
-          <Stack
-            backgroundColor="{$item.color}"
-            width="20px"
-            height="20px"
-            borderRadius="50%"
-          />
+        <Column header="Tag">
+          <HStack verticalAlignment="center" gap="$space-2">
+            <Text>{$item.name}</Text>
+          </HStack>
         </Column>
-        <Column bindTo="name" header="Name" />
-        <Column header="Actions" width="200px">
-          <HStack gap="$space-2">
-            <Button
-              label="Edit"
-              icon="pencil"
-              size="sm"
-              variant="outlined"
-              onClick="tagModal.open($item)"
+        <Column header="Color" width="160px">
+          <HStack verticalAlignment="center" gap="$space-2">
+            <Stack
+              backgroundColor="{$item.color}"
+              width="20px"
+              height="20px"
+              borderRadius="3px"
             />
-            <Button
-              label="Delete"
-              icon="trash"
-              size="sm"
-              variant="outlined"
-              themeColor="attention"
-              onClick="deleteCall.execute($item.id)"
-            />
+            <Text variant="secondary">{$item.color}</Text>
+          </HStack>
+        </Column>
+        <Column header="" width="100px">
+          <HStack gap="$space-1" verticalAlignment="center">
+            <Button icon="pencil" size="xs" variant="ghost" themeColor="secondary" padding="$space-2"
+              onClick="tagModal.open($item)" />
+            <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
+              onClick="deleteCall.execute($item.id)" />
           </HStack>
         </Column>
       </Table>
 
       <NoResult
-        when="{tagsDs.loaded &amp;&amp; (tagsDs.value || []).length === 0}"
+        when="{tagsDs.loaded && (tagsDs.value || []).length === 0}"
         label="No tags yet"
       />
       <Spinner when="{!tagsDs.loaded}" />
     </Card>
-    <HStack verticalAlignment="center">
+
+    <!-- Mobile: flat list rows with three-dot context menu -->
+    <VStack when-xs="true" when-sm="false" gap="$space-3">
+      <Card when="{(tagsDs.value || []).length > 0}" padding="$space-2" width="100%">
+        <Items data="{tagsDs.value || []}">
+          <VStack gap="0">
+            <HStack
+              verticalAlignment="center"
+              paddingVertical="$space-3"
+              paddingHorizontal="$space-2"
+              gap="$space-3"
+            >
+              <Stack backgroundColor="{$item.color}" width="16px" height="16px" borderRadius="3px" />
+              <Text fontWeight="500">{$item.name}</Text>
+              <SpaceFiller />
+              <DropdownMenu alignment="end">
+                <property name="triggerTemplate">
+                  <Button icon="dotmenu" variant="ghost" size="sm" themeColor="secondary" />
+                </property>
+                <MenuItem icon="pencil" onClick="tagModal.open($item)">Edit</MenuItem>
+                <MenuSeparator />
+                <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">Delete</MenuItem>
+              </DropdownMenu>
+            </HStack>
+            <ContentSeparator when="{!$isLast}" />
+          </VStack>
+        </Items>
+      </Card>
+
+      <Card when="{tagsDs.loaded && (tagsDs.value || []).length === 0}"
+        padding="$space-2" width="100%">
+        <NoResult label="No tags yet" />
+      </Card>
+      <Spinner when="{!tagsDs.loaded}" />
+
+      <!-- Mobile: full-width New tag button at bottom -->
       <Button
+        width="100%"
         label="New tag"
         icon="plus"
-        testId="new-tag-btn"
         onClick="tagModal.open()"
       />
-    </HStack>
+    </VStack>
+
   </VStack>
 </Component>

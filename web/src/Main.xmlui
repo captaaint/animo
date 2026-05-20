@@ -1,27 +1,12 @@
 <App
   layout="vertical-sticky"
-  scrollWholePage="false"
-  global.apiBase="{window.__TT_API_BASE__ || 'http://127.0.0.1:8080/api'}"
+  scrollWholePage="true"
+  global.apiBase="{window.__ANIMO_API_BASE__ || 'http://127.0.0.1:8080/api'}"
   global.token="{readToken()}"
-  global.pageTitle="{'Calendar'}"
+  global.pageTitle="{pageTitleFromPath(window.location.pathname)}"
   global.entriesTick="{0}"
-  onDidNavigate="(to) => {
-    if (to === '/projects') pageTitle = 'Projects';
-    else if (to === '/clients') pageTitle = 'Clients';
-    else if (to === '/tags') pageTitle = 'Tags';
-    else if (to === '/reports') pageTitle = 'Reports';
-    else if (to === '/login') pageTitle = 'Sign in';
-    else if (to === '/register') pageTitle = 'Create account';
-    else if (to === '/list') pageTitle = 'List';
-    else if (to === '/settings') pageTitle = 'Settings';
-    else pageTitle = 'Calendar';
-  }"
+  onDidNavigate="(to) => pageTitle = pageTitleFromPath(to)"
 >
-  <property name="logoTemplate">
-    <H3 marginBottom="0">
-      Time Tracker
-    </H3>
-  </property>
   <AuthGate
     id="auth"
     apiBase="{apiBase}"
@@ -37,24 +22,62 @@
     id="appProjectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
-    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <DataSource
     id="appClientsDs"
     url="{apiBase + '/clients'}"
     credentials="include"
-    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <DataSource
     id="appTagsDs"
     url="{apiBase + '/tags'}"
     credentials="include"
-    when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}"
+    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <TonePersist />
 
-  <AppHeader when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
-    <TimerBar when="{(!appVp.value || !appVp.value.isMobile) &amp;&amp; (pageTitle === 'Calendar' || pageTitle === 'List')}"
+  <ModalDialog
+    id="signOutConfirm"
+    closeButtonVisible="false"
+    maxWidth="380px"
+    padding="$space-0"
+  >
+    <VStack padding="$space-5" gap="$space-4">
+      <Text fontWeight="700" fontSize="$fontSize-medium">
+        Sign out
+      </Text>
+      <Text textAlign="center" color="$color-surface-700" fontSize="$fontSize-small">
+        Are you sure you want to sign out?
+      </Text>
+      <HStack gap="$space-2">
+        <Button
+          label="Sign out"
+          themeColor="primary"
+          width="*"
+          size="sm"
+          onClick="auth.signOut(); signOutConfirm.close()"
+        />
+        <Button
+          label="Cancel"
+          variant="outlined"
+          themeColor="secondary"
+          width="*"
+          size="sm"
+          onClick="signOutConfirm.close()"
+        />
+      </HStack>
+    </VStack>
+  </ModalDialog>
+
+  <AppHeader when="{auth.value && auth.value.kind === 'authenticated'}">
+    <Text
+      fontWeight="700"
+      fontSize="$fontSize-large">
+      {pageTitle || pageTitleFromPath(window.location.pathname)}
+    </Text>
+    <TimerBar when="{(!appVp.value || !appVp.value.isMobile) && (pageTitle === 'Calendar' || pageTitle === 'List')}"
       projects="{appProjectsDs.value || []}"
       clients="{appClientsDs.value || []}"
       tags="{appTagsDs.value || []}"
@@ -62,7 +85,59 @@
     />
   </AppHeader>
 
-  <NavPanel when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}">
+  <NavPanel when="{auth.value && auth.value.kind === 'authenticated'}">
+    <property name="footerTemplate">
+      <Stack width="100%">
+      <Theme
+        textColor-Button-secondary-ghost="$textColor-NavLink"
+        textColor-Button-secondary-ghost--hover="$textColor-NavLink--hover"
+        backgroundColor-Button-secondary-ghost--hover="$backgroundColor-NavLink--hover"
+      >
+      <DropdownMenu alignment="start" width="100%">
+        <property name="triggerTemplate">
+          <Button
+            variant="ghost"
+            themeColor="secondary"
+            width="100%"
+            paddingVertical="$space-1_5"
+            paddingHorizontal="$space-3"
+            borderRadius="$space-2"
+          >
+            <HStack verticalAlignment="center" gap="$space-3" width="100%">
+              <Stack
+                width="28px"
+                height="28px"
+                borderRadius="999px"
+                backgroundColor="$color-surface-200"
+                verticalAlignment="center"
+                horizontalAlignment="center"
+              >
+                <Text fontSize="10px" fontWeight="700" color="$color-surface-600">
+                  {userInitials(auth.value && auth.value.user ? auth.value.user.name : '')}
+                </Text>
+              </Stack>
+              <Text fontWeight="500" fontSize="14px">
+                {auth.value && auth.value.user ? auth.value.user.name : ''}
+              </Text>
+              <SpaceFiller />
+              <Icon name="chevrondown" size="16px" />
+            </HStack>
+          </Button>
+        </property>
+        <MenuItem icon="cog" onClick="Actions.navigate('/settings')">
+          <Text fontSize="$fontSize-small" fontWeight="600">Settings</Text>
+        </MenuItem>
+        <MenuSeparator />
+        <Theme color-MenuItem="$color-danger-600" color-MenuItem--hover="$color-danger-600">
+          <MenuItem icon="exit" onClick="signOutConfirm.open()">
+            <Text color="$color-danger-600" fontSize="$fontSize-small" fontWeight="600">Sign out</Text>
+          </MenuItem>
+        </Theme>
+      </DropdownMenu>
+      </Theme>
+      </Stack>
+    </property>
+
     <NavGroup label="Track" initiallyExpanded="true">
       <NavLink to="/" label="Calendar" icon="date" />
       <NavLink to="/list" label="List" icon="board" />
@@ -77,62 +152,54 @@
       <NavLink to="/clients" label="Clients" icon="users" />
       <NavLink to="/tags" label="Tags" icon="hash" />
     </NavGroup>
-
-    <NavGroup label="Account" initiallyExpanded="true">
-      <NavLink to="/settings" label="Settings" icon="cog" />
-      <HStack verticalAlignment="center" gap="0.5rem" padding="0.5rem 1rem">
-        <Inspector />
-        <Text>Inspector</Text>
-      </HStack>
-    </NavGroup>
   </NavPanel>
 
   <Pages>
     <Page url="/login">
-      <Redirect to="/" when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}" />
+      <Redirect to="/" when="{auth.value && auth.value.kind === 'authenticated'}" />
       <LoginScreen
         signIn="{auth.signIn}"
-        loading="{auth.value &amp;&amp; auth.value.loading}"
-        error="{auth.value &amp;&amp; auth.value.error}"
+        loading="{auth.value && auth.value.loading}"
+        error="{auth.value && auth.value.error}"
       />
     </Page>
     <Page url="/register">
-      <Redirect to="/" when="{auth.value &amp;&amp; auth.value.kind === 'authenticated'}" />
+      <Redirect to="/" when="{auth.value && auth.value.kind === 'authenticated'}" />
       <RegisterScreen
         register="{auth.register}"
-        loading="{auth.value &amp;&amp; auth.value.loading}"
-        error="{auth.value &amp;&amp; auth.value.error}"
+        loading="{auth.value && auth.value.loading}"
+        error="{auth.value && auth.value.error}"
       />
     </Page>
     <Page url="/">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <Timesheet view="calendar" />
     </Page>
     <Page url="/list">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <Timesheet view="list" />
     </Page>
     <Page url="/projects">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ProjectsScreen />
     </Page>
     <Page url="/clients">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ClientsScreen />
     </Page>
     <Page url="/tags">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <TagsScreen />
     </Page>
     <Page url="/reports">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ReportsScreen />
     </Page>
     <Page url="/settings">
-      <Redirect to="/login" when="{auth.value &amp;&amp; auth.value.kind === 'unauthenticated'}" />
+      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <SettingsScreen
-        userName="{auth.value &amp;&amp; auth.value.user ? auth.value.user.name : ''}"
-        onSignOut="() => auth.signOut()"
+        userName="{auth.value && auth.value.user ? auth.value.user.name : ''}"
+        userEmail="{auth.value && auth.value.user ? auth.value.user.email : ''}"
       />
     </Page>
   </Pages>

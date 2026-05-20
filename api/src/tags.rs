@@ -50,7 +50,7 @@ pub async fn create(
         .validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
     let id = Uuid::new_v4().to_string();
-    let color = payload.color.unwrap_or_else(|| "#64748b".to_string());
+    let color = payload.color.unwrap_or_else(|| "#3F8F8C".to_string()); // Sage Teal
     let res = sqlx::query("INSERT INTO tags (id, user_id, name, color) VALUES (?, ?, ?, ?)")
         .bind(&id)
         .bind(&user.id)

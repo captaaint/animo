@@ -82,16 +82,56 @@ impl Config {
         // to parse, which had us writing to the wrong file entirely.
         let encoded = percent_encode_sqlite_path(&db_path.to_string_lossy());
         let database_url = format!("sqlite:{}?mode=rwc", encoded);
+        let jwt_secret = std::env::var("JWT_SECRET")
+            .ok()
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| load_or_create_desktop_secret(data_dir));
         Self {
             bind_addr: "127.0.0.1:0".parse().expect("loopback addr parses"),
             database_url,
-            jwt_secret: std::env::var("JWT_SECRET")
-                .unwrap_or_else(|_| "desktop-dev-secret-change-me".into()),
+            jwt_secret,
             cookie_same_site: CookieSameSite::Lax,
             cookie_secure: false,
             cors_origins: Some(desktop_cors_origins()),
         }
     }
+}
+
+/// Per-install JWT secret for the desktop shell. Read from
+/// `data_dir/jwt_secret` if present; otherwise generate a fresh 256-bit
+/// random secret, persist it (0600 on Unix), and return it.
+///
+/// Why per-install random instead of a hardcoded default: every Animo bundle
+/// is byte-identical, so a baked-in secret would let anyone with the binary
+/// craft session tokens that any other Animo install would accept. Loopback
+/// scoping limits the blast radius, but per-install entropy costs nothing and
+/// removes the foot-gun entirely.
+fn load_or_create_desktop_secret(data_dir: &Path) -> String {
+    use rand::RngCore;
+
+    let path = data_dir.join("jwt_secret");
+    if let Ok(existing) = std::fs::read_to_string(&path) {
+        let trimmed = existing.trim();
+        if trimmed.len() >= 32 {
+            return trimmed.to_string();
+        }
+    }
+    let mut buf = [0u8; 32];
+    rand::thread_rng().fill_bytes(&mut buf);
+    let hex: String = buf.iter().map(|b| format!("{:02x}", b)).collect();
+    if let Err(e) = std::fs::write(&path, &hex) {
+        tracing::warn!("could not persist desktop jwt secret to {:?}: {}", path, e);
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        if let Ok(meta) = std::fs::metadata(&path) {
+            let mut perm = meta.permissions();
+            perm.set_mode(0o600);
+            let _ = std::fs::set_permissions(&path, perm);
+        }
+    }
+    hex
 }
 
 /// Origins the desktop shell needs to accept on cross-origin XHR. Covers:
@@ -151,5 +191,45 @@ mod tests {
             percent_encode_sqlite_path("/tmp/x?y#z 50%"),
             "/tmp/x%3Fy%23z%2050%25"
         );
+    }
+
+    fn unique_tmp_dir() -> std::path::PathBuf {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos();
+        let dir = std::env::temp_dir().join(format!("animo-cfg-test-{}", nanos));
+        std::fs::create_dir_all(&dir).unwrap();
+        dir
+    }
+
+    #[test]
+    fn desktop_secret_is_generated_and_persisted() {
+        let dir = unique_tmp_dir();
+        let first = load_or_create_desktop_secret(&dir);
+        let second = load_or_create_desktop_secret(&dir);
+        assert_eq!(first, second, "secret must persist across calls");
+        assert_eq!(first.len(), 64, "32 random bytes hex-encoded = 64 chars");
+        assert!(
+            first.chars().all(|c| c.is_ascii_hexdigit()),
+            "secret should be hex-encoded"
+        );
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn for_desktop_uses_env_var_when_provided() {
+        let dir = unique_tmp_dir();
+        // SAFETY: the test process is single-threaded re. this env var, and
+        // the var name is scoped to this fn so other tests are not affected
+        // if they don't read JWT_SECRET (which Config::from_env does — that
+        // function isn't exercised here).
+        std::env::set_var("JWT_SECRET", "user-supplied-override");
+        let cfg = Config::for_desktop(&dir);
+        std::env::remove_var("JWT_SECRET");
+        assert_eq!(cfg.jwt_secret, "user-supplied-override");
+        // env override must NOT have written a per-install secret file.
+        assert!(!dir.join("jwt_secret").exists());
+        std::fs::remove_dir_all(&dir).ok();
     }
 }

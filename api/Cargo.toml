@@ -1,15 +1,15 @@
 [package]
-name = "time-tracking-api"
+name = "animo-api"
 version = "0.1.0"
 edition = "2021"
-default-run = "time-tracking-api"
+default-run = "animo-api"
 
 [lib]
-name = "time_tracking_api"
+name = "animo_api"
 path = "src/lib.rs"
 
 [[bin]]
-name = "time-tracking-api"
+name = "animo-api"
 path = "src/main.rs"
 
 [dependencies]

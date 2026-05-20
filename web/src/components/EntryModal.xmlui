@@ -32,9 +32,9 @@
   }"
   method.openForSlot="(slot) => {
     editItem = null;
-    entryDate = slot &amp;&amp; slot.date ? slot.date : toIsoDate(new Date());
-    startStr = slot &amp;&amp; slot.startTime ? slot.startTime : '09:00';
-    endStr = slot &amp;&amp; slot.endTime ? slot.endTime : '10:00';
+    entryDate = slot && slot.date ? slot.date : toIsoDate(new Date());
+    startStr = slot && slot.startTime ? slot.startTime : '09:00';
+    endStr = slot && slot.endTime ? slot.endTime : '10:00';
     descr = '';
     projectId = null;
     billable = false;
@@ -44,11 +44,11 @@
   }"
   method.openForCounter="(data) => {
     editItem = null;
-    entryDate = data &amp;&amp; data.startTime ? data.startTime.slice(0, 10) : toIsoDate(new Date());
-    startStr = data &amp;&amp; data.startTime ? data.startTime.slice(11, 16) : '09:00';
-    endStr = data &amp;&amp; data.endTime ? data.endTime.slice(11, 16) : '10:00';
-    descr = data &amp;&amp; data.description ? data.description : '';
-    projectId = data &amp;&amp; data.projectId ? data.projectId : null;
+    entryDate = data && data.startTime ? data.startTime.slice(0, 10) : toIsoDate(new Date());
+    startStr = data && data.startTime ? data.startTime.slice(11, 16) : '09:00';
+    endStr = data && data.endTime ? data.endTime.slice(11, 16) : '10:00';
+    descr = data && data.description ? data.description : '';
+    projectId = data && data.projectId ? data.projectId : null;
     billable = false;
     entryTagIds = [];
     modalOpen = true;
@@ -72,13 +72,15 @@
       emitEvent('saved');
       modal.close();
     }"
-    onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
+    onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
   />
 
   <APICall id="deleteCall"
     method="DELETE"
     url="{apiBase + '/time-entries/' + (editItem ? editItem.id : '')}"
     credentials="include"
+    confirmTitle="Delete entry"
+    confirmMessage="Delete this entry?"
     onSuccess="() => {
       toast.success('Entry deleted');
       emitEvent('saved');
@@ -93,104 +95,211 @@
       else toast.error('End must be after start');
     }" />
 
-  <ModalDialog id="modal" maxWidth="720px"
+  <ModalDialog id="modal" maxWidth="560px"
     padding="$space-4"
     closeButtonVisible="false"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">
-    <VStack gap="$space-4" padding="$space-2">
-      <TextBox id="descrInput"
-        label="Description"
-        width="*"
-        initialValue="{descr}"
-        onDidChange="(v) => descr = v"
-        placeholder="What did you work on?" />
+    <VStack gap="$space-4" width="100%">
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          onClick="modal.close()"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {editItem ? 'Edit entry' : 'New entry'}
+        </Text>
+        <SpaceFiller />
+        <Button
+          icon="checkmark"
+          themeColor="primary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          onClick="if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) { saveCall.execute(); } else { toast.error('End must be after start'); }"
+        />
+      </HStack>
 
-      <HStack gap="$space-2" width="*" verticalAlignment="end">
-        <Select width="*"
-          label="Project"
+      <VStack gap="$space-2" width="100%">
+        <Text fontWeight="500" color="$color-surface-900">
+          What did you work on?
+        </Text>
+        <Stack
+          width="100%"
+          minHeight="126px"
+          border="1px solid $color-surface-200"
+          borderRadius="$borderRadius"
+          padding="$space-2"
+        >
+          <VStack width="100%" height="100%" gap="$space-2">
+            <Theme
+              borderWidth-TextArea="0"
+              borderColor-TextArea="transparent"
+              borderColor-TextArea--hover="transparent"
+              borderColor-TextArea--focus="transparent"
+              boxShadow-TextArea="none"
+              boxShadow-TextArea--hover="none"
+              boxShadow-TextArea--focus="none"
+            >
+              <TextArea
+                id="descrInput"
+                width="100%"
+                height="80px"
+                rows="4"
+                maxLength="200"
+                resize="none"
+                initialValue="{descr}"
+                onDidChange="(v) => descr = v || ''"
+                placeholder="Add description..."
+              />
+            </Theme>
+            <HStack width="100%">
+              <SpaceFiller />
+              <Text fontSize="$fontSize-small" variant="secondary" fontWeight="700">
+                {descr.length} / 200
+              </Text>
+            </HStack>
+          </VStack>
+        </Stack>
+      </VStack>
+
+      <VStack gap="$space-2" width="100%">
+        <Text fontWeight="500" color="$color-surface-900">
+          Project
+        </Text>
+        <AutoComplete
+          width="100%"
           initialValue="{projectId}"
           onDidChange="(v) => projectId = v"
-          placeholder="(no project)">
+          placeholder="No project">
           <Items data="{$props.projects || []}">
-            <Option value="{$item.id}" label="{$item.name}" />
+            <Option value="{$item.id}" label="{$item.name}">
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                <Text>{$item.name}</Text>
+              </HStack>
+            </Option>
           </Items>
-        </Select>
+        </AutoComplete>
+      </VStack>
 
-        <Select width="*"
-          label="Tags"
-          multiSelect="true"
+      <VStack gap="$space-2" width="100%">
+        <Text fontWeight="500" color="$color-surface-900">
+          Tags
+        </Text>
+        <AutoComplete
+          width="100%"
+          multi="true"
           initialValue="{entryTagIds}"
           onDidChange="(v) => entryTagIds = v || []"
-          placeholder="(no tags)">
+          placeholder="No tags">
           <Items data="{$props.tags || []}">
-            <Option value="{$item.id}" label="{$item.name}" />
+            <Option value="{$item.id}" label="{$item.name}">
+              <HStack verticalAlignment="center" gap="$space-2">
+                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                <Text>{$item.name}</Text>
+              </HStack>
+            </Option>
           </Items>
-        </Select>
-      </HStack>
+        </AutoComplete>
+      </VStack>
 
-      <HStack gap="$space-4" verticalAlignment="end" width="*">
-        <DatePicker width="180px"
-          label="Date"
-          initialValue="{entryDate}"
-          onDidChange="(v) => entryDate = v"
-          dateFormat="yyyy-MM-dd" />
-        <Switch
-          initialValue="{billable}"
-          onDidChange="(v) => billable = !!v"
-          label="Billable" />
-      </HStack>
-
-      <HStack gap="$space-3" verticalAlignment="end" width="*" wrapContent="true">
-        <VStack gap="$space-1">
-          <Text fontSize="$fontSize-small" variant="secondary" fontWeight="500">
-            Time range
+      <HStack gap="$space-5" width="100%" verticalAlignment="end">
+        <VStack width="*" gap="$space-2">
+          <Text fontWeight="500" color="$color-surface-900">
+            Date
           </Text>
-          <HStack gap="0" verticalAlignment="center">
-            <TimeInput id="startInput" width="100px"
-              borderRadius="$borderRadius 0 0 $borderRadius"
-              borderRight="none"
-              initialValue="{startStr}"
-                onDidChange="(v) => {
-                if (!v || v === startStr) return;
-                const oldDur = parseTimeToSec(endStr) - parseTimeToSec(startStr);
-                startStr = v;
-                const newEnd = addSecToTime(v, oldDur > 0 ? oldDur : 3600);
-                if (newEnd !== endStr) {
-                  endStr = newEnd;
-                  endInput.setValue(newEnd);
-                }
-                durInput.setValue(formatHms(parseTimeToSec(newEnd) - parseTimeToSec(v)));
-              }" />
-            <TimeInput id="endInput" width="100px"
-              borderRadius="0 $borderRadius $borderRadius 0"
-              initialValue="{endStr}"
-                onDidChange="(v) => {
-                if (!v || v === endStr) return;
-                endStr = v;
-                durInput.setValue(formatHms(parseTimeToSec(v) - parseTimeToSec(startStr)));
-              }" />
+          <DatePicker
+            width="100%"
+            initialValue="{entryDate}"
+            onDidChange="(v) => entryDate = v"
+            dateFormat="yyyy-MM-dd"
+            startIcon="date"
+          />
+        </VStack>
+        <VStack width="112px" gap="$space-2">
+          <Text fontWeight="500" color="$color-surface-900">
+            Billable
+          </Text>
+          <HStack verticalAlignment="center">
+            <Switch
+              initialValue="{billable}"
+              onDidChange="(v) => billable = !!v"
+            />
           </HStack>
         </VStack>
-        <TextBox id="durInput" width="90px"
-          label="Duration"
-          initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
+      </HStack>
+
+      <VStack gap="$space-2" width="100%">
+        <Text fontWeight="500" color="$color-surface-900">
+          Time range
+        </Text>
+        <HStack
+          width="100%"
+          gap="0"
+          verticalAlignment="center"
+          border="1px solid $color-surface-200"
+          borderRadius="$borderRadius"
+        >
+          <TimeInput
+            id="startInput"
+            width="*"
+            border="none"
+            startIcon="clock"
+            initialValue="{startStr}"
             onDidChange="(v) => {
+              if (!v || v === startStr) return;
+              const oldDur = parseTimeToSec(endStr) - parseTimeToSec(startStr);
+              startStr = v;
+              const newEnd = addSecToTime(v, oldDur > 0 ? oldDur : 3600);
+              if (newEnd !== endStr) {
+                endStr = newEnd;
+                endInput.setValue(newEnd);
+              }
+              durInput.setValue(formatHms(parseTimeToSec(newEnd) - parseTimeToSec(v)));
+            }"
+          />
+          <Stack width="1px" height="36px" backgroundColor="$color-surface-200" />
+          <TimeInput
+            id="endInput"
+            width="*"
+            border="none"
+            startIcon="clock"
+            initialValue="{endStr}"
+            onDidChange="(v) => {
+              if (!v || v === endStr) return;
+              endStr = v;
+              durInput.setValue(formatHms(parseTimeToSec(v) - parseTimeToSec(startStr)));
+            }"
+          />
+        </HStack>
+      </VStack>
+
+      <VStack gap="$space-2" width="100%">
+        <Text fontWeight="500" color="$color-surface-900">
+          Duration
+        </Text>
+        <TextBox
+          id="durInput"
+          width="100%"
+          startIcon="clock"
+          endIcon="equals"
+          initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
+          onDidChange="(v) => {
             const sec = parseHmsToSec(v);
             if (sec <= 0) return;
             const newEnd = addSecToTime(startStr, sec);
             if (newEnd === endStr) return;
             endStr = newEnd;
             endInput.setValue(newEnd);
-          }" />
-      </HStack>
-
-      <HStack gap="$space-2" verticalAlignment="center" width="*">
-        <SpaceFiller />
-        <Button label="Cancel" variant="outlined" size="sm"
-          onClick="modal.close()" />
-        <Button label="{editItem ? 'Save' : 'Add'}" themeColor="primary" size="sm"
-          onClick="if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) { saveCall.execute(); } else { toast.error('End must be after start'); }" />
-      </HStack>
+          }"
+        />
+      </VStack>
     </VStack>
   </ModalDialog>
 </Component>

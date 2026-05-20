@@ -17,13 +17,47 @@
     onError="() => toast.error('Save failed')"
   />
 
-  <ModalDialog id="modal" padding="$space-4" title="{editItem ? 'Edit client' : 'New client'}">
+  <ModalDialog
+    id="modal"
+    padding="$space-4"
+    maxWidth="560px"
+    closeButtonVisible="false"
+  >
     <Form
-      data="{editItem || { name: '', color: '#3b82f6' }}"
+      data="{editItem || { name: '', color: '#3F8F8C' }}"
       onSubmit="(data) => saveCall.execute(data)"
+      hideButtonRow="true"
     >
-      <TextBox bindTo="name" label="Name" required="true" />
-      <ColorPicker bindTo="color" label="Color" />
+      <VStack gap="$space-4" width="100%">
+        <HStack width="100%" verticalAlignment="center">
+          <Button
+            icon="close"
+            type="button"
+            variant="outlined"
+            themeColor="secondary"
+            width="48px"
+            height="48px"
+            borderRadius="50%"
+            onClick="modal.close()"
+          />
+          <SpaceFiller />
+          <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+            {editItem ? 'Edit client' : 'New client'}
+          </Text>
+          <SpaceFiller />
+          <Button
+            icon="checkmark"
+            type="submit"
+            themeColor="primary"
+            width="48px"
+            height="48px"
+            borderRadius="50%"
+          />
+        </HStack>
+
+        <TextBox bindTo="name" label="Name" required="true" />
+        <ColorPicker bindTo="color" label="Color" />
+      </VStack>
     </Form>
   </ModalDialog>
 </Component>

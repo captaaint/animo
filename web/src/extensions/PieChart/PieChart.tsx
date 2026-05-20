@@ -46,13 +46,21 @@ export type PieChartProps = {
   width?: number | string;
 };
 
+// Animo palette — see web/src/themes/tracker-theme.ts. Same order as
+// BarChart so slice colors stay consistent when the two charts sit
+// side-by-side on the Reports page.
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return h > 0 ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m`;
+}
+
 const DEFAULT_PALETTE = [
-  "#4188c9", // primary blue
-  "#10b981", // teal
-  "#7c3aed", // violet
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#3b82f6", // indigo
+  "#3F8F8C", // Sage Teal
+  "#F2A82F", // Warm Amber
+  "#FF6F61", // Soft Coral
+  "#A7D0C9", // Soft Mint
+  "#1E2328", // Deep Charcoal
 ];
 
 export function PieChart(props: PieChartProps) {
@@ -116,7 +124,7 @@ export function PieChart(props: PieChartProps) {
                 0,
               );
               const pct = total > 0 ? Math.round((raw / total) * 100) : 0;
-              return `${label}: ${raw} (${pct}%)`;
+              return `${label}: ${formatDuration(raw)} (${pct}%)`;
             },
           },
         },

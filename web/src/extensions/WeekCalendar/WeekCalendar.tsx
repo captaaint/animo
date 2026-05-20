@@ -254,7 +254,7 @@ type Popover = {
 };
 
 const TIME_GUTTER_WIDTH = 56;
-const HEADER_HEIGHT = 44;
+const HEADER_HEIGHT = 56;
 
 // =====================================================================================================================
 // Theme token bridge — resolves component-scoped XMLUI theme variables to CSS values.
@@ -269,6 +269,7 @@ const TOKEN_NAMES = [
   "backgroundColor-toolbar",
   "backgroundColor-header",
   "backgroundColor-gutter",
+  "backgroundColor-columnAlt",
   "borderColor-hour",
   "borderColor-halfHour",
   "backgroundColor-today",
@@ -278,6 +279,7 @@ const TOKEN_NAMES = [
   "textColor-today",
   "backgroundColor-entry",
   "textColor-entry",
+  "borderColor-entry",
   "borderRadius-entry",
   "boxShadow-entry",
   "backgroundColor-create",
@@ -583,6 +585,37 @@ export function WeekCalendar(props: WeekCalendarProps) {
       window.removeEventListener("resize", measure);
     };
   }, []);
+
+  // Auto-fit pixelsPerHour to the grid slot height so the full 24-hour
+  // day fits exactly with no scrollbar. We trust the inline-prop
+  // pixelsPerHour as the "preferred" (max) value and only shrink it when
+  // the slot is too short. Recomputed on every resize via the same
+  // ResizeObserver pattern used for scrollbarGutter.
+  useEffect(() => {
+    const GRID_BOTTOM_PAD = 24;
+    const GRID_TOP_PAD = 8;
+    const visibleMin = (dayEndHour - dayStartHour) * 60;
+    const fit = () => {
+      const el = gridRef.current;
+      if (!el || visibleMin <= 0) return;
+      const available = el.clientHeight - GRID_BOTTOM_PAD - GRID_TOP_PAD;
+      if (available <= 0) return;
+      const fitted = (available / visibleMin) * 60;
+      // Cap at the prop value — don't blow events up to giant blocks
+      // on tall monitors. Floor at 12 px/h so labels stay readable.
+      const next = Math.max(12, Math.min(pixelsPerHourProp, fitted));
+      // Avoid feedback loops: only update if the change is meaningful.
+      setPxPerHour((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    if (gridRef.current) ro.observe(gridRef.current);
+    window.addEventListener("resize", fit);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", fit);
+    };
+  }, [pixelsPerHourProp, dayStartHour, dayEndHour]);
 
   // Mirror the grid's horizontal scroll onto the header so day labels stay
   // aligned with their columns when the user pans the grid on mobile.
@@ -924,6 +957,9 @@ export function WeekCalendar(props: WeekCalendarProps) {
     const widthPct = 100 / cols;
     const leftPct = col * widthPct;
     const color = projectColor(entry.projectId);
+    const entryShadow = tokens["boxShadow-entry"]
+      ? `${tokens["boxShadow-entry"]}, inset 0 1px 0 rgba(255,255,255,0.16)`
+      : "inset 0 1px 0 rgba(255,255,255,0.16)";
 
     return (
       <div
@@ -939,15 +975,16 @@ export function WeekCalendar(props: WeekCalendarProps) {
           height,
           left: `calc(${leftPct}% + 2px)`,
           width: `calc(${widthPct}% - 4px)`,
-          background: color,
+          background: `linear-gradient(180deg, ${color} 0%, color-mix(in srgb, ${color} 78%, black 22%) 100%)`,
           color: tokens["textColor-entry"],
+          border: `1px solid ${tokens["borderColor-entry"] || "rgba(255,255,255,0.16)"}`,
           borderRadius: tokens["borderRadius-entry"],
           padding: "4px 6px",
           fontSize: 12,
           lineHeight: 1.3,
           cursor: "grab",
           overflow: "hidden",
-          boxShadow: tokens["boxShadow-entry"],
+          boxShadow: entryShadow,
           userSelect: "none",
         }}
       >
@@ -1152,7 +1189,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
             <Button
               size="sm"
               themeColor="attention"
-              variant="outlined"
+              variant="ghost"
               onClick={deleteFromPopover}
             >
               Delete
@@ -1204,9 +1241,11 @@ export function WeekCalendar(props: WeekCalendarProps) {
         borderRadius: tokens["borderRadius"],
         color: tokens["textColor"],
         overflow: "hidden",
-        // Always fill 100% of the parent — the page/Tabs chain plus the
-        // .xmlui-page-root flex override in index.html give the parent a
-        // definite height, so the calendar grows to match available space.
+        // Fill the parent slot — the page/Tabs chain plus the
+        // .xmlui-page-root flex override in web/index.html gives this a
+        // definite height. The grid wrapper inside has flex:1 and the
+        // pixelsPerHour state below adapts so the 24-hour content
+        // always fits exactly with no scrollbar.
         height: "100%",
         minHeight: 0,
         ...style,
@@ -1225,40 +1264,31 @@ export function WeekCalendar(props: WeekCalendarProps) {
           background: tokens["backgroundColor-toolbar"],
         }}
       >
-        {isMobile && (
-          <div
-            style={{
-              fontWeight: 600,
-              marginRight: 4,
-              color: tokens["textColor-strong"],
-              fontSize: 14,
-            }}
+        <div style={{ display: "inline-flex", gap: 8, ...(isMobile ? { margin: "0 auto" } : {}) }}>
+          <Button
+            variant="solid"
+            size="sm"
+            onClick={() => navigate(-dayCount)}
           >
-            {weekStartLabel}
-          </div>
-        )}
-        <Button
-          variant="outlined"
-          size="sm"
-          onClick={() => navigate(-dayCount)}
-        >
-          ◀
-        </Button>
-        <Button variant="outlined" size="sm" onClick={goToday}>
-          Today
-        </Button>
-        <Button
-          variant="outlined"
-          size="sm"
-          onClick={() => navigate(dayCount)}
-        >
-          ▶
-        </Button>
+            ◀
+          </Button>
+          <Button variant="solid" size="sm" onClick={goToday}>
+            Today
+          </Button>
+          <Button
+            variant="solid"
+            size="sm"
+            onClick={() => navigate(dayCount)}
+          >
+            ▶
+          </Button>
+        </div>
         {/* Range label, view-mode switcher, zoom, and totals — hidden on
             mobile to keep the toolbar to a single compact row. */}
         {!isMobile && (
           <>
-            <div style={{ fontWeight: 600, marginLeft: 8, color: tokens["textColor-strong"] }}>
+            <div style={{ flex: 1 }} />
+            <div style={{ fontWeight: 600, color: tokens["textColor-strong"] }}>
               {rangeLabel}
             </div>
             <div style={{ flex: 1 }} />
@@ -1268,7 +1298,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
                   key={m}
                   size="sm"
                   themeColor={viewMode === m ? "primary" : "secondary"}
-                  variant={viewMode === m ? "solid" : "outlined"}
+                  variant={viewMode === m ? "solid" : "ghost"}
                   onClick={() => setViewMode(m)}
                 >
                   {m === "day" ? "Day" : m === "workweek" ? "5d" : "Week"}
@@ -1277,7 +1307,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
             </div>
             <div style={{ display: "inline-flex", gap: 4, marginLeft: 8 }}>
               <Button
-                variant="outlined"
+                variant="ghost"
                 size="sm"
                 onClick={() => setPxPerHour((v) => Math.max(12, v - 12))}
                 title="Zoom out"
@@ -1285,7 +1315,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
                 −
               </Button>
               <Button
-                variant="outlined"
+                variant="ghost"
                 size="sm"
                 onClick={() => setPxPerHour((v) => Math.min(120, v + 12))}
                 title="Zoom in"
@@ -1316,19 +1346,21 @@ export function WeekCalendar(props: WeekCalendarProps) {
           style={{
             display: "grid",
             gridTemplateColumns: isMobile
-              ? `${TIME_GUTTER_WIDTH}px repeat(${dayCount}, minmax(150px, 1fr))`
+              ? `repeat(${dayCount}, 1fr)`
               : `${TIME_GUTTER_WIDTH}px repeat(${dayCount}, 1fr)`,
             height: "100%",
           }}
         >
-          <div
-            style={{
-              position: "sticky",
-              left: 0,
-              zIndex: 2,
-              background: tokens["backgroundColor-header"],
-            }}
-          />
+          {!isMobile && (
+            <div
+              style={{
+                position: "sticky",
+                left: 0,
+                zIndex: 2,
+                background: tokens["backgroundColor-header"],
+              }}
+            />
+          )}
         {visibleDates.map((d, i) => {
           const dow = new Date(d + "T00:00:00Z").getUTCDay();
           const labelIdx = (dow - weekStartsOn + 7) % 7;
@@ -1343,6 +1375,9 @@ export function WeekCalendar(props: WeekCalendarProps) {
                 flexDirection: "column",
                 justifyContent: "center",
                 alignItems: "center",
+                paddingTop: 6,
+                paddingBottom: 8,
+                boxSizing: "border-box",
                 borderLeft: i === 0 ? "none" : `1px solid ${tokens["borderColor-hour"]}`,
                 color: isToday ? tokens["textColor-today"] : tokens["textColor-secondary"],
                 fontWeight: isToday ? 700 : 600,
@@ -1386,10 +1421,11 @@ export function WeekCalendar(props: WeekCalendarProps) {
         </div>
       </div>
 
-      {/* Grid — fills the remaining vertical space inside the wrapper and
-          scrolls internally when its `gridHeight` exceeds the available
-          height. The wrapper itself has a definite `calc(100vh - 14rem)`
-          height so this always has a real container to scroll inside. */}
+      {/* Grid — fills the remaining vertical space inside the wrapper.
+          Vertical scroll is disabled and `pxPerHour` is auto-fitted to
+          the slot height (see the ResizeObserver block above the
+          return), so the full 24-hour day is always visible without a
+          scrollbar. */}
       <div
         ref={gridRef}
         style={{
@@ -1400,11 +1436,8 @@ export function WeekCalendar(props: WeekCalendarProps) {
           position: "relative",
           flex: 1,
           minHeight: 0,
-          overflowY: "auto",
+          overflowY: "hidden",
           overflowX: isMobile ? "auto" : "hidden",
-          // Always reserve scrollbar space so the grid columns stay
-          // pixel-aligned with the header (which has no scrollbar).
-          scrollbarGutter: "stable",
           // Small gap between the day-name header and the calendar grid so
           // the first hour label has breathing room.
           paddingTop: 8,
@@ -1460,6 +1493,11 @@ export function WeekCalendar(props: WeekCalendarProps) {
         {/* Day columns */}
         {visibleDates.map((d, i) => {
           const isToday = d === nowIsoDate;
+          const columnBackground = isToday
+            ? tokens["backgroundColor-today"]
+            : i % 2 === 1 && tokens["backgroundColor-columnAlt"]
+            ? tokens["backgroundColor-columnAlt"]
+            : tokens["backgroundColor"];
           return (
             <div
               key={d}
@@ -1482,9 +1520,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
                 position: "relative",
                 height: gridHeight,
                 borderLeft: i === 0 ? "none" : `1px solid ${tokens["borderColor-hour"]}`,
-                background: isToday
-                  ? tokens["backgroundColor-today"]
-                  : tokens["backgroundColor"],
+                background: columnBackground,
                 cursor: "crosshair",
                 // Desktop uses pointer-drag for create/move/resize; mobile
                 // lets the browser handle pan gestures so the grid stays
