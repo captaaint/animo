@@ -7,24 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- Pre-commit hook for local `cargo fmt` + secret pattern checks (`scripts/install-hooks.sh`).
-
-### Changed
-- Repository renamed from `time-tracking-app` to `animo`; install / docs paths updated accordingly.
-- Dark tone: card and modal surfaces use a neutral palette instead of the warm `#2C2925`.
-- Settings screen: removed item borders, section dividers under titles, theme icon swapped to `palette`.
-- List and Reports tables: column fonts unified to default `<Text>` (no more secondary/bold mix); description and project columns share proportional star-widths.
-- Sign-out menu item: icon + text both use danger color.
-- All `&amp;&amp;` HTML-encoded operators in `.xmlui` files replaced with literal `&&` inside expressions.
-
-### Fixed
-- Avatar in Settings now has a visible border in dark tone (was blending into the card surface).
-- Card hover effect (background flash on dark mode) removed across the app.
-- Edit button in Projects/Clients/Tags tables now shows a hover effect (was missing while delete had one).
-- WeekCalendar toolbar dark-mode background switched from warm `#2C2925` to neutral `#1E2328` to match the rest of the calendar.
-- Dropdown menus and Select/AutoComplete/DatePicker menus have visible borders in dark mode.
-
+_No changes yet._
 
 ## [0.1.0] - 2026-05-20
 
@@ -63,6 +46,22 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - Netlify configuration for SSG demo deployment with SPA fallback.
 - E2E test harness with Playwright + trace tooling under `e2e/`.
 - Compact duration formatting and shared date helpers in `Globals.xs`.
+- Pre-commit hook for local `cargo fmt` + secret pattern checks (`scripts/install-hooks.sh`).
+
+### Changed
+- Repository renamed from `time-tracking-app` to `animo`; install / docs paths updated accordingly.
+- Dark tone: card and modal surfaces use a neutral palette instead of the warm `#2C2925`.
+- Settings screen: removed item borders, section dividers under titles, theme icon swapped to `palette`.
+- List and Reports tables: column fonts unified to default `<Text>` (no more secondary/bold mix); description and project columns share proportional star-widths.
+- Sign-out menu item: icon + text both use danger color.
+- All `&amp;&amp;` HTML-encoded operators in `.xmlui` files replaced with literal `&&` inside expressions.
+
+### Fixed
+- Avatar in Settings now has a visible border in dark tone (was blending into the card surface).
+- Card hover effect (background flash on dark mode) removed across the app.
+- Edit button in Projects/Clients/Tags tables now shows a hover effect (was missing while delete had one).
+- WeekCalendar toolbar dark-mode background switched from warm `#2C2925` to neutral `#1E2328` to match the rest of the calendar.
+- Dropdown menus and Select/AutoComplete/DatePicker menus have visible borders in dark mode.
 
 ### Notes
 - Internal preview — not yet publicly released.

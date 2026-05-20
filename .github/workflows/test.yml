@@ -2,13 +2,12 @@ name: Test
 
 on:
   pull_request:
-    branches: [main, dev]
-  push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: test-${{ github.workflow }}-${{ github.ref }}
@@ -16,8 +15,40 @@ concurrency:
 
 jobs:
 
+  changes:
+    name: Detect changed areas
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      api: ${{ steps.filter.outputs.api }}
+      desktop: ${{ steps.filter.outputs.desktop }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'web/**'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'netlify.toml'
+            api:
+              - 'api/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+            desktop:
+              - 'desktop/**'
+              - 'api/**'
+              - 'Cargo.toml'
+              - 'Cargo.lock'
+
   web:
     name: Web (XMLUI build sanity)
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -41,6 +72,8 @@ jobs:
 
   api:
     name: API (Rust)
+    needs: changes
+    if: needs.changes.outputs.api == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -64,14 +97,13 @@ jobs:
       - name: Clippy (warnings as errors)
         run: cargo clippy --all-targets --all-features -- -D warnings
 
-      - name: Build
-        run: cargo build --all-targets
-
       - name: Test
         run: cargo test --all-features
 
   desktop:
     name: Desktop (Tauri build check)
+    needs: changes
+    if: needs.changes.outputs.desktop == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -106,9 +138,6 @@ jobs:
 
       - name: Clippy (warnings as errors)
         run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Build (debug)
-        run: cargo build
 
   e2e-smoke:
     name: E2E smoke
