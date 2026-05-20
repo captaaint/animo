@@ -155,7 +155,7 @@ jobs:
 
       - name: Build desktop bundle
         working-directory: desktop
-        run: cargo tauri build --target ${{ matrix.target }}
+        run: tauri build --target ${{ matrix.target }}
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
 
