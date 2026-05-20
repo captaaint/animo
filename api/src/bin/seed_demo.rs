@@ -113,7 +113,7 @@ async fn main() -> Result<()> {
     }
 
     // -- deterministic RNG so the demo data is reproducible ------------------
-    let mut rng = StdRng::seed_from_u64(2026_05_13);
+    let mut rng = StdRng::seed_from_u64(20_260_513);
 
     // -- clients -------------------------------------------------------------
     // Animo palette only — Sage Teal, Warm Amber, Soft Coral, Deep
@@ -139,7 +139,15 @@ async fn main() -> Result<()> {
     }
 
     // -- projects: (name, optional client idx, color, hourly_rate, currency, descriptions)
-    let projects: [(&str, Option<usize>, &str, f64, &str, &[&str]); 8] = [
+    type ProjectSeed = (
+        &'static str,
+        Option<usize>,
+        &'static str,
+        f64,
+        &'static str,
+        &'static [&'static str],
+    );
+    let projects: [ProjectSeed; 8] = [
         (
             "Website Redesign",
             Some(0),
