@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/resources/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animo</title>
+    <style>
+      [data-icon-name],
+      :has(> svg[data-icon-name]),
+      button [data-part-id="icon"] > span,
+      button [data-part-id="icon"] {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        line-height: 0;
+      }
+      svg[data-icon-name],
+      button [data-part-id="icon"] svg {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.ts"></script>
+  </body>
+</html>

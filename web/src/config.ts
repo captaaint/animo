@@ -8,7 +8,7 @@ const App: StandaloneAppDescription = {
   defaultTheme: "tracker-theme",
   appGlobals: {
     xsVerbose: false,
-    useHashBasedRouting: false,
+    useHashBasedRouting: import.meta.env.VITE_ANIMO_HASH_ROUTING === "true",
   },
   resources: {
     logo: "resources/full-logo.svg",
