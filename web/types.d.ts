@@ -9,6 +9,7 @@ declare module "xmlui-pdf";
 // and the demo build (relative `/api`, served by the in-browser handler).
 interface Window {
   __ANIMO_API_BASE__?: string;
+  __ANIMO_VERSION__?: string;
 }
 
 interface ImportMetaEnv {
@@ -16,4 +17,8 @@ interface ImportMetaEnv {
    *  Vite as a define), tells index.ts to install the in-browser API
    *  handler instead of hitting the real backend. */
   readonly VITE_ANIMO_DEMO?: string;
+  /** Build-time release version (e.g. "0.1.0"). Injected by
+   *  .github/workflows/release.yml; falls back to a literal in
+   *  index.ts so local dev builds still render something sensible. */
+  readonly VITE_ANIMO_VERSION?: string;
 }

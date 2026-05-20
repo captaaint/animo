@@ -1,0 +1,78 @@
+name: Bug report
+description: Something in Animo doesn't behave the way you expect.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. The more concrete you can
+        be — exact version, OS, reproduction steps — the faster I can
+        triage it.
+
+  - type: input
+    id: version
+    attributes:
+      label: Animo version
+      description: Visible at the bottom of the sign-in screen, or check the bundle filename.
+      placeholder: "v0.1.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Where you hit the issue
+      options:
+        - Desktop (Tauri) — macOS
+        - Desktop (Tauri) — Windows
+        - Desktop (Tauri) — Linux
+        - Browser — local dev (npm run dev)
+        - Browser — Netlify demo (getanimo.app)
+        - Headless API (animo-api binary)
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 15.3 / Windows 11 23H2 / Ubuntu 24.04 / ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Launch Animo.
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots (optional)
+      description: |
+        For desktop bugs, the easiest way to grab logs is to launch the
+        binary from a terminal (see docs/install-*.md → Troubleshooting).
+        Paste output here, or attach screenshots by dragging them into
+        the field.
+      render: text

@@ -1,8 +1,49 @@
 # Animo
 
-> A self-hosted, single-user time-tracking app inspired by [Kimai](https://www.kimai.org/) — XMLUI frontend, Rust + axum backend, SQLite storage, optional Tauri desktop shell. Domain: [getanimo.app](https://getanimo.app).
+> A self-hosted, single-user time tracker.
+> XMLUI frontend, Rust + axum backend, SQLite storage, Tauri desktop shell.
+> Your data stays on your machine — no cloud, no telemetry, no accounts to manage.
 
-Track work against projects and clients, either by typing start/end times manually or by running the live header stopwatch. View entries on a weekly calendar grid or as a list grouped by day, slice them with project / tag / date-range filters, and export a styled PDF report.
+[![latest release](https://img.shields.io/github/v/release/captaaint/animo?include_prereleases&sort=semver)](https://github.com/captaaint/animo/releases/latest)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![demo](https://img.shields.io/badge/demo-getanimo.app-blue)](https://getanimo.app)
+
+Track work against projects and clients, either by typing start/end times
+or by running the live header stopwatch. View entries on a weekly calendar
+grid or as a list grouped by day, slice them with project / client / tag /
+date-range filters, and export a styled PDF report.
+
+→ **Live demo:** <https://getanimo.app>
+→ **Releases:** <https://github.com/captaaint/animo/releases>
+
+---
+
+## Install
+
+### macOS / Linux
+
+```sh
+curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh
+```
+
+### Windows (PowerShell)
+
+```powershell
+irm https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex
+```
+
+The install scripts pick the right bundle for your platform, verify SHA256
+against `SHA256SUMS.txt`, and install in one step. For manual installs,
+Gatekeeper / SmartScreen handling, and per-platform notes, see:
+
+- [docs/install.md](docs/install.md) — overview and one-liner reference
+- [docs/install-macos.md](docs/install-macos.md)
+- [docs/install-windows.md](docs/install-windows.md)
+- [docs/install-linux.md](docs/install-linux.md)
+
+> The desktop builds are currently unsigned. First-launch warnings
+> (macOS Gatekeeper, Windows SmartScreen) are handled in the platform
+> docs and are a one-time confirmation.
 
 ---
 
@@ -15,106 +56,63 @@ Track work against projects and clients, either by typing start/end times manual
 | Database    | SQLite (single file, embedded migrations)                                                               |
 | Auth        | HttpOnly cookie session, Argon2id password hash, SHA-256 token hash                                     |
 | PDF export  | Client-side via [pdfmake](https://pdfmake.github.io/) — [`web/src/helpers/reportPdf.ts`](web/src/helpers/reportPdf.ts) |
-| Desktop     | Optional Tauri 2 shell in [`desktop/`](desktop/) — embeds the axum server in-process                    |
-| E2E tests   | Playwright in [`e2e/`](e2e/)                                                                            |
+| Desktop     | [Tauri 2](https://tauri.app) shell in [`desktop/`](desktop/) — embeds the axum server in-process        |
+| E2E tests   | [Playwright](https://playwright.dev/) in [`e2e/`](e2e/)                                                 |
 
 ---
 
-## Quick start (browser dev mode)
+## Build from source
 
-```bash
-# 1. install JS deps for the workspace (skips scripts to bypass an upstream xmlui-pdf postinstall quirk)
+### Prerequisites
+
+- Rust stable (`rustup toolchain install stable`)
+- Node.js 20+
+- Platform Tauri deps (Linux: `libwebkit2gtk-4.1-dev`, `libgtk-3-dev`,
+  `librsvg2-dev`, `libxdo-dev`; macOS and Windows pick them up via Xcode /
+  Visual Studio Build Tools).
+
+### Browser dev mode
+
+```sh
 npm install --ignore-scripts
 cd web && npm install --ignore-scripts && cd ..
 
-# 2. boot the API and the Vite dev server in parallel
-npm run dev
+npm run dev          # boots animo-api on :8080 and the XMLUI dev server on :5173
 ```
 
-This starts:
+Open the Vite URL, register a new account, and you're in. Useful extras:
 
-- `cargo run -p animo-api` on `http://127.0.0.1:8080`
-- `xmlui start` on `http://localhost:5173`
-
-Open the Vite URL, register a new account, and you're in.
-
-### Optional helpers
-
-```bash
-npm run api         # just the Rust API
-npm run web         # just the XMLUI dev server
-npm run seed:demo   # populate a demo.db with a sample user + ~1 month of entries
-npm run dev:demo    # dev mode against demo.db (login: demo@example.com / demo1234)
+```sh
+npm run api          # just the Rust API
+npm run web          # just the XMLUI dev server
+npm run seed:demo    # populate demo.db (login: demo@example.com / demo1234)
+npm run dev:demo     # dev mode against demo.db
 ```
+
+### Tauri desktop
+
+```sh
+npm run tauri:dev    # boots the API in-process and opens the webview
+npm run tauri:build  # produces a DMG / MSI / DEB / AppImage in desktop/target/release/bundle/
+```
+
+### Public demo bundle (no backend, MSW-mocked)
+
+```sh
+npm run build:demo       # builds web/dist/ with VITE_ANIMO_DEMO=true baked in
+npm run preview:demo     # build + preview locally
+```
+
+The bundle ships a hand-written `/api/*` fetch handler
+([`web/src/demoApi.ts`](web/src/demoApi.ts)) that intercepts `window.fetch`
+before XMLUI mounts. Auth is bypassed (always returns "Demo User"), data
+covers four work-weeks of seed entries, and all CRUD persists in
+`localStorage`. The version stamp on the LoginScreen comes from
+`VITE_ANIMO_VERSION` — see [`web/scripts/with-version.mjs`](web/scripts/with-version.mjs).
 
 ---
 
-## Public demo (Netlify)
-
-The frontend can be built as a fully static, no-backend demo — handy for
-sharing a working link without exposing the Rust API.
-
-```bash
-npm run build:demo      # builds web/dist/ with the demo flag baked in
-npm run preview:demo    # build + preview locally on http://localhost:4173
-```
-
-What that gives you:
-
-- The bundle ships a hand-written `/api/*` fetch handler
-  ([`web/src/demoApi.ts`](web/src/demoApi.ts)) that monkey-patches
-  `window.fetch` before XMLUI mounts. Every request that would normally
-  hit the Rust backend is served in-browser instead.
-- Authentication is bypassed — `GET /auth/me` always returns a "Demo User",
-  so visitors land directly on the Calendar.
-- Seed data covers the past four work-weeks (~50 time entries across
-  2 clients × 2 projects × 5 tags), regenerated relative to "today" on
-  first launch.
-- All CRUD persists in `localStorage` (key `tt-demo-state-v1`). Clearing
-  the site's storage resets the demo to its initial seed.
-
-### Deploying to Netlify
-
-The repo ships a `netlify.toml` that points Netlify at `web/` as the base
-directory and runs `npm run build:demo`. Once the repository is connected
-to Netlify, the default settings produce a working deployment — nothing
-else to configure.
-
-`NPM_FLAGS=--ignore-scripts` is set in `netlify.toml` to skip a broken
-upstream `xmlui-pdf` postinstall step; the package still works for the
-demo's use case.
-
----
-
-## Desktop app (Tauri)
-
-```bash
-# one-time: install the Tauri CLI as a workspace devDependency
-npm install --ignore-scripts
-
-# launch the desktop shell — boots the API in-process and opens the webview
-npm run tauri:dev
-```
-
-A bundled installer (DMG / MSI / DEB / AppImage) is produced by:
-
-```bash
-npm run tauri:build
-```
-
-Notes:
-
-- The desktop shell stores its SQLite DB under the platform per-user data dir
-  (macOS: `~/Library/Application Support/app.getanimo.timetracker/data.db`).
-- On first launch in a dev build, the shell seeds that DB from `api/data.db`
-  if it exists — handy when porting an existing browser session over.
-- The placeholder icon at `desktop/icons/icon.png` is a 32×32 colored square.
-  Before publishing a release bundle, replace it with a real logo and run
-  `cargo tauri icon path/to/source.png` to generate the rest of the sizes.
-
----
-
-## Architecture overview
+## Architecture
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -146,10 +144,11 @@ Notes:
                        tags · entry_tags · time_entries
 ```
 
-The Tauri desktop shell embeds the same axum router in-process: at startup it
-binds a TCP listener on `127.0.0.1:0`, hands the resolved port back to the
-webview via the `api_base` invoke command, and the XMLUI frontend uses that
-URL as its `apiBase` global. See [`desktop/src/lib.rs`](desktop/src/lib.rs).
+The Tauri shell embeds the same axum router in-process. At startup it
+binds a TCP listener on `127.0.0.1:0`, hands the resolved port back to
+the webview via the `api_base` invoke command, and the XMLUI frontend
+uses that URL as its `apiBase` global. See
+[`desktop/src/lib.rs`](desktop/src/lib.rs).
 
 ---
 
@@ -157,95 +156,56 @@ URL as its `apiBase` global. See [`desktop/src/lib.rs`](desktop/src/lib.rs).
 
 ```text
 animo/
-├── api/             Rust crate — axum router, sqlx pool, migrations
-│   ├── src/
-│   │   ├── lib.rs              build_state, build_app, bind, run_server
-│   │   ├── main.rs             standalone binary entry
-│   │   ├── config.rs           env-driven and Tauri desktop config flavors
-│   │   ├── auth/               cookie-based session + Argon2 password hashing
-│   │   ├── {clients,projects,tags,entries,reports}.rs   route handlers
-│   │   ├── state.rs            shared AppState (pool + config)
-│   │   └── error.rs            unified AppError → IntoResponse
-│   ├── migrations/             *.sql, embedded at compile time
-│   └── assets/fonts/           DejaVu Sans for the server-side genpdf path
-├── web/             XMLUI frontend
-│   ├── index.ts                bootstrap (resolves apiBase, calls startApp)
-│   ├── src/
-│   │   ├── Main.xmlui          App shell, NavPanel, Pages
-│   │   ├── components/         per-screen XMLUI markup
-│   │   ├── extensions/         AuthGate, WeekCalendar, charts, …
-│   │   └── helpers/            reportPdf (pdfmake), timerBus
-│   └── public/                 static assets served by Vite/build
-├── desktop/         Tauri 2 shell — embeds the axum server
-│   ├── src/lib.rs              setup hook: bootstraps DB, binds listener, hands port to webview
-│   ├── tauri.conf.json
-│   ├── capabilities/
-│   └── icons/                  placeholder PNG (replace before release)
-├── e2e/             Playwright tests (browser dev mode)
-│   ├── playwright.config.ts    spins up api + web before running specs
-│   └── tests/*.spec.ts
-├── Cargo.toml       workspace root (members = api, desktop)
-└── package.json     npm scripts that tie everything together
+├── api/              Rust crate — axum router, sqlx pool, migrations
+├── web/              XMLUI frontend (Vite + custom extensions)
+├── desktop/          Tauri 2 shell — embeds animo-api in-process
+├── e2e/              Playwright tests
+├── docs/             User-facing install + ops docs
+├── scripts/          bump.sh, install-hooks.sh
+├── .githooks/        pre-commit (cargo fmt + secret scan)
+├── .github/          workflows (test, release) + issue / PR templates
+├── install.sh        macOS + Linux installer
+├── install.ps1       Windows installer
+└── netlify.toml      Demo deploy config
 ```
 
 ---
 
-## Auth flow
+## Releasing
 
-1. The XMLUI frontend mounts the [`AuthGate`](web/src/extensions/AuthGate/) extension. On boot it calls `GET /api/auth/me`. If the session cookie is present and valid, the user goes straight to the Calendar; otherwise to `/login`.
-2. On register/login, the API issues a fresh 256-bit random token, stores only its SHA-256 hash in the `sessions` table, and sets the plaintext as an `HttpOnly` cookie (`tt_session`).
-3. Every protected handler depends on the `AuthUser` extractor, which reads the cookie, looks up the session, validates idle/absolute expiry, and slides the idle window forward.
-4. Logout revokes the row server-side and clears the cookie client-side.
+Releases are driven by [`scripts/bump.sh`](scripts/bump.sh), which keeps a
+single version in sync across `package.json`, `web/package.json`,
+`api/Cargo.toml`, `desktop/Cargo.toml`, and `desktop/tauri.conf.json`,
+then commits + tags + pushes + dispatches the release workflow.
 
-Cookie attributes vary by deployment:
+```sh
+# Standard release (commit + tag + push + workflow dispatch):
+scripts/bump.sh 0.2.0
 
-| Mode                       | SameSite | Secure | Why                                                          |
-| -------------------------- | -------- | ------ | ------------------------------------------------------------ |
-| Browser dev (`npm run dev`)| `None`   | `true` | Vite (5173) + API (8080) are cross-origin; `None` is required and the loopback exception lets `Secure` work over plain HTTP. |
-| Desktop (Tauri webview)    | `Lax`    | `false`| Webview and API share the `localhost` site so `Lax` suffices; WKWebView silently rejects `Secure` cookies over `http://localhost`, hence Secure is off. |
+# Local-only dry-run:
+scripts/bump.sh 0.2.0 --no-push
+```
 
-The mapping lives in [`api/src/config.rs`](api/src/config.rs) (`Config::from_env` vs `Config::for_desktop`).
+The release CI ([`.github/workflows/release.yml`](.github/workflows/release.yml))
+verifies the tag and CHANGELOG entry, builds desktop bundles on
+linux-amd64 / macos-arm64 / macos-intel / windows-amd64, builds the
+headless `animo-api` binary on linux-amd64 / macos-arm64 / windows-amd64,
+publishes `SHA256SUMS.txt` covering every asset and the install scripts
+themselves, and drafts the GitHub release.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the local pre-commit hook
+(`cargo fmt` + secret pattern scan) and conventional-commits expectations.
 
 ---
 
-## Running the tests
+## Wishlist
 
-```bash
-npm run e2e:install   # one-time: install the e2e package + browser
-npm run e2e           # run the full Playwright suite
-npm run e2e:ui        # open the Playwright UI runner
-```
-
-Playwright boots its own `api` and `web` servers (see
-[`e2e/playwright.config.ts`](e2e/playwright.config.ts)), so the suite is
-self-contained.
-
-Unit tests live next to the code they cover; run them via cargo:
-
-```bash
-cargo test --workspace
-```
-
----
-
-## Configuration reference
-
-The API reads its config from environment variables — see
-[`api/.env.example`](api/.env.example):
-
-| Variable        | Default                              | Notes                                                  |
-| --------------- | ------------------------------------ | ------------------------------------------------------ |
-| `BIND_ADDR`     | `127.0.0.1:8080`                     | API listen address.                                    |
-| `DATABASE_URL`  | `sqlite:data.db?mode=rwc`            | sqlx connection string.                                |
-| `JWT_SECRET`    | `dev-secret-change-me` (dev default) | Override in any non-dev deployment.                    |
-| `CORS_ORIGINS`  | `http://localhost:5173..5176`        | Comma-separated allow-list for the Vite dev ports.     |
-| `RUST_LOG`      | `animo_api=info`                     | Standard `tracing-subscriber` filter.                  |
-
-The Tauri shell ignores most of these and builds its `Config` programmatically
-via `Config::for_desktop(app_data_dir)`.
+Got a feature you'd like to see, or a workflow Animo doesn't fit yet?
+Open an issue and tell me about it:
+<https://github.com/captaaint/animo/issues/new?template=feature_request.yml>.
 
 ---
 
 ## License
 
-[MIT](LICENSE) © Tamas Kapitany
+[MIT](LICENSE) © 2026 Tamas Kapitany

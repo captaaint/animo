@@ -1,0 +1,50 @@
+name: Feature request
+description: Suggest an improvement or a missing capability.
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Animo is a single-developer hobby project right now, so I can't
+        promise anything will ship — but every request shapes the roadmap.
+        The more I understand the *why*, the better I can scope it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem this would solve?
+      description: |
+        Describe the situation where Animo falls short today. Concrete
+        examples ("when I want to bill client X, I have to manually copy
+        ...") help more than abstract framing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: How would you like it to work?
+      description: Sketches, ASCII mockups, or analogies to other apps are all fair game.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workarounds you've considered (optional)
+      description: If you've tried solving this via the existing UI / a script / another tool, what did you try?
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Roughly where does this land?
+      options:
+        - Web UI (XMLUI / screens)
+        - Backend / API (animo-api)
+        - Desktop shell (Tauri)
+        - Reports / PDF export
+        - Install / release tooling
+        - Not sure
+    validations:
+      required: true
