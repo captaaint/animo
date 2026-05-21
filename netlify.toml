@@ -21,7 +21,10 @@
 
 [build]
 publish = "website/dist-ssg"
-command = "npm run -w animo-website build:with-demo"
+# Turbo orchestrates the build: `^build:extension` dependsOn in turbo.json
+# guarantees animo-blocks is built before animo-website's build:with-demo
+# runs (which itself triggers the embedded web demo build).
+command = "npx turbo run build:with-demo --filter=animo-website"
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"

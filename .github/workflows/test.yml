@@ -60,6 +60,8 @@ jobs:
     if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      TURBO_UI: 'false'
     steps:
       - uses: actions/checkout@v4
 
@@ -75,9 +77,15 @@ jobs:
       - name: Install workspace dependencies
         run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
+      # Cache turbo's build artifacts across runs — animo-blocks/dist and
+      # web/dist get reused when their inputs haven't changed.
+      - uses: rharkor/caching-for-turbo@v2.3.1
+
+      # Turbo's `^build:extension` dependsOn in turbo.json automatically
+      # builds animo-blocks before animo-web's build:demo, so we don't
+      # need a separate pre-build step.
       - name: Build demo (production)
-        working-directory: web
-        run: npm run build:demo
+        run: npx turbo run build:demo --filter=animo-web
         env:
           VITE_ANIMO_DEMO: 'true'
 
@@ -156,6 +164,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     if: needs.changes.outputs.e2e == 'true' || github.event_name == 'workflow_dispatch'
+    env:
+      TURBO_UI: 'false'
     steps:
       - uses: actions/checkout@v4
 
@@ -181,9 +191,11 @@ jobs:
         working-directory: e2e
         run: npx playwright install --with-deps chromium
 
+      # Cache turbo artifacts — shares with the `web` job's cache key.
+      - uses: rharkor/caching-for-turbo@v2.3.1
+
       - name: Build web (demo mode)
-        working-directory: web
-        run: npm run build:demo
+        run: npx turbo run build:demo --filter=animo-web
         env:
           VITE_ANIMO_DEMO: 'true'
 

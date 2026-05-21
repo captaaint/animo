@@ -1,5 +1,19 @@
 #!/usr/bin/env node
-import { existsSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+// Orchestrates the website's SSG build with the embedded demo app.
+//
+// Prerequisites (handled by turbo via `^build:extension` dependsOn in
+// turbo.json — see `npm run build:website` at the repo root):
+//   * `animo-blocks` is built (dist/animo-blocks.mjs exists), so xmlui
+//     ssg's Node-side SSR loader can require the shared renderers.
+//   * Workspace `node_modules` is populated (turbo only runs after the
+//     install step in CI / dev workflows).
+//
+// This script then runs the parts that aren't worth turning into separate
+// turbo tasks: sync the desktop release artifacts, build the web demo
+// with website-specific flags (`--withRelativeRoot`, hash routing), run
+// xmlui ssg, and finally copy the web demo output under
+// website/dist-ssg/demo-app/ so /demo can iframe it.
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -20,33 +34,6 @@ function run(command, args, options = {}) {
     process.exit(result.status ?? 1);
   }
 }
-
-// Workspaces hoist shared deps (xmlui, xmlui-pdf, animo-blocks) to the repo
-// root's node_modules. Check both per-package and hoisted locations; only
-// fall back to `npm ci` (at the workspaces root, not per-package) if neither
-// has xmlui. Per-package `npm ci` would fail under workspaces — no per-app
-// lockfiles exist anymore.
-function ensureDependencies(dir) {
-  if (existsSync(resolve(dir, "node_modules", "xmlui"))) return;
-  if (existsSync(resolve(repoDir, "node_modules", "xmlui"))) return;
-  run(
-    "npm",
-    ["ci", "--prefer-offline", "--no-audit", "--no-fund", "--ignore-scripts"],
-    { cwd: repoDir },
-  );
-}
-
-ensureDependencies(webDir);
-ensureDependencies(websiteDir);
-
-// Pre-build animo-blocks. The package's `exports` field has a `node`
-// condition pointing at ./dist/animo-blocks.mjs so xmlui ssg's Node-side
-// SSR loader can require the renderers (raw .tsx wouldn't load in Node).
-// Kliens Vite build uses the `default` condition (src/index.tsx) and
-// transpiles on the fly, so this step is only strictly needed for the
-// SSG path — but running it unconditionally keeps the two artifact sets
-// in sync.
-run("npm", ["run", "-w", "animo-blocks", "build:extension"], { cwd: repoDir });
 
 // Pull desktop release artifacts into public/downloads/ so the /download
 // page can serve them from the same origin as the site. The script no-ops
