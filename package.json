@@ -2,6 +2,11 @@
   "name": "animo",
   "version": "0.1.1",
   "private": true,
+  "workspaces": [
+    "web",
+    "website",
+    "extensions/*"
+  ],
   "scripts": {
     "api": "DATABASE_URL=\"sqlite:dev.db?mode=rwc\" cargo run -p animo-api",
     "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api",

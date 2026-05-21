@@ -4,8 +4,7 @@
 // here is enough to register them during SSR. Keep this list in sync
 // with the extensions array in index.ts.
 
-import tonePersistExt from "./src/extensions/TonePersist";
-import centerRowExt from "./src/extensions/CenterRow";
+import { tonePersist, centerRow } from "animo-blocks";
 import downloadGridExt from "./src/extensions/DownloadGrid";
 
-export default [tonePersistExt, centerRowExt, downloadGridExt];
+export default [tonePersist, centerRow, downloadGridExt];
