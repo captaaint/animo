@@ -39,3 +39,4 @@ coverage/
 dist/
 build/
 release/
+website/dist-ssg/

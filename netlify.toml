@@ -1,45 +1,32 @@
-# Netlify config for the demo deployment.
+# Netlify config for the public website deployment.
 #
-# Deployment mode: XMLUI SSG (static site generation).
+# Deployment mode: standalone XMLUI website + embedded Animo demo build.
 #
 # What this configures:
-#   * `base` — Netlify cd's into web/ before running anything. Treats web/ as
-#     the project root for both `npm install` and the build command.
-#   * `command` — `xmlui ssg` pre-renders every static <Page> route in
-#     Main.xmlui into its own HTML file under dist-ssg/. The shell ships
-#     the brand theme inline so the first paint is the full Animo
-#     chrome; the JS bundle hydrates the dynamic content after.
-#     `VITE_ANIMO_DEMO=true` flips the runtime onto the in-browser MSW
-#     API handler so /api/* resolves against the local demo data instead
-#     of a real backend.
-#     `NODE_OPTIONS=--import ./scripts/ssg-register-css-noop.mjs`
-#     registers a tiny Node ESM loader. The published `xmlui@0.12.27`
-#     ships browser-only `import './xmlui.css'` side-effects and
-#     `import.meta.env.X` references that Vite normally rewrites at
-#     consumer build time but that survive untouched when the SSR build
-#     externalizes xmlui. The loader stubs CSS specifiers and guards the
-#     env reads at Node `import()` time. See
-#     web/scripts/ssg-css-noop-loader.mjs.
-#   * `publish` — relative to `base`, so the final dir on Netlify is
-#     `web/dist-ssg/`. The SSG output includes per-route index.html files
-#     plus a `200.html` fallback for unknown routes.
+#   * `base` — Netlify cd's into website/ before running anything.
+#   * `command` — the website build script first builds ../web as a
+#     demo-mode Animo app with relative assets and hash routing, then
+#     builds this public website and copies the demo output to
+#     website/dist/demo-app/.
+#   * `/demo` — a website route that embeds `/demo-app/#/` in an iframe,
+#     so the interactive product demo is the real Animo app without
+#     adding landing-page code to the tracker webapp.
 #   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`
 #     postinstall step that 404s in fresh installs. The package still
-#     works for our use case.
+#     works in the demo app for our use case.
 
 [build]
-base = "web"
+base = "website"
 publish = "dist-ssg"
-command = "npm run build:demo-ssg"
+command = "npm run build:with-demo"
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"
 NODE_VERSION = "20"
 
-# SPA fallback for any path that doesn't have a pre-rendered HTML file.
-# SSG writes `200.html` exactly for this purpose — Netlify will serve it
-# while keeping the URL intact, then XMLUI's client-side router takes over.
+# SPA fallback for website routes. Static files under /demo-app are served
+# directly before this fallback, and the embedded demo uses hash routing.
 [[redirects]]
 from = "/*"
 status = 200
-to = "/200.html"
+to = "/index.html"

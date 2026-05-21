@@ -1,0 +1,16 @@
+{
+  "name": "animo-website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "xmlui start",
+    "build": "xmlui build --buildMode=INLINE_ALL",
+    "build-prod": "npm run build -- --prod",
+    "build:with-demo": "node scripts/build-with-demo.mjs",
+    "preview": "xmlui preview",
+    "check": "xmlui check src --format gnu"
+  },
+  "dependencies": {
+    "xmlui": "0.12.27"
+  }
+}

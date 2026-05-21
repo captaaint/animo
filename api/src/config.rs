@@ -74,14 +74,19 @@ impl Config {
     /// ITP silently dropped the Set-Cookie and every DataSource came back
     /// 401 immediately after login.
     pub fn for_desktop(data_dir: &Path) -> Self {
-        let db_path = data_dir.join("data.db");
-        // The path goes into a `sqlite:` URI, so URL-special characters in
-        // the directory tree must be percent-encoded. macOS' default
-        // "Application Support" already trips naive formatting — sqlx
-        // silently falls back to a CWD-relative `data.db` when the URL fails
-        // to parse, which had us writing to the wrong file entirely.
-        let encoded = percent_encode_sqlite_path(&db_path.to_string_lossy());
-        let database_url = format!("sqlite:{}?mode=rwc", encoded);
+        let database_url = std::env::var("DATABASE_URL")
+            .ok()
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| {
+                let db_path = data_dir.join("data.db");
+                // The path goes into a `sqlite:` URI, so URL-special characters in
+                // the directory tree must be percent-encoded. macOS' default
+                // "Application Support" already trips naive formatting — sqlx
+                // silently falls back to a CWD-relative `data.db` when the URL fails
+                // to parse, which had us writing to the wrong file entirely.
+                let encoded = percent_encode_sqlite_path(&db_path.to_string_lossy());
+                format!("sqlite:{}?mode=rwc", encoded)
+            });
         let jwt_secret = std::env::var("JWT_SECRET")
             .ok()
             .filter(|s| !s.is_empty())
@@ -230,6 +235,16 @@ mod tests {
         assert_eq!(cfg.jwt_secret, "user-supplied-override");
         // env override must NOT have written a per-install secret file.
         assert!(!dir.join("jwt_secret").exists());
+        std::fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn for_desktop_uses_database_url_when_provided() {
+        let dir = unique_tmp_dir();
+        std::env::set_var("DATABASE_URL", "sqlite:../demo.db?mode=rwc");
+        let cfg = Config::for_desktop(&dir);
+        std::env::remove_var("DATABASE_URL");
+        assert_eq!(cfg.database_url, "sqlite:../demo.db?mode=rwc");
         std::fs::remove_dir_all(&dir).ok();
     }
 }
