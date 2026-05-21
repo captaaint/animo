@@ -1,10 +1,14 @@
 name: Update CHANGELOG on dev
 
 # Every push to dev appends the new commits' subjects under ## [Unreleased]
-# in CHANGELOG.md. When dev → main is merged via PR, those Unreleased entries
-# travel with the merge commit, and `scripts/bump.sh` later promotes the
-# section to a versioned heading. Loops are blocked by an actor + commit-
-# message guard.
+# in CHANGELOG.md, then triggers the Netlify production deploy. Auto-deploys
+# are disabled in netlify.toml so the production site is updated *after* the
+# changelog has been refreshed — without this gating, every dev push produced
+# two deploys (one for the human commit, one for the bot's chore follow-up).
+# When dev → main is merged via PR, the Unreleased entries travel with the
+# merge commit, and `scripts/bump.sh` later promotes them to a versioned
+# heading. The actor guard below prevents the workflow from looping on its
+# own bot-authored commit.
 
 on:
   push:
@@ -23,14 +27,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     # Skip:
-    #   - the bot's own changelog commit (prevents loops)
+    #   - the bot's own changelog commit (actor check prevents the loop)
     #   - force-pushes (sync-dev.yml resets dev to main; nothing new to record)
     #   - branch deletions
     if: >-
       !github.event.deleted &&
       !github.event.forced &&
-      github.actor != 'github-actions[bot]' &&
-      !startsWith(github.event.head_commit.message, 'chore(changelog):')
+      github.actor != 'github-actions[bot]'
     steps:
       - uses: actions/checkout@v4
         with:
@@ -53,3 +56,23 @@ jobs:
           git add CHANGELOG.md
           git commit -m "chore(changelog): auto-update unreleased"
           git push origin dev
+
+      # Production deploys are disabled in netlify.toml (`[context.production]
+      # ignore = "exit 0"`). Build hooks bypass `ignore`, so this step is the
+      # *only* path to a production deploy — and it fires after the changelog
+      # commit has already landed, so the deployed site always carries the
+      # latest CHANGELOG.md.
+      #
+      # If NETLIFY_BUILD_HOOK_URL is not set yet, we warn and exit clean so
+      # the workflow stays green; configure it in Netlify (Site settings →
+      # Build & deploy → Build hooks, branch=dev) and add the URL as a repo
+      # secret.
+      - name: Trigger Netlify production deploy
+        env:
+          HOOK: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "::warning::NETLIFY_BUILD_HOOK_URL secret is not set; skipping Netlify trigger."
+            exit 0
+          fi
+          curl -fsSL -X POST -d '{}' "$HOOK"

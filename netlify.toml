@@ -24,6 +24,18 @@ command = "npm run build:with-demo"
 NPM_FLAGS = "--ignore-scripts"
 NODE_VERSION = "20"
 
+# Disable Netlify's auto-trigger for production deploys. Every dev push used
+# to fire two deploys — one for the human commit and one for the bot's
+# follow-up `chore(changelog):` commit. The only legitimate production
+# deploy path is now the build hook fired by
+# .github/workflows/changelog-on-dev.yml AFTER the changelog has been
+# updated; build hooks bypass `ignore` per Netlify docs, so they still
+# trigger normally. The same hook is reused by release-published.yml.
+# Deploy Previews (PRs) are unaffected — they run in the deploy-preview
+# context, which has no ignore override.
+[context.production.build]
+  ignore = "exit 0"
+
 # SPA fallback for website routes. Static files under /demo-app are served
 # directly before this fallback, and the embedded demo uses hash routing.
 [[redirects]]
