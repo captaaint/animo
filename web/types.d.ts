@@ -2,6 +2,12 @@
 
 declare module "xmlui-pdf";
 
+// Vite handles `import "./foo.css"` as a side-effect at build time; the
+// triple-slash reference above should already cover this, but the xmlui
+// CLI does not ship a tsconfig that picks vite/client up for every editor
+// check — declare it explicitly so the IDE stops flagging the import.
+declare module "*.css";
+
 // Populated synchronously on boot (see index.ts → resolveApiBase). Main.xmlui
 // reads it as `window.__ANIMO_API_BASE__`; the value differs between the
 // browser dev build (hard-coded http://127.0.0.1:8080/api), the Tauri

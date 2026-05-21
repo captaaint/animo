@@ -10,8 +10,9 @@ import viewportExt from "./src/extensions/Viewport";
 import windowEventExt from "./src/extensions/WindowEvent";
 import pickerExt from "./src/extensions/Picker";
 import tonePersistExt from "./src/extensions/TonePersist";
+import colorPickerExt from "./src/extensions/ColorPicker";
 
-const extensions = [xmluiPdf, weekCalendarExt, authGateExt, barChartExt, pieChartExt, stopwatchExt, keyListenerExt, viewportExt, windowEventExt, pickerExt, tonePersistExt];
+const extensions = [xmluiPdf, weekCalendarExt, authGateExt, barChartExt, pieChartExt, stopwatchExt, keyListenerExt, viewportExt, windowEventExt, pickerExt, tonePersistExt, colorPickerExt];
 
 export const runtime = import.meta.glob(`/src/**`, { eager: true });
 
