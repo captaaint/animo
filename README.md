@@ -179,12 +179,20 @@ single version in sync across `package.json`, `web/package.json`,
 `api/Cargo.toml`, `desktop/Cargo.toml`, and `desktop/tauri.conf.json`,
 then commits + tags + pushes + dispatches the release workflow.
 
+The target can be an explicit `N.N.N` version or one of `patch` / `minor` /
+`major` — in the latter case the script reads the current root
+`package.json` version and computes the next one, printing
+`Bump kind: <kind> (X.Y.Z → A.B.C)` before applying anything.
+
 ```sh
 # Standard release (commit + tag + push + workflow dispatch):
-scripts/bump.sh 0.2.0
+scripts/bump.sh patch          # 0.1.0 → 0.1.1
+scripts/bump.sh minor          # 0.1.0 → 0.2.0
+scripts/bump.sh major          # 0.1.0 → 1.0.0
+scripts/bump.sh 0.2.0          # explicit target
 
 # Local-only dry-run:
-scripts/bump.sh 0.2.0 --no-push
+scripts/bump.sh patch --no-push
 ```
 
 The release CI ([`.github/workflows/release.yml`](.github/workflows/release.yml))
