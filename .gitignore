@@ -40,3 +40,8 @@ dist/
 build/
 release/
 website/dist-ssg/
+
+# Synced desktop release artifacts (pulled fresh at build time from GitHub
+# Releases by website/scripts/sync-downloads.mjs). Only the manifest.json
+# is committed.
+website/public/downloads/v*/

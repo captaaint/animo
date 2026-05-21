@@ -1,0 +1,10 @@
+{
+  "version": "0.1.1",
+  "artifacts": {
+    "macos-arm64": "v0.1.1/Animo_0.1.1_aarch64.dmg",
+    "macos-intel": "v0.1.1/Animo_0.1.1_x64.dmg",
+    "windows-amd64": "v0.1.1/Animo_0.1.1_x64.msi",
+    "linux-deb": "v0.1.1/Animo_0.1.1_amd64.deb",
+    "linux-appimage": "v0.1.1/Animo_0.1.1_amd64.AppImage"
+  }
+}

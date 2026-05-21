@@ -21,21 +21,13 @@
             </Link>
             <SpaceFiller />
             <HStack when-md="true" gap="$space-7" verticalAlignment="center">
-              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text fontSize="14px" color="$color-muted">Docs</Text></Link>
               <Link to="/demo"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
-            <Button
-              icon="github"
-              size="sm"
-              variant="outlined"
-              themeColor="secondary"
-              onClick="window.open('https://github.com/captaaint/animo', '_blank')"
-            />
             <Button
               label="Download"
               icon="download"
               size="sm"
-              onClick="window.open('https://github.com/captaaint/animo/releases/latest', '_blank')"
+              onClick="Actions.navigate('/download')"
             />
           </HStack>
         </Stack>
@@ -109,7 +101,7 @@
                 label="Download for Windows, macOS, Linux"
                 icon="download"
                 size="md"
-                onClick="window.open('https://github.com/captaaint/animo/releases/latest', '_blank')"
+                onClick="Actions.navigate('/download')"
               />
               <Button
                 label="View Demo"
@@ -290,7 +282,7 @@
               icon="download"
               size="md"
               marginTop="$space-2"
-              onClick="window.open('https://github.com/captaaint/animo/releases/latest', '_blank')"
+              onClick="Actions.navigate('/download')"
             />
           </VStack>
         </VStack>
@@ -313,9 +305,7 @@
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
               <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
-              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text color="$color-muted" fontSize="13px">Docs</Text></Link>
-              <Link to="https://github.com/captaaint/animo/releases" target="_blank"><Text color="$color-muted" fontSize="13px">Changelog</Text></Link>
-              <Link to="https://github.com/captaaint/animo" target="_blank"><Text color="$color-muted" fontSize="13px">GitHub</Text></Link>
+              <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </HStack>
           </HStack>
           <VStack
@@ -330,9 +320,100 @@
           >
             <VStack gap="$space-3" horizontalAlignment="center">
               <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
-              <Link to="https://github.com/captaaint/animo/blob/main/README.md" target="_blank"><Text color="$color-muted" fontSize="13px">Docs</Text></Link>
-              <Link to="https://github.com/captaaint/animo/releases" target="_blank"><Text color="$color-muted" fontSize="13px">Changelog</Text></Link>
-              <Link to="https://github.com/captaaint/animo" target="_blank"><Text color="$color-muted" fontSize="13px">GitHub</Text></Link>
+              <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
+            </VStack>
+            <VStack gap="$space-2" horizontalAlignment="center">
+              <Logo height="$space-7" alt="Animo" />
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+            </VStack>
+          </VStack>
+        </Stack>
+      </VStack>
+    </Page>
+
+    <Page url="/download">
+      <VStack width="100%" minHeight="100vh" backgroundColor="$color-page-bg" color="$color-text" gap="0" overflowX="hidden">
+        <PageMetaTitle value="Download Animo" noSuffix="true" />
+
+        <Stack width="100%" borderBottom="1px solid $color-border" backgroundColor="rgb(from $color-header-bg r g b / 0.94)">
+          <HStack
+            width="100%"
+            maxWidth="1240px"
+            marginHorizontal="auto"
+            paddingHorizontal="$space-5"
+            paddingHorizontal-xs="$space-4"
+            height="68px"
+            verticalAlignment="center"
+            gap="$space-4"
+          >
+            <Link to="/">
+              <Logo height="$space-7" alt="Animo" />
+            </Link>
+            <SpaceFiller />
+            <HStack when-md="true" gap="$space-7" verticalAlignment="center">
+              <Link to="/demo"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
+            </HStack>
+          </HStack>
+        </Stack>
+
+        <VStack
+          width="100%"
+          maxWidth="960px"
+          marginHorizontal="auto"
+          paddingHorizontal="$space-5"
+          paddingHorizontal-xs="$space-4"
+          paddingTop="80px"
+          paddingTop-xs="56px"
+          paddingBottom="120px"
+          gap="$space-8"
+          horizontalAlignment="center"
+        >
+          <VStack gap="$space-3" horizontalAlignment="center">
+            <Text fontSize="36px" fontSize-md="44px" lineHeight="1.1" fontWeight="700" color="$color-text" textAlign="center" ellipses="false">
+              Download Animo
+            </Text>
+            <Text fontSize="16px" lineHeight="1.7" color="$color-muted" maxWidth="560px" textAlign="center" ellipses="false">
+              Pick the build for your operating system. Animo is self-hosted — your data never leaves your machine.
+            </Text>
+          </VStack>
+
+          <DownloadGrid />
+        </VStack>
+
+        <Stack width="100%" borderTop="1px solid $color-border" backgroundColor="rgb(from $color-header-bg r g b / 0.94)">
+          <HStack
+            when-md="true"
+            width="100%"
+            maxWidth="1240px"
+            marginHorizontal="auto"
+            paddingHorizontal="$space-5"
+            paddingVertical="$space-8"
+            verticalAlignment="center"
+            gap="$space-6"
+          >
+            <VStack gap="$space-2" horizontalAlignment="start">
+              <Logo height="$space-7" alt="Animo" />
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+            </VStack>
+            <SpaceFiller />
+            <HStack gap="$space-6" verticalAlignment="center">
+              <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
+            </HStack>
+          </HStack>
+          <VStack
+            when-md="false"
+            width="100%"
+            maxWidth="1240px"
+            marginHorizontal="auto"
+            paddingHorizontal="$space-4"
+            paddingVertical="$space-8"
+            gap="$space-5"
+            horizontalAlignment="center"
+          >
+            <VStack gap="$space-3" horizontalAlignment="center">
+              <Link to="/demo"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
               <Logo height="$space-7" alt="Animo" />

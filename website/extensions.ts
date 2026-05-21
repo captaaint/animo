@@ -6,5 +6,6 @@
 
 import tonePersistExt from "./src/extensions/TonePersist";
 import centerRowExt from "./src/extensions/CenterRow";
+import downloadGridExt from "./src/extensions/DownloadGrid";
 
-export default [tonePersistExt, centerRowExt];
+export default [tonePersistExt, centerRowExt, downloadGridExt];

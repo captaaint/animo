@@ -30,6 +30,12 @@ function ensureDependencies(dir) {
 ensureDependencies(webDir);
 ensureDependencies(websiteDir);
 
+// Pull desktop release artifacts into public/downloads/ so the /download
+// page can serve them from the same origin as the site. The script no-ops
+// when GITHUB_TOKEN / GH_TOKEN is absent (e.g. local dev), so the build
+// still succeeds.
+run("node", ["scripts/sync-downloads.mjs"], { cwd: websiteDir });
+
 run(
   "npm",
   ["run", "build:demo", "--", "--withRelativeRoot"],
