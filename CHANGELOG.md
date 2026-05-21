@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(changelog): automate CHANGELOG updates on dev branch pushes (6f94db6)
 
 ## [0.1.0] - 2026-05-20
 
