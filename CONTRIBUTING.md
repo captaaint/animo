@@ -111,8 +111,10 @@ The web app is built with [XMLUI](https://xmlui.org). When touching `.xmlui` fil
 ## Releases
 
 Releases are tagged `vN.N.N` and follow Semantic Versioning. The release flow
-is documented in `scripts/bump.sh` — operators run it with the next version
-as argument, and the script handles version sync + atomic push + CI dispatch.
+is documented in `scripts/bump.sh` — operators run it with either an explicit
+`N.N.N` target or a `patch` / `minor` / `major` keyword (resolved against the
+current root `package.json`), and the script handles version sync + atomic
+push + CI dispatch.
 
 ## Code of Conduct
 

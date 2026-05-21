@@ -11,16 +11,23 @@ set -euo pipefail
 #   - desktop/tauri.conf.json     (Tauri bundle metadata)
 #
 # Standard release (preflight → edit → build → commit → tag → push → dispatch):
-#   scripts/bump.sh 0.2.0
+#   scripts/bump.sh 0.2.0          # explicit target version
+#   scripts/bump.sh patch          # 0.1.0 → 0.1.1
+#   scripts/bump.sh minor          # 0.1.0 → 0.2.0
+#   scripts/bump.sh major          # 0.1.0 → 1.0.0
 #
 # Local-only (commit + tag locally; skip push and workflow dispatch):
-#   scripts/bump.sh 0.2.0 --no-push
+#   scripts/bump.sh patch --no-push
 
 usage() {
   cat <<'EOF' >&2
-usage: bump.sh <version> [--no-push] [--branch=<name>]
+usage: bump.sh <target> [--no-push] [--branch=<name>]
 
-  <version>       N.N.N (e.g. 0.2.0; leading v is stripped)
+  <target>        one of:
+                    N.N.N           explicit version (e.g. 0.2.0; leading v is stripped)
+                    patch           bump the patch segment (X.Y.Z → X.Y.(Z+1))
+                    minor           bump the minor segment (X.Y.Z → X.(Y+1).0)
+                    major           bump the major segment (X.Y.Z → (X+1).0.0)
   --no-push       stop after commit+tag locally; don't push or dispatch
   --branch=NAME   expected current branch (default: main)
 EOF
@@ -30,6 +37,7 @@ EOF
 # --- Parse args -------------------------------------------------------
 
 VERSION=""
+BUMP_KIND=""
 PUSH=1
 BRANCH="main"
 for arg in "$@"; do
@@ -37,8 +45,15 @@ for arg in "$@"; do
     --no-push) PUSH=0 ;;
     --branch=*) BRANCH="${arg#--branch=}" ;;
     -h|--help) usage ;;
+    patch|minor|major)
+      if [ -n "$BUMP_KIND" ] || [ -n "$VERSION" ]; then
+        echo "error: target already set; got extra: $arg" >&2
+        usage
+      fi
+      BUMP_KIND="$arg"
+      ;;
     *)
-      if [ -z "$VERSION" ]; then
+      if [ -z "$VERSION" ] && [ -z "$BUMP_KIND" ]; then
         VERSION="${arg#v}"
       else
         echo "error: unexpected argument: $arg" >&2
@@ -48,7 +63,28 @@ for arg in "$@"; do
   esac
 done
 
-[ -z "$VERSION" ] && usage
+if [ -z "$BUMP_KIND" ] && [ -z "$VERSION" ]; then
+  usage
+fi
+
+cd "$(dirname "$0")/.."
+
+# Resolve a patch|minor|major keyword to a concrete VERSION by reading the
+# current root package.json. Done after cd so the path is project-relative.
+if [ -n "$BUMP_KIND" ]; then
+  CURRENT_VERSION=$(node -e "process.stdout.write(require('./package.json').version || '')")
+  if ! [[ "$CURRENT_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "error: current package.json version '$CURRENT_VERSION' is not N.N.N — pass an explicit version instead" >&2
+    exit 1
+  fi
+  IFS='.' read -r CUR_MAJ CUR_MIN CUR_PATCH <<<"$CURRENT_VERSION"
+  case "$BUMP_KIND" in
+    patch) VERSION="${CUR_MAJ}.${CUR_MIN}.$((CUR_PATCH + 1))" ;;
+    minor) VERSION="${CUR_MAJ}.$((CUR_MIN + 1)).0" ;;
+    major) VERSION="$((CUR_MAJ + 1)).0.0" ;;
+  esac
+  echo "Bump kind: $BUMP_KIND  (${CURRENT_VERSION} → ${VERSION})"
+fi
 
 if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo "error: version must be N.N.N or vN.N.N (got: $VERSION)" >&2
@@ -56,7 +92,6 @@ if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 TAG="v${VERSION}"
-cd "$(dirname "$0")/.."
 
 # --- Preflight --------------------------------------------------------
 
