@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(download): enhance DownloadGrid styling and add platform icons (0913447)
 - feat: add animo-blocks extension with shared components (2390850)
 
+### Changed
+
+- chore: update Netlify config to disable auto-trigger for production deploys and streamline changelog updates (00eb2a6)
+
 ### Fixed
 
 - fix(release): update macOS version from 13 to 14 for compatibility (c041479)
