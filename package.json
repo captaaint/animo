@@ -18,6 +18,7 @@
     "website:preview": "cd website && npm run preview",
     "tauri": "cd desktop && tauri",
     "tauri:dev": "cd desktop && tauri dev",
+    "tauri:dev:demo": "cd desktop && DATABASE_URL=\"sqlite:../demo.db?mode=rwc\" tauri dev",
     "tauri:build": "cd desktop && tauri build",
     "build:demo": "cd web && npm run build:demo",
     "preview:demo": "cd web && npm run preview:demo",

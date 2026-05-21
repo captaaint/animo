@@ -43,20 +43,21 @@
         <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" gap="$space-9" horizontalAlignment="center">
           <VStack
             width="100%"
-            gap="$space-7"
-            paddingTop="$space-10"
-            paddingTop-xs="$space-7"
-            paddingBottom="$space-8"
+            gap="$space-8"
+            paddingTop="112px"
+            paddingTop-xs="72px"
+            paddingBottom="128px"
             horizontalAlignment="center"
           >
             <VStack gap="$space-1" horizontalAlignment="center">
-              <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" textAlign="center" ellipses="false">
-                Time tracking,
-              </Text>
               <CenterRow gap="$space-2">
-                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-accent" ellipses="false">without</Text>
-                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" ellipses="false">compromise.</Text>
+                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" ellipses="false">Everything a</Text>
+                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-accent" ellipses="false">solo operator</Text>
+                <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" ellipses="false">needs.</Text>
               </CenterRow>
+              <Text fontSize="40px" fontSize-md="56px" lineHeight="1.05" fontWeight="700" color="$color-text" textAlign="center" ellipses="false">
+                Nothing more.
+              </Text>
             </VStack>
 
             <Text fontSize="17px" lineHeight="1.8" color="$color-muted" maxWidth="640px" textAlign="center" ellipses="false">
@@ -130,7 +131,7 @@
         </VStack>
 
         <Stack id="features" width="100%" backgroundColor="$color-section-bg">
-          <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" paddingVertical="$space-8" gap="$space-5" horizontalAlignment="center">
+          <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" paddingVertical="$space-12" gap="$space-7" horizontalAlignment="center">
             <CenterRow gap="$space-1">
               <Text color="$color-text" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">Everything you need.</Text>
               <Text color="$color-accent" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">Nothing</Text>
@@ -172,7 +173,7 @@
 
         <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" gap="$space-9" horizontalAlignment="center">
 
-          <VStack gap="$space-5" paddingVertical="$space-7">
+          <VStack gap="$space-8" paddingTop="112px" paddingBottom="72px">
             <Text color="$color-text" fontSize="26px" fontWeight="700" textAlign="center" ellipses="false">Built with a modern, secure stack.</Text>
             <CenterRow gap="$space-4">
               <HStack width="270px" maxWidth="100%" gap="$space-3" verticalAlignment="center" padding="$space-4">
@@ -208,7 +209,7 @@
         </VStack>
 
         <Stack id="privacy" width="100%" overflowX="hidden">
-          <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" paddingVertical="$space-8">
+          <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" paddingTop="48px" paddingBottom="128px">
             <CenterRow gap="$space-7" verticalAlignment="center">
             <VStack width="440px" maxWidth="100%" gap="$space-4" horizontalAlignment="center">
               <CenterRow gap="$space-1">
@@ -281,7 +282,7 @@
         </Stack>
 
         <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" horizontalAlignment="center">
-          <VStack paddingVertical="$space-8" horizontalAlignment="center" gap="$space-3">
+          <VStack paddingTop="48px" paddingBottom="160px" horizontalAlignment="center" gap="$space-4">
             <Text color="$color-text" fontSize="28px" fontWeight="700" textAlign="center" ellipses="false">Ready to take control of your time?</Text>
             <Text color="$color-muted" fontSize="16px" textAlign="center" ellipses="false">Download Animo and start tracking on your terms.</Text>
             <Button
@@ -301,7 +302,7 @@
             maxWidth="1240px"
             marginHorizontal="auto"
             paddingHorizontal="$space-5"
-            paddingVertical="$space-6"
+            paddingVertical="$space-8"
             verticalAlignment="center"
             gap="$space-6"
           >
@@ -323,7 +324,7 @@
             maxWidth="1240px"
             marginHorizontal="auto"
             paddingHorizontal="$space-4"
-            paddingVertical="$space-6"
+            paddingVertical="$space-8"
             gap="$space-5"
             horizontalAlignment="center"
           >
