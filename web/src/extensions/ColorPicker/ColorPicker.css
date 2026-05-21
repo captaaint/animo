@@ -1,0 +1,55 @@
+/* Mirror of the upstream `xmlui/src/components/ColorPicker/ColorPicker.module.scss`
+   rules that cannot be expressed as inline styles. Without these the browser's
+   default `<input type="color">` chrome shows a thick padded swatch with its
+   own border, which makes the control look nothing like the rest of the
+   xmlui input family. The selectors target only our extension's input to
+   avoid leaking onto any other color inputs that may live on the page. */
+
+.xmlui-ext-color-picker {
+  width: 3em;
+  height: 1.5em;
+  padding: 4px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--xmlui-backgroundColor-ColorPicker, transparent);
+  border-radius: var(
+    --xmlui-borderRadius-ColorPicker,
+    var(--xmlui-borderRadius-Input, 4px)
+  );
+  border-color: var(
+    --xmlui-borderColor-ColorPicker,
+    var(--xmlui-borderColor-Input, transparent)
+  );
+  border-width: var(
+    --xmlui-borderWidth-ColorPicker,
+    var(--xmlui-borderWidth-Input, 1px)
+  );
+  border-style: var(
+    --xmlui-borderStyle-ColorPicker,
+    var(--xmlui-borderStyle-Input, solid)
+  );
+  box-shadow: var(
+    --xmlui-boxShadow-ColorPicker,
+    var(--xmlui-boxShadow-Input, none)
+  );
+}
+
+.xmlui-ext-color-picker:not([disabled]):not([readonly]) {
+  cursor: pointer;
+}
+
+.xmlui-ext-color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.xmlui-ext-color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+
+.xmlui-ext-color-picker::-moz-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
