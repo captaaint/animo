@@ -7,21 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- feat(download): implement download grid for latest release artifacts and sync script (7ea27f5)
-- feat(download): enhance DownloadGrid styling and add platform icons (0913447)
-- feat: add animo-blocks extension with shared components (2390850)
-
-### Changed
-
-- chore: update Netlify config to disable auto-trigger for production deploys and streamline changelog updates (00eb2a6)
-- chore: update package.json to pin React and ReactDOM to version 18.2.0 (8ccbb7c)
-- chore: update changelog workflow and Netlify config to prevent auto-deploys on dev pushes (41762a3)
-
-### Fixed
-
-- fix(release): update macOS version from 13 to 14 for compatibility (c041479)
+_No changes yet._
 
 ## [0.1.1] - 2026-05-21
 

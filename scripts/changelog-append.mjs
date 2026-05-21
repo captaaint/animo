@@ -3,13 +3,28 @@
 //
 // Invoked by .github/workflows/changelog-on-dev.yml on every push to dev.
 // Reads the push event's commit array from COMMITS_JSON (set via
-// toJSON(github.event.commits)). Categorises by conventional prefix:
+// toJSON(github.event.commits)).
+//
+// The CHANGELOG records only commits that affect the releasable products
+// (web, api, desktop) — everything else (infra, tooling, CI, docs, the
+// marketing website, scope-less work) is filtered out so the changelog
+// stays a user-facing release-notes document, not a commit dump.
+//
+// Filter pipeline (in order):
+//   1. Skip bot commits, merge commits, "Release vX" tags, and previous
+//      auto-changelog commits (loop prevention + signal-to-noise).
+//   2. Require a conventional prefix whose *type* is in APP_TYPES
+//      (feat / fix / perf). Anything else (chore, ci, build, docs, style,
+//      test, refactor, wip, ad-hoc messages) is skipped.
+//   3. Require a conventional *scope* that's in APP_SCOPES (web / api /
+//      desktop). Bare `feat:` / `fix:` (no scope) and feat with any other
+//      scope (download, website, auth, …) are skipped — every release
+//      note has to be attributable to one of the three shipped products.
+//
+// Categorisation of what survives:
 //   feat(...)  → ### Added
 //   fix(...)   → ### Fixed
-//   else       → ### Changed
-//
-// Skips commits authored by github-actions[bot], merge commits, "Release vX"
-// tags, and prior changelog auto-commits so we never feed the loop.
+//   perf(...)  → ### Changed   (Keep-a-Changelog has no Performance section)
 
 import fs from 'node:fs';
 
@@ -36,6 +51,28 @@ if (!Array.isArray(commits)) {
 // Canonical Keep-a-Changelog subsection order.
 const SUBSECTION_ORDER = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
 
+// Conventional-commit types that describe user-visible product changes.
+// Everything else (chore, ci, build, docs, style, test, refactor, …) is
+// considered infrastructure noise and stays out of the changelog.
+const APP_TYPES = new Set(['feat', 'fix', 'perf']);
+
+// Conventional-commit scopes that map to the three shipped products. A
+// commit must declare one of these as its scope to land in the changelog.
+// Anything outside this set (including a missing scope) is infrastructure
+// or non-product work and is filtered out.
+const APP_SCOPES = new Set(['web', 'api', 'desktop']);
+
+// Parse a conventional-commit subject into { type, scope }. Returns null
+// when the subject doesn't match the format (those commits are filtered).
+function parseConventional(subject) {
+  const m = subject.match(/^(\w+)(?:\(([^)]*)\))?!?:\s*/);
+  if (!m) return null;
+  return {
+    type: m[1].toLowerCase(),
+    scope: (m[2] || '').toLowerCase().trim(),
+  };
+}
+
 function categorize(subject) {
   if (/^feat(\(|!|:)/i.test(subject)) return 'Added';
   if (/^fix(\(|!|:)/i.test(subject)) return 'Fixed';
@@ -53,6 +90,11 @@ function shouldSkip(commit) {
   if (/^Release v?\d/i.test(subject)) return true;
   if (/^Merge /i.test(subject)) return true;
   if (/^chore\(changelog\)/i.test(subject)) return true;
+
+  const parsed = parseConventional(subject);
+  if (!parsed) return true;
+  if (!APP_TYPES.has(parsed.type)) return true;
+  if (!parsed.scope || !APP_SCOPES.has(parsed.scope)) return true;
   return false;
 }
 
