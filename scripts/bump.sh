@@ -139,10 +139,13 @@ if [ -n "$(git ls-remote --tags origin "$TAG")" ]; then
   exit 1
 fi
 
-# CHANGELOG must mention this version (Keep a Changelog convention).
-if ! grep -qE "^##\s*\[?${VERSION}\]?" CHANGELOG.md 2>/dev/null; then
-  echo "error: CHANGELOG.md has no entry for ${VERSION}" >&2
-  echo "       add a '## [${VERSION}] - YYYY-MM-DD' section before bumping" >&2
+# Promote ## [Unreleased] → ## [VERSION] - YYYY-MM-DD in CHANGELOG.md.
+# Idempotent: no-op if the section already exists; errors out (with a clear
+# message) if ## [Unreleased] is empty. The dev branch's CHANGELOG is kept
+# populated automatically by .github/workflows/changelog-on-dev.yml.
+echo "Promoting CHANGELOG.md (## [Unreleased] → ## [${VERSION}])..."
+if ! VERSION="${VERSION}" node scripts/changelog-promote.mjs; then
+  echo "error: changelog promote failed" >&2
   exit 1
 fi
 
@@ -151,6 +154,7 @@ PRE_SHA=$(git rev-parse HEAD)
 # --- Rollback helpers -------------------------------------------------
 
 TOUCHED_FILES=(
+  "CHANGELOG.md"
   "package.json"
   "web/package.json"
   "api/Cargo.toml"
