@@ -1,0 +1,26 @@
+name: Release published
+
+on:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  trigger-netlify:
+    name: Refresh website /download
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: ${{ !github.event.release.draft && !github.event.release.prerelease }}
+    steps:
+      - name: Trigger Netlify rebuild
+        env:
+          NETLIFY_BUILD_HOOK_URL: ${{ secrets.NETLIFY_BUILD_HOOK_URL }}
+          TAG: ${{ github.event.release.tag_name }}
+        if: ${{ env.NETLIFY_BUILD_HOOK_URL != '' }}
+        run: |
+          curl -fsS -X POST -d '{}' \
+            -H 'Content-Type: application/json' \
+            "${NETLIFY_BUILD_HOOK_URL}" \
+            && echo "Netlify build triggered for ${TAG}." \
+            || echo "::warning::Netlify build hook call failed (non-blocking)."

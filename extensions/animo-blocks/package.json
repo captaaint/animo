@@ -1,0 +1,43 @@
+{
+  "name": "animo-blocks",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "description": "Shared XMLUI extension components used by animo/web and animo/website.",
+  "exports": {
+    ".": {
+      "types": "./src/index.tsx",
+      "default": "./dist/animo-blocks.mjs"
+    }
+  },
+  "scripts": {
+    "build:extension": "xmlui build-lib",
+    "build-watch": "xmlui build-lib --watch",
+    "build:meta": "xmlui build-lib --mode=metadata"
+  },
+  "devDependencies": {
+    "xmlui": "*"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "clean-package": {
+    "replace": {
+      "exports": {
+        ".": {
+          "import": "./dist/animo-blocks.mjs",
+          "require": "./dist/animo-blocks.js"
+        },
+        "./*.css": {
+          "import": "./dist/*.css"
+        }
+      }
+    }
+  }
+}

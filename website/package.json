@@ -11,6 +11,7 @@
     "check": "xmlui check src --format gnu"
   },
   "dependencies": {
+    "animo-blocks": "*",
     "xmlui": "0.12.27"
   }
 }

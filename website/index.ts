@@ -1,8 +1,8 @@
 import { startApp } from "xmlui";
-import tonePersistExt from "./src/extensions/TonePersist";
-import centerRowExt from "./src/extensions/CenterRow";
+import animoBlocks from "animo-blocks";
+import downloadGridExt from "./src/extensions/DownloadGrid";
 
-const extensions = [tonePersistExt, centerRowExt];
+const extensions = [animoBlocks, downloadGridExt];
 
 export const runtime = import.meta.glob(`/src/**`, { eager: true });
 

@@ -2,7 +2,18 @@
   "name": "animo",
   "version": "0.1.1",
   "private": true,
+  "workspaces": [
+    "web",
+    "website",
+    "extensions/*"
+  ],
+  "packageManager": "npm@10.9.2",
   "scripts": {
+    "build": "turbo run build:extension build:demo build:with-demo",
+    "build:blocks": "turbo run build:extension --filter=animo-blocks",
+    "build:web": "turbo run build:demo --filter=animo-web",
+    "build:website": "turbo run build:with-demo --filter=animo-website",
+    "check": "turbo run check",
     "api": "DATABASE_URL=\"sqlite:dev.db?mode=rwc\" cargo run -p animo-api",
     "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api",
     "api:prod": "DATABASE_URL=\"sqlite:prod.db?mode=rwc\" cargo run -p animo-api --release",
@@ -32,6 +43,12 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "turbo": "^2.9.14"
+  },
+  "//overrides": "xmlui pins React 18.2.0 in its nested node_modules; without an explicit override the workspaces install hoists React 19 (pulled in transitively by @ark-ui/react, @radix-ui/*, etc.), and SSG renders break with `useContext` null because the xmlui bundle and the SSR runtime resolve different React copies. Pin every React/ReactDOM resolution across the workspaces to 18.2.0 so a single copy is hoisted.",
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

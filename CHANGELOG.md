@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- fix(release): update macOS version from 13 to 14 for compatibility (c041479)
+_No changes yet._
 
 ## [0.1.1] - 2026-05-21
 

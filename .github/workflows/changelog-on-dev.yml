@@ -2,9 +2,14 @@ name: Update CHANGELOG on dev
 
 # Every push to dev appends the new commits' subjects under ## [Unreleased]
 # in CHANGELOG.md. When dev → main is merged via PR, those Unreleased entries
-# travel with the merge commit, and `scripts/bump.sh` later promotes the
-# section to a versioned heading. Loops are blocked by an actor + commit-
-# message guard.
+# travel with the merge commit, and `scripts/bump.sh` later promotes them to
+# a versioned heading. The actor guard below prevents the workflow from
+# looping on its own bot-authored commit.
+#
+# Note: this workflow no longer triggers a Netlify deploy. Netlify's
+# production branch is `main`, and the only production deploy path is
+# `release-published.yml` firing the build hook when a GitHub release is
+# published — keeps deploy cadence tied to releases, not every dev push.
 
 on:
   push:
@@ -23,14 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     # Skip:
-    #   - the bot's own changelog commit (prevents loops)
+    #   - the bot's own changelog commit (actor check prevents the loop)
     #   - force-pushes (sync-dev.yml resets dev to main; nothing new to record)
     #   - branch deletions
     if: >-
       !github.event.deleted &&
       !github.event.forced &&
-      github.actor != 'github-actions[bot]' &&
-      !startsWith(github.event.head_commit.message, 'chore(changelog):')
+      github.actor != 'github-actions[bot]'
     steps:
       - uses: actions/checkout@v4
         with:
