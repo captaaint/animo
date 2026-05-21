@@ -93,6 +93,7 @@ npm run dev:demo     # dev mode against demo.db
 
 ```sh
 npm run tauri:dev    # boots the API in-process and opens the webview
+npm run tauri:dev:demo # same desktop shell, backed by demo.db
 npm run tauri:build  # produces a DMG / MSI / DEB / AppImage in desktop/target/release/bundle/
 ```
 
