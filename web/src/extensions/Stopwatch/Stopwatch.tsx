@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type UpdateStateFn = (
   newState: Record<string, unknown>,
@@ -16,17 +16,60 @@ export type StopwatchProps = {
   registerComponentApi?: RegisterApiCb;
 };
 
+// Persist {running, startedAtMs} so the timer survives any TimerBar unmount
+// (e.g. mobile navigating off Timesheet, or a page that doesn't render the
+// TimerBar). On remount elapsedSec is recomputed from Date.now(), so the
+// timer effectively "kept ticking" in the background. Cleared on stop/reset.
+const STORAGE_KEY = "animo:stopwatch:v1";
+
+type Persisted = {
+  running: boolean;
+  startedAtMs: number | null;
+};
+
+function readPersisted(): Persisted | null {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw) as Partial<Persisted> | null;
+    if (!obj || typeof obj !== "object") return null;
+    const running = Boolean(obj.running);
+    const startedAtMs = typeof obj.startedAtMs === "number" ? obj.startedAtMs : null;
+    if (!running || !startedAtMs) return null;
+    return { running, startedAtMs };
+  } catch {
+    return null;
+  }
+}
+
+function writePersisted(p: Persisted | null) {
+  try {
+    if (!p) window.localStorage.removeItem(STORAGE_KEY);
+    else window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+  } catch {
+    // best effort — private mode, quota, etc.
+  }
+}
+
 export function Stopwatch(props: StopwatchProps) {
   const { onStop, onResume, updateState, registerComponentApi } = props;
 
-  const [running, setRunning] = useState(false);
+  const initial = useMemo(() => readPersisted(), []);
+
+  const [running, setRunning] = useState<boolean>(initial?.running ?? false);
   // Keep the real Date instance so elapsed math stays correct, and so we can
   // re-format it on stop. The rest of the app stores ISO timestamps whose
   // HH:MM is meant to be read as wall-clock — see Globals.xs `combineDateTime`
   // which formats local time as a fake-UTC ISO. The stopwatch follows the
   // same convention so the saved entry lands at the right slot on the grid.
-  const [startedAt, setStartedAt] = useState<Date | null>(null);
-  const [elapsedSec, setElapsedSec] = useState(0);
+  const [startedAt, setStartedAt] = useState<Date | null>(
+    initial?.startedAtMs ? new Date(initial.startedAtMs) : null,
+  );
+  const [elapsedSec, setElapsedSec] = useState<number>(() =>
+    initial?.startedAtMs
+      ? Math.max(0, Math.floor((Date.now() - initial.startedAtMs) / 1000))
+      : 0,
+  );
 
   const startedAtRef = useRef<Date | null>(null);
   startedAtRef.current = startedAt;
@@ -61,6 +104,17 @@ export function Stopwatch(props: StopwatchProps) {
       },
     });
   }, [running, startedAt, elapsedSec, updateState]);
+
+  // Mirror running state to localStorage so a TimerBar unmount/remount cycle
+  // (navigation between pages that don't include the bar) doesn't reset the
+  // timer. stop()/reset() explicitly clear the entry below.
+  useEffect(() => {
+    if (running && startedAt) {
+      writePersisted({ running: true, startedAtMs: startedAt.getTime() });
+    } else {
+      writePersisted(null);
+    }
+  }, [running, startedAt]);
 
   const start = useCallback(() => {
     setStartedAt((prev) => prev ?? new Date());
