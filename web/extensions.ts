@@ -13,6 +13,7 @@ import viewportExt from "./src/extensions/Viewport";
 import windowEventExt from "./src/extensions/WindowEvent";
 import pickerExt from "./src/extensions/Picker";
 import tonePersistExt from "./src/extensions/TonePersist";
+import colorPickerExt from "./src/extensions/ColorPicker";
 
 export default [
   xmluiPdf,
@@ -26,4 +27,5 @@ export default [
   windowEventExt,
   pickerExt,
   tonePersistExt,
+  colorPickerExt,
 ];
