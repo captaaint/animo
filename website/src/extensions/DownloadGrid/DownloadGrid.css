@@ -1,0 +1,175 @@
+/* Palette mirrors website-theme.ts (const-color-* atoms + tone overrides).
+   Theme tokens like var(--color-panel) don't reach this component reliably,
+   so we hardcode the palette and switch on the [data-tone] attribute set
+   by the component from xmlui's useThemes() hook. */
+
+.download-grid {
+  --dg-panel: #FFFFFF;
+  --dg-border: #E0DCD7;
+  --dg-border-strong: #C2BDB7;
+  --dg-text: #1E2328;
+  --dg-muted: #544F4B;
+  --dg-subtle: #76716D;
+  --dg-field-bg: #F0EDEA;
+  --dg-accent: #3F8F8C;
+  --dg-on-accent: #FFFFFF;
+  --dg-danger: #C8412F;
+  --dg-shadow-hover: 0 6px 18px rgba(30, 35, 40, 0.10);
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: center;
+  font-family: Sora, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.download-grid[data-tone="dark"] {
+  --dg-panel: rgb(30 35 40 / 0.72);
+  --dg-border: rgb(250 248 246 / 0.10);
+  --dg-border-strong: rgb(250 248 246 / 0.18);
+  --dg-text: #FAF8F6;
+  --dg-muted: rgb(250 248 246 / 0.68);
+  --dg-subtle: rgb(250 248 246 / 0.46);
+  --dg-field-bg: rgb(250 248 246 / 0.04);
+  --dg-accent: #3F8F8C;
+  --dg-on-accent: #FAF8F6;
+  --dg-danger: #FF8170;
+  --dg-shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.download-grid__version-row {
+  display: flex;
+  justify-content: center;
+}
+
+.download-grid__version-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--dg-border);
+  background-color: var(--dg-panel);
+  color: var(--dg-muted);
+  font-size: 13px;
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+.download-grid__version-pill--error {
+  color: var(--dg-danger);
+}
+
+.download-grid__grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.download-grid__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--dg-border-strong);
+  background-color: var(--dg-panel);
+  color: var(--dg-text);
+  text-decoration: none;
+  transition: transform 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+}
+
+.download-grid__card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--dg-shadow-hover);
+  border-color: var(--dg-accent);
+}
+
+.download-grid__card--recommended {
+  border-color: var(--dg-accent);
+  box-shadow: 0 0 0 1px var(--dg-accent);
+}
+
+.download-grid__card--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.download-grid__badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background-color: var(--dg-accent);
+  color: var(--dg-on-accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.download-grid__platform-icon {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dg-accent);
+}
+
+.download-grid__platform-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
+.download-grid__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dg-text);
+}
+
+.download-grid__subtitle {
+  font-size: 13px;
+  color: var(--dg-muted);
+}
+
+.download-grid__file-meta {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--dg-subtle);
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.download-grid__file-meta-sep {
+  opacity: 0.6;
+}
+
+.download-grid__file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.download-grid__footnote {
+  font-size: 12px;
+  color: var(--dg-subtle);
+  text-align: center;
+  max-width: 520px;
+  line-height: 1.5;
+}
+
+.download-grid__footnote code {
+  font-family: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: var(--dg-field-bg);
+}

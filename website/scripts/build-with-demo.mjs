@@ -1,5 +1,19 @@
 #!/usr/bin/env node
-import { existsSync, cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+// Orchestrates the website's SSG build with the embedded demo app.
+//
+// Prerequisites (handled by turbo via `^build:extension` dependsOn in
+// turbo.json — see `npm run build:website` at the repo root):
+//   * `animo-blocks` is built (dist/animo-blocks.mjs exists), so xmlui
+//     ssg's Node-side SSR loader can require the shared renderers.
+//   * Workspace `node_modules` is populated (turbo only runs after the
+//     install step in CI / dev workflows).
+//
+// This script then runs the parts that aren't worth turning into separate
+// turbo tasks: sync the desktop release artifacts, build the web demo
+// with website-specific flags (`--withRelativeRoot`, hash routing), run
+// xmlui ssg, and finally copy the web demo output under
+// website/dist-ssg/demo-app/ so /demo can iframe it.
+import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -21,14 +35,11 @@ function run(command, args, options = {}) {
   }
 }
 
-function ensureDependencies(dir) {
-  if (!existsSync(resolve(dir, "node_modules", "xmlui"))) {
-    run("npm", ["ci", "--prefer-offline", "--no-audit", "--no-fund", "--ignore-scripts"], { cwd: dir });
-  }
-}
-
-ensureDependencies(webDir);
-ensureDependencies(websiteDir);
+// Pull desktop release artifacts into public/downloads/ so the /download
+// page can serve them from the same origin as the site. The script no-ops
+// when GITHUB_TOKEN / GH_TOKEN is absent (e.g. local dev), so the build
+// still succeeds.
+run("node", ["scripts/sync-downloads.mjs"], { cwd: websiteDir });
 
 run(
   "npm",

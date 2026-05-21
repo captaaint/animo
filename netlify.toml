@@ -3,11 +3,15 @@
 # Deployment mode: standalone XMLUI website + embedded Animo demo build.
 #
 # What this configures:
-#   * `base` — Netlify cd's into website/ before running anything.
-#   * `command` — the website build script first builds ../web as a
-#     demo-mode Animo app with relative assets and hash routing, then
-#     builds this public website and copies the demo output to
-#     website/dist/demo-app/.
+#   * `base` — repo root. Required so Netlify's auto `npm install` sees
+#     the workspaces root (`web`, `website`, `extensions/*`) and hoists
+#     deps like `xmlui-pdf` into a single node_modules tree. Pointing
+#     base at `website/` skips the workspace topology and leaves
+#     `web/node_modules/` empty, which breaks the demo bundle.
+#   * `command` — workspace-prefixed so npm resolves the script in
+#     website/ while still running from the workspaces root.
+#   * `publish` — relative to base (repo root), so the SSG output at
+#     website/dist-ssg/ is what Netlify deploys.
 #   * `/demo` — a website route that embeds `/demo-app/#/` in an iframe,
 #     so the interactive product demo is the real Animo app without
 #     adding landing-page code to the tracker webapp.
@@ -16,13 +20,27 @@
 #     works in the demo app for our use case.
 
 [build]
-base = "website"
-publish = "dist-ssg"
-command = "npm run build:with-demo"
+publish = "website/dist-ssg"
+# Turbo orchestrates the build: `^build:extension` dependsOn in turbo.json
+# guarantees animo-blocks is built before animo-website's build:with-demo
+# runs (which itself triggers the embedded web demo build).
+command = "npx turbo run build:with-demo --filter=animo-website"
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"
 NODE_VERSION = "20"
+
+# Disable Netlify's auto-trigger for production deploys. Netlify's
+# production branch is `main` (set in the Netlify dashboard, not here);
+# pushes to main from PR merges therefore do not auto-deploy. The only
+# legitimate production deploy path is the build hook fired by
+# .github/workflows/release-published.yml when a GitHub release is
+# published — that step refreshes the /download page with the new release
+# artifacts. Build hooks bypass `ignore` per Netlify docs, so they still
+# trigger normally. Deploy Previews (PRs) are unaffected — they run in
+# the deploy-preview context, which has no ignore override.
+[context.production.build]
+  ignore = "exit 0"
 
 # SPA fallback for website routes. Static files under /demo-app are served
 # directly before this fallback, and the embedded demo uses hash routing.
