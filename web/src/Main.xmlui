@@ -72,12 +72,19 @@
   </ModalDialog>
 
   <AppHeader when="{auth.value && auth.value.kind === 'authenticated'}">
+    <!-- Fixed width so the TimerBar doesn't shift sideways as the user
+         navigates between sections (Calendar → Reports → Projects …). -->
     <Text
       fontWeight="700"
-      fontSize="$fontSize-large">
+      fontSize="1.25rem"
+      width="120px">
       {pageTitle || pageTitleFromPath(window.location.pathname)}
     </Text>
-    <TimerBar when="{(!appVp.value || !appVp.value.isMobile) && (pageTitle === 'Calendar' || pageTitle === 'List')}"
+    <!-- TimerBar lives in the AppHeader so it stays mounted across navigations —
+         that's what keeps the running stopwatch ticking when the user jumps to
+         Reports/Manage and back. Only the mobile layout uses the compact
+         TimerBar docked inside Timesheet. -->
+    <TimerBar when="{!appVp.value || !appVp.value.isMobile}"
       projects="{appProjectsDs.value || []}"
       clients="{appClientsDs.value || []}"
       tags="{appTagsDs.value || []}"
