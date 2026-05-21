@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - chore: update Netlify config to disable auto-trigger for production deploys and streamline changelog updates (00eb2a6)
+- chore: update package.json to pin React and ReactDOM to version 18.2.0 (8ccbb7c)
 
 ### Fixed
 
