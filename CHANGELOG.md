@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(download): implement download grid for latest release artifacts and sync script (7ea27f5)
 - feat(download): enhance DownloadGrid styling and add platform icons (0913447)
+- feat: add animo-blocks extension with shared components (2390850)
 
 ### Fixed
 
