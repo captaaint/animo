@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- feat(download): implement download grid for latest release artifacts and sync script (7ea27f5)
+
 ### Fixed
 
 - fix(release): update macOS version from 13 to 14 for compatibility (c041479)
