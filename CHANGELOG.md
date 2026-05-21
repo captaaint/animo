@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - feat(download): implement download grid for latest release artifacts and sync script (7ea27f5)
+- feat(download): enhance DownloadGrid styling and add platform icons (0913447)
 
 ### Fixed
 
