@@ -1,6 +1,6 @@
 {
   "name": "animo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "api": "DATABASE_URL=\"sqlite:dev.db?mode=rwc\" cargo run -p animo-api",
