@@ -3,11 +3,15 @@
 # Deployment mode: standalone XMLUI website + embedded Animo demo build.
 #
 # What this configures:
-#   * `base` — Netlify cd's into website/ before running anything.
-#   * `command` — the website build script first builds ../web as a
-#     demo-mode Animo app with relative assets and hash routing, then
-#     builds this public website and copies the demo output to
-#     website/dist/demo-app/.
+#   * `base` — repo root. Required so Netlify's auto `npm install` sees
+#     the workspaces root (`web`, `website`, `extensions/*`) and hoists
+#     deps like `xmlui-pdf` into a single node_modules tree. Pointing
+#     base at `website/` skips the workspace topology and leaves
+#     `web/node_modules/` empty, which breaks the demo bundle.
+#   * `command` — workspace-prefixed so npm resolves the script in
+#     website/ while still running from the workspaces root.
+#   * `publish` — relative to base (repo root), so the SSG output at
+#     website/dist-ssg/ is what Netlify deploys.
 #   * `/demo` — a website route that embeds `/demo-app/#/` in an iframe,
 #     so the interactive product demo is the real Animo app without
 #     adding landing-page code to the tracker webapp.
@@ -16,9 +20,8 @@
 #     works in the demo app for our use case.
 
 [build]
-base = "website"
-publish = "dist-ssg"
-command = "npm run build:with-demo"
+publish = "website/dist-ssg"
+command = "npm run -w animo-website build:with-demo"
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"

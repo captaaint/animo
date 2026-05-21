@@ -1,6 +1,6 @@
 import { startApp } from "xmlui";
 import xmluiPdf from "xmlui-pdf";
-import { tonePersist, keyListener, windowEvent, viewport } from "animo-blocks";
+import animoBlocks from "animo-blocks";
 import weekCalendarExt from "./src/extensions/WeekCalendar";
 import authGateExt from "./src/extensions/AuthGate";
 import barChartExt from "./src/extensions/BarChart";
@@ -9,7 +9,7 @@ import stopwatchExt from "./src/extensions/Stopwatch";
 import pickerExt from "./src/extensions/Picker";
 import colorPickerExt from "./src/extensions/ColorPicker";
 
-const extensions = [xmluiPdf, weekCalendarExt, authGateExt, barChartExt, pieChartExt, stopwatchExt, keyListener, viewport, windowEvent, pickerExt, tonePersist, colorPickerExt];
+const extensions = [xmluiPdf, animoBlocks, weekCalendarExt, authGateExt, barChartExt, pieChartExt, stopwatchExt, pickerExt, colorPickerExt];
 
 export const runtime = import.meta.glob(`/src/**`, { eager: true });
 

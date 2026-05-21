@@ -38,5 +38,10 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2",
     "concurrently": "^9.1.0"
+  },
+  "//overrides": "xmlui pins React 18.2.0 in its nested node_modules; without an explicit override the workspaces install hoists React 19 (pulled in transitively by @ark-ui/react, @radix-ui/*, etc.), and SSG renders break with `useContext` null because the xmlui bundle and the SSR runtime resolve different React copies. Pin every React/ReactDOM resolution across the workspaces to 18.2.0 so a single copy is hoisted.",
+  "overrides": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
   }
 }

@@ -7,7 +7,12 @@
     "**/*.css"
   ],
   "description": "Shared XMLUI extension components used by animo/web and animo/website.",
-  "exports": "./src/index.tsx",
+  "exports": {
+    ".": {
+      "types": "./src/index.tsx",
+      "default": "./dist/animo-blocks.mjs"
+    }
+  },
   "scripts": {
     "build:extension": "xmlui build-lib",
     "build-watch": "xmlui build-lib --watch",

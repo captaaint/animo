@@ -3,7 +3,7 @@
 // `xmlui ssg` reads this file to discover which packages need source aliases
 // during the SSR build.
 import xmluiPdf from "xmlui-pdf";
-import { tonePersist, keyListener, windowEvent, viewport } from "animo-blocks";
+import animoBlocks from "animo-blocks";
 import weekCalendarExt from "./src/extensions/WeekCalendar";
 import authGateExt from "./src/extensions/AuthGate";
 import barChartExt from "./src/extensions/BarChart";
@@ -14,15 +14,12 @@ import colorPickerExt from "./src/extensions/ColorPicker";
 
 export default [
   xmluiPdf,
+  animoBlocks,
   weekCalendarExt,
   authGateExt,
   barChartExt,
   pieChartExt,
   stopwatchExt,
-  keyListener,
-  viewport,
-  windowEvent,
   pickerExt,
-  tonePersist,
   colorPickerExt,
 ];
