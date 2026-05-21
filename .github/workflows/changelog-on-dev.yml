@@ -1,0 +1,55 @@
+name: Update CHANGELOG on dev
+
+# Every push to dev appends the new commits' subjects under ## [Unreleased]
+# in CHANGELOG.md. When dev → main is merged via PR, those Unreleased entries
+# travel with the merge commit, and `scripts/bump.sh` later promotes the
+# section to a versioned heading. Loops are blocked by an actor + commit-
+# message guard.
+
+on:
+  push:
+    branches: [dev]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: changelog-on-dev
+  cancel-in-progress: false
+
+jobs:
+  update:
+    name: Append new commits to ## [Unreleased]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    # Skip:
+    #   - the bot's own changelog commit (prevents loops)
+    #   - force-pushes (sync-dev.yml resets dev to main; nothing new to record)
+    #   - branch deletions
+    if: >-
+      !github.event.deleted &&
+      !github.event.forced &&
+      github.actor != 'github-actions[bot]' &&
+      !startsWith(github.event.head_commit.message, 'chore(changelog):')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Append commits to CHANGELOG.md
+        env:
+          COMMITS_JSON: ${{ toJSON(github.event.commits) }}
+        run: node scripts/changelog-append.mjs
+
+      - name: Commit + push if changed
+        run: |
+          if git diff --quiet CHANGELOG.md; then
+            echo "No CHANGELOG.md changes; nothing to push."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          git commit -m "chore(changelog): auto-update unreleased"
+          git push origin dev
