@@ -285,12 +285,17 @@
           variant="ghost"
           size="sm"
           testId="filter-clear"
-          enabled="{(projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)}"
+          enabled="{(projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0) || fromDate !== mondayOfWeek(new Date()) || toDate !== shiftDate(mondayOfWeek(new Date()), 6)}"
           onClick="
             projectFilter = [];
             tagFilter = [];
             if (projectFilterSel) projectFilterSel.setValue([]);
             if (tagFilterSel) tagFilterSel.setValue([]);
+            const defaultFrom = mondayOfWeek(new Date());
+            const defaultTo = shiftDate(defaultFrom, 6);
+            fromDate = defaultFrom;
+            toDate = defaultTo;
+            if (rangePicker) rangePicker.setValue({ from: defaultFrom, to: defaultTo });
           "
         />
         <SpaceFiller />

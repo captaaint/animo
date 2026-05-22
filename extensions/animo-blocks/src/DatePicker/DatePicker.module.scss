@@ -1,0 +1,372 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.5em;
+  width: 220px;
+  min-width: 0;
+  color: var(--xmlui-textColor-primary, inherit);
+
+  &[data-mode="range"] {
+    width: max-content;
+    max-width: 100%;
+  }
+
+  &[data-validation-status="error"] .control {
+    border-color: var(--xmlui-borderColor-DatePicker--error, var(--xmlui-color-danger-500, #dc2626));
+  }
+
+  &[data-validation-status="warning"] .control {
+    border-color: var(--xmlui-borderColor-DatePicker--warning, var(--xmlui-color-warning-500, #d97706));
+  }
+
+  &[data-validation-status="valid"] .control {
+    border-color: var(--xmlui-borderColor-DatePicker--success, var(--xmlui-color-success-500, #16a34a));
+  }
+
+  &[data-inline] .content {
+    box-shadow: none;
+  }
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.autoWidth {
+  width: auto;
+}
+
+.label {
+  color: var(--xmlui-textColor-label-formItem, var(--xmlui-textColor-primary, inherit));
+  font-family: var(--xmlui-fontFamily-label-formItem, inherit);
+  font-size: var(--xmlui-fontSize-label-formItem, inherit);
+  font-weight: var(--xmlui-fontWeight-label-formItem, inherit);
+  font-style: var(--xmlui-fontStyle-label-formItem, normal);
+  text-transform: var(--xmlui-textTransform-label-formItem, none);
+  user-select: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.pickerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: max-content;
+  max-width: 100%;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: var(--xmlui-minHeight-DatePicker, var(--xmlui-minHeight-Input, 40px));
+  line-height: normal;
+  gap: 8px;
+  padding: var(--xmlui-paddingVertical-DatePicker, var(--xmlui-paddingVertical-Input, 0))
+    var(--xmlui-paddingHorizontal-DatePicker, var(--xmlui-paddingHorizontal-Input, 12px));
+  border-width: var(--xmlui-borderWidth-DatePicker, var(--xmlui-borderWidth-Input, 1px));
+  border-style: var(--xmlui-borderStyle-DatePicker, var(--xmlui-borderStyle-Input, solid));
+  border-color: var(--xmlui-borderColor-DatePicker, var(--xmlui-borderColor-Input, var(--xmlui-borderColor, rgb(229, 231, 235))));
+  border-radius: var(--xmlui-borderRadius-DatePicker, var(--xmlui-borderRadius-Input, 8px));
+  background: var(--xmlui-backgroundColor-DatePicker, var(--xmlui-backgroundColor-Input, var(--xmlui-backgroundColor-primary, white)));
+  color: var(--xmlui-textColor-DatePicker, var(--xmlui-textColor-primary, inherit));
+  box-shadow: var(--xmlui-boxShadow-DatePicker, var(--xmlui-boxShadow-Input, none));
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: var(--xmlui-borderColor-DatePicker--hover, var(--xmlui-borderColor-Input--hover, var(--xmlui-borderColor-DatePicker, var(--xmlui-borderColor-Input, currentColor))));
+    background-color: var(--xmlui-backgroundColor-DatePicker--hover, var(--xmlui-backgroundColor-Input--hover, var(--xmlui-backgroundColor-DatePicker, var(--xmlui-backgroundColor-Input, transparent))));
+  }
+
+  &:focus-within {
+    outline: var(--xmlui-outlineWidth-DatePicker--focus, 2px)
+      var(--xmlui-outlineStyle-DatePicker--focus, solid)
+      var(--xmlui-outlineColor-DatePicker--focus, var(--xmlui-color-primary-300, rgba(63, 143, 140, 0.45)));
+    outline-offset: var(--xmlui-outlineOffset-DatePicker--focus, 1px);
+  }
+}
+
+.input {
+  width: 11ch;
+  min-width: 11ch;
+  flex: 0 0 auto;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--xmlui-textColor-value-DatePicker, var(--xmlui-textColor-primary, inherit));
+  font: inherit;
+  font-size: var(--xmlui-fontSize-DatePicker, var(--xmlui-fontSize-Input, inherit));
+  text-align: center;
+
+  &::placeholder {
+    color: var(--xmlui-textColor-placeholder-DatePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+  }
+}
+
+.rangeSeparator,
+.adornment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex: 0 0 auto;
+  color: var(--xmlui-color-adornment-DatePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+  font-size: 13px;
+}
+
+.trigger,
+.clear,
+.nav,
+.preset {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.trigger,
+.clear,
+.nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 5px;
+  color: var(--xmlui-color-adornment-DatePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+
+  &:hover {
+    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+  }
+}
+
+.trigger {
+  flex: 0 0 24px;
+}
+
+.clear {
+  flex: 0 0 24px;
+}
+
+.clear[hidden] {
+  display: none;
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.positioner {
+  width: max-content !important;
+  min-width: 0 !important;
+  z-index: 1000;
+}
+
+.content {
+  display: flex;
+  align-items: flex-start;
+  width: max-content;
+  max-width: calc(100vw - 24px);
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+  border-radius: var(--xmlui-borderRadius-menu-DatePicker, 8px);
+  background: var(--xmlui-backgroundColor-menu-DatePicker, var(--xmlui-color-surface-raised, white));
+  color: var(--xmlui-textColor-primary, inherit);
+  box-shadow: var(--xmlui-boxShadow-menu-DatePicker, 0 16px 40px rgba(15, 23, 42, 0.14));
+  z-index: 1000;
+}
+
+.content[hidden] {
+  display: none;
+}
+
+.quickPresets {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  gap: 6px;
+  flex-wrap: nowrap;
+  padding-right: 10px;
+  border-right: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+}
+
+.preset {
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid var(--xmlui-borderColor-DatePicker, var(--xmlui-borderColor-Input, var(--xmlui-borderColor, rgb(229, 231, 235))));
+  border-radius: var(--xmlui-borderRadius-DatePicker, var(--xmlui-borderRadius-Input, 8px));
+  background: var(--xmlui-backgroundColor-DatePicker, var(--xmlui-backgroundColor-Input, var(--xmlui-backgroundColor-primary, white)));
+  text-align: start;
+  color: var(--xmlui-textColor-primary, inherit);
+  font-size: 14px;
+
+  &:hover {
+    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+  }
+}
+
+.view {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 260px;
+}
+
+.view > .table {
+  width: 260px;
+}
+
+.calendarMonths {
+  display: flex;
+  gap: 14px;
+}
+
+.calendarMonth {
+  flex: 0 0 260px;
+  width: 260px;
+}
+
+.viewControl {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.navSpacer {
+  width: 28px;
+  height: 28px;
+}
+
+.viewTrigger {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--xmlui-textColor-primary, inherit);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+
+  &:hover {
+    color: var(--xmlui-color-primary-600, #347f7c);
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 2px;
+  table-layout: fixed;
+}
+
+.weekday,
+.weekNumber {
+  height: 28px;
+  color: var(--xmlui-textColor-secondary, rgb(100, 116, 139));
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.cell {
+  padding: 0;
+}
+
+.cellTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 32px;
+  border-radius: 5px;
+  color: var(--xmlui-textColor-primary, inherit);
+  cursor: pointer;
+  font-size: 13px;
+
+  &:hover,
+  &[data-focus] {
+    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+  }
+
+  &[data-selected],
+  &[data-range-start],
+  &[data-range-end] {
+    background: var(--xmlui-color-primary-500, #3f8f8c);
+    color: white;
+  }
+
+  &[data-in-range]:not([data-range-start]):not([data-range-end]) {
+    background: var(--xmlui-backgroundColor-item-DatePicker--active, var(--xmlui-color-surface-200, rgb(226, 232, 240)));
+  }
+
+  &[data-today] {
+    box-shadow: inset 0 0 0 1px var(--xmlui-borderColor-selectedItem-DatePicker, var(--xmlui-color-primary-300, #8fc7c4));
+  }
+
+  &[data-outside-range],
+  &[data-disabled],
+  &[data-unavailable] {
+    color: var(--xmlui-textColor-secondary, rgb(148, 163, 184));
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+@media (max-width: 640px) {
+  .root,
+  .root[data-mode="range"],
+  .pickerRow,
+  .control {
+    width: 100%;
+  }
+
+  .pickerRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control {
+    flex-basis: auto;
+  }
+
+  .content {
+    flex-direction: column;
+    max-width: calc(100vw - 24px);
+  }
+
+  .calendarMonths {
+    flex-direction: column;
+  }
+
+  .quickPresets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-right: 0;
+    padding-bottom: 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+  }
+
+  .preset {
+    min-width: 0;
+  }
+}

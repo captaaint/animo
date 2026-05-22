@@ -143,16 +143,18 @@ export const TrackerTheme: ThemeDefinition = {
     // modal editor. Avoid pointing at `$backgroundColor-ModalDialog`
     // directly — xmlui only defines that override in the light tone, so
     // dark mode would fall through to whatever default and break parity.
-    "backgroundColor-menu-AutoComplete": "$backgroundColor-primary",
-    "backgroundColor-menu-Select": "$backgroundColor-primary",
-    "backgroundColor-menu-DatePicker": "$backgroundColor-primary",
-    "backgroundColor-DropdownMenu": "$backgroundColor-primary",
+    "backgroundColor-menu-AutoComplete": "$color-surface-raised",
+    "backgroundColor-menu-Select": "$color-surface-raised",
+    "backgroundColor-menu-DatePicker": "$color-surface-raised",
+    "backgroundColor-DropdownMenu": "$color-surface-raised",
     "minWidth-DropdownMenu": "0",
     "borderColor-DropdownMenu-content": "$borderColor",
     "borderWidth-DropdownMenu-content": "1px",
     "backgroundColor-MenuItem--hover": "$color-surface-100",
     "backgroundColor-dropdown-item--hover": "$color-surface-200",
     "textColor-indicator-Select": "$color-primary-500",
+    "borderColor-Input": "$color-surface-300",
+    "borderColor-Input--hover": "$color-surface-400",
     "backgroundColor-checked-Checkbox": "$color-primary-500",
     "borderColor-checked-Checkbox": "$color-primary-500",
     "backgroundColor-indicator-Checkbox": "$color-surface-0",

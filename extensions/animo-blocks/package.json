@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "sideEffects": [
-    "**/*.css"
+    "**/*.css",
+    "**/*.scss"
   ],
   "description": "Shared XMLUI extension components used by animo/web and animo/website.",
   "exports": {
@@ -17,6 +18,9 @@
     "build:extension": "xmlui build-lib",
     "build-watch": "xmlui build-lib --watch",
     "build:meta": "xmlui build-lib --mode=metadata"
+  },
+  "dependencies": {
+    "@ark-ui/react": "^5.36.2"
   },
   "devDependencies": {
     "xmlui": "*"

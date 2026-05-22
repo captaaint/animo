@@ -10,6 +10,7 @@ import { keyListenerRenderer } from "./KeyListener";
 import { windowEventRenderer } from "./WindowEvent";
 import { viewportRenderer } from "./Viewport";
 import { centerRowRenderer } from "./CenterRow";
+import { datePickerRenderer } from "./DatePicker";
 
 export default {
   namespace: "XMLUIExtensions",
@@ -19,5 +20,6 @@ export default {
     windowEventRenderer,
     viewportRenderer,
     centerRowRenderer,
+    datePickerRenderer,
   ],
 };

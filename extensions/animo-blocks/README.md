@@ -15,6 +15,8 @@ transpiles them through the normal pipeline.
 - `viewport` — headless viewport probe exposing
   `value.{isMobile,isDesktop,width,height}`.
 - `centerRow` — horizontal flex container that centers wrapped items.
+- `DatePicker` — Ark UI backed XMLUI DatePicker override with single/range
+  mode compatibility and quick-select range presets.
 
 ## Usage
 
