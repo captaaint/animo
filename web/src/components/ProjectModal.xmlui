@@ -1,14 +1,49 @@
 <Component name="ProjectModal"
   var.editItem="{null}"
-  method.open="(data) => { editItem = data || null; modal.open(); }"
+  var.nameInput="{''}"
+  var.clientIdInput="{null}"
+  var.colorInput="{'#3F8F8C'}"
+  var.hourlyRateInput="{0}"
+  var.currencyInput="{'EUR'}"
+  var.colorPalette="{[
+    { hex: '#3F8F8C', name: 'Sage teal' },
+    { hex: '#5BA84B', name: 'Forest green' },
+    { hex: '#A7C957', name: 'Lime' },
+    { hex: '#6FCF97', name: 'Mint' },
+    { hex: '#F2C94C', name: 'Amber' },
+    { hex: '#F2994A', name: 'Orange' },
+    { hex: '#EB5757', name: 'Coral' },
+    { hex: '#EB5C9D', name: 'Magenta' },
+    { hex: '#9B51E0', name: 'Purple' },
+    { hex: '#3F51B5', name: 'Indigo' },
+    { hex: '#2D9CDB', name: 'Sky blue' },
+    { hex: '#56CCF2', name: 'Light blue' },
+    { hex: '#4A6172', name: 'Slate' },
+    { hex: '#BDBDBD', name: 'Gray' },
+    { hex: '#8B5E3C', name: 'Brown' },
+    { hex: '#C77878', name: 'Dusty rose' }
+  ]}"
+  method.open="(data) => {
+    editItem = data || null;
+    nameInput = data ? data.name : '';
+    clientIdInput = data ? data.clientId : null;
+    colorInput = data ? data.color : '#3F8F8C';
+    hourlyRateInput = data &amp;&amp; data.hourlyRate ? data.hourlyRate : 0;
+    currencyInput = data &amp;&amp; data.currency ? data.currency : 'EUR';
+    modal.open();
+  }"
 >
   <APICall id="saveCall"
     method="{editItem ? 'PATCH' : 'POST'}"
-    url="{editItem
-      ? apiBase + '/projects/' + editItem.id
-      : apiBase + '/projects'}"
+    url="{editItem ? apiBase + '/projects/' + editItem.id : apiBase + '/projects'}"
     credentials="include"
-    body="{$param}"
+    body="{{
+      name: nameInput,
+      clientId: clientIdInput || null,
+      color: colorInput,
+      hourlyRate: Number(hourlyRateInput) || 0,
+      currency: currencyInput || 'EUR'
+    }}"
     onSuccess="() => {
       toast.success(editItem ? 'Project updated' : 'Project added');
       emitEvent('saved');
@@ -17,83 +52,163 @@
     onError="() => toast.error('Save failed')"
   />
 
+  <Theme
+    fontSize-title-ModalDialog="$fontSize-large"
+    fontWeight-title-ModalDialog="600">
   <ModalDialog
     id="modal"
+    title="{editItem ? 'Edit project' : 'New project'}"
+    closeButtonVisible="true"
+    maxWidth="520px"
     padding="$space-4"
-    maxWidth="560px"
-    closeButtonVisible="false"
-  >
-    <Form
-      data="{editItem
-        ? { name: editItem.name, clientId: editItem.clientId, color: editItem.color,
-            hourlyRate: editItem.hourlyRate || 0, currency: editItem.currency || 'EUR' }
-        : { name: '', clientId: null, color: '#3F8F8C', hourlyRate: 0, currency: 'EUR' }}"
-      onSubmit="(data) => saveCall.execute({
-        ...data,
-        clientId: data.clientId || null,
-        hourlyRate: Number(data.hourlyRate) || 0,
-        currency: data.currency || 'EUR'
-      })"
-      hideButtonRow="true"
-    >
-      <VStack gap="$space-4" width="100%">
-        <HStack width="100%" verticalAlignment="center">
-          <Button
-            icon="close"
-            type="button"
-            variant="outlined"
-            themeColor="secondary"
-            width="48px"
-            height="48px"
-            borderRadius="50%"
-            onClick="modal.close()"
-          />
-          <SpaceFiller />
-          <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
-            {editItem ? 'Edit project' : 'New project'}
-          </Text>
-          <SpaceFiller />
-          <Button
-            icon="checkmark"
-            type="submit"
-            themeColor="primary"
-            width="48px"
-            height="48px"
-            borderRadius="50%"
-          />
-        </HStack>
+    borderRadius="16px">
+    <VStack gap="$space-4" width="100%">
 
-        <TextBox bindTo="name" label="Name" required="true" />
-        <AutoComplete
-          bindTo="clientId"
-          label="Client"
-          placeholder="(no client)">
-          <Items data="{$props.clients || []}">
-            <Option value="{$item.id}" label="{$item.name}">
-              <HStack verticalAlignment="center" gap="$space-2">
-                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
-                <Text>{$item.name}</Text>
-              </HStack>
-            </Option>
-          </Items>
-        </AutoComplete>
-        <ColorPicker bindTo="color" label="Color" />
-        <HStack gap="$space-2" width="*">
-          <NumberBox bindTo="hourlyRate" label="Hourly rate" width="*" minValue="0" step="1" />
-          <Select bindTo="currency" label="Currency" width="120px">
-            <Option value="EUR" label="EUR" />
-            <Option value="USD" label="USD" />
-            <Option value="GBP" label="GBP" />
-            <Option value="HUF" label="HUF" />
-          </Select>
-        </HStack>
+      <Card padding="$space-4" borderRadius="12px">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your project</Text>
+            <TextBox
+              width="100%"
+              initialValue="{nameInput}"
+              onDidChange="(v) => nameInput = v || ''"
+            />
+          </VStack>
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Client</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Link this project to a client (optional)</Text>
+            <AutoComplete
+              width="100%"
+              initialValue="{clientIdInput}"
+              onDidChange="(v) => clientIdInput = v"
+              placeholder="(no client)">
+              <Items data="{$props.clients || []}">
+                <Option value="{$item.id}" label="{$item.name}">
+                  <HStack verticalAlignment="center" gap="$space-2">
+                    <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                    <Text>{$item.name}</Text>
+                  </HStack>
+                </Option>
+              </Items>
+            </AutoComplete>
+          </VStack>
+        </VStack>
+      </Card>
+
+      <Card padding="$space-4" borderRadius="12px">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-1" width="100%">
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Rate</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Hourly billing rate for this project</Text>
+          </VStack>
+          <HStack gap="$space-2" width="100%">
+            <NumberBox
+              width="*"
+              initialValue="{hourlyRateInput}"
+              onDidChange="(v) => hourlyRateInput = v"
+              minValue="0"
+              step="1"
+            />
+            <Select
+              width="120px"
+              initialValue="{currencyInput}"
+              onDidChange="(v) => currencyInput = v">
+              <Option value="EUR" label="EUR" />
+              <Option value="USD" label="USD" />
+              <Option value="GBP" label="GBP" />
+              <Option value="HUF" label="HUF" />
+            </Select>
+          </HStack>
+        </VStack>
+      </Card>
+
+      <Card padding="$space-4" borderRadius="12px">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-1" width="100%">
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Color</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Choose a color to identify your project</Text>
+          </VStack>
+
+          <Card padding="$space-3" borderRadius="8px"
+            backgroundColor="$color-surface-50"
+            border="1px solid $color-surface-200">
+            <HStack verticalAlignment="center" gap="$space-3" width="100%">
+              <Stack width="40px" height="40px" borderRadius="8px"
+                backgroundColor="{colorInput}" />
+              <VStack gap="0">
+                <Text fontWeight="600" color="$color-surface-900">
+                  {(colorPalette.find(c => c.hex === colorInput) || { name: 'Custom' }).name}
+                </Text>
+                <Text variant="secondary" fontSize="$fontSize-small">{colorInput}</Text>
+              </VStack>
+              <SpaceFiller />
+              <Stack width="28px" height="28px" borderRadius="50%"
+                backgroundColor="$color-primary-500"
+                verticalAlignment="center" horizontalAlignment="center">
+                <Icon name="checkmark" color="white" size="sm" />
+              </Stack>
+            </HStack>
+          </Card>
+
+          <VStack gap="$space-2" width="100%">
+            <HStack gap="$space-2" width="100%">
+              <Items data="{colorPalette.slice(0, 8)}">
+                <Stack
+                  width="*"
+                  height="44px"
+                  borderRadius="10px"
+                  backgroundColor="{$item.hex}"
+                  cursor="pointer"
+                  verticalAlignment="center"
+                  horizontalAlignment="center"
+                  onClick="colorInput = $item.hex">
+                  <Stack
+                    when="{colorInput === $item.hex}"
+                    width="24px"
+                    height="24px"
+                    borderRadius="50%"
+                    backgroundColor="white"
+                    verticalAlignment="center" horizontalAlignment="center">
+                    <Icon name="checkmark" color="{$item.hex}" size="sm" />
+                  </Stack>
+                </Stack>
+              </Items>
+            </HStack>
+            <HStack gap="$space-2" width="100%">
+              <Items data="{colorPalette.slice(8)}">
+                <Stack
+                  width="*"
+                  height="44px"
+                  borderRadius="10px"
+                  backgroundColor="{$item.hex}"
+                  cursor="pointer"
+                  verticalAlignment="center"
+                  horizontalAlignment="center"
+                  onClick="colorInput = $item.hex">
+                  <Stack
+                    when="{colorInput === $item.hex}"
+                    width="24px"
+                    height="24px"
+                    borderRadius="50%"
+                    backgroundColor="white"
+                    verticalAlignment="center" horizontalAlignment="center">
+                    <Icon name="checkmark" color="{$item.hex}" size="sm" />
+                  </Stack>
+                </Stack>
+              </Items>
+            </HStack>
+          </VStack>
+        </VStack>
+      </Card>
+
+      <HStack width="100%" gap="$space-3" verticalAlignment="center">
         <Theme
           when="{!!editItem}"
           textColor-Button-attention-outlined="$color-danger-500"
           borderColor-Button-attention-outlined="$color-danger-500">
           <Button
             type="button"
-            width="100%"
             icon="trash"
             label="Delete"
             variant="outlined"
@@ -101,7 +216,20 @@
             onClick="const item = editItem; modal.close(); emitEvent('deleteRequested', item);"
           />
         </Theme>
-      </VStack>
-    </Form>
+        <SpaceFiller />
+        <Button
+          label="Cancel"
+          variant="outlined"
+          themeColor="secondary"
+          onClick="modal.close()"
+        />
+        <Button
+          label="Save project"
+          themeColor="primary"
+          onClick="if (!nameInput || nameInput.trim().length === 0) { toast.error('Name is required'); return; } saveCall.execute();"
+        />
+      </HStack>
+    </VStack>
   </ModalDialog>
+  </Theme>
 </Component>

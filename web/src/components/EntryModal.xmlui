@@ -81,19 +81,17 @@
       else toast.error('End must be after start');
     }" />
 
-  <ModalDialog id="modal" maxWidth="720px"
+  <Theme
+    fontSize-title-ModalDialog="$fontSize-large"
+    fontWeight-title-ModalDialog="600">
+  <ModalDialog id="modal"
+    title="{editItem ? 'Edit entry' : 'New entry'}"
+    maxWidth="720px"
     padding="$space-4"
     borderRadius="16px"
-    closeButtonVisible="false"
+    closeButtonVisible="true"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">
     <VStack gap="$space-4" width="100%">
-      <HStack width="100%" verticalAlignment="center">
-        <SpaceFiller />
-        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
-          {editItem ? 'Edit entry' : 'New entry'}
-        </Text>
-        <SpaceFiller />
-      </HStack>
 
       <HStack gap="$space-4" width="100%" verticalAlignment="stretch">
         <Card width="*" padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
@@ -262,11 +260,15 @@
 
 
       <HStack width="100%" verticalAlignment="center" gap="$space-3">
-        <Theme textColor-Button-attention-ghost="$color-danger-500">
+        <Theme
+          when="{!!editItem}"
+          textColor-Button-attention-outlined="$color-danger-500"
+          borderColor-Button-attention-outlined="$color-danger-500">
           <Button
-            when="{!!editItem}"
+            type="button"
             icon="trash"
-            variant="ghost"
+            label="Delete"
+            variant="outlined"
             themeColor="attention"
             onClick="const item = editItem; modal.close(); emitEvent('deleteRequested', item);"
           />
@@ -279,11 +281,12 @@
           onClick="modal.close()"
         />
         <Button
-          label="Save"
+          label="Save entry"
           themeColor="primary"
           onClick="if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) { saveCall.execute(); } else { toast.error('End must be after start'); }"
         />
       </HStack>
     </VStack>
   </ModalDialog>
+  </Theme>
 </Component>

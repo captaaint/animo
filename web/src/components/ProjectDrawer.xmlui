@@ -5,6 +5,24 @@
   var.colorInput="{'#3F8F8C'}"
   var.hourlyRateInput="{0}"
   var.currencyInput="{'EUR'}"
+  var.colorPalette="{[
+    { hex: '#3F8F8C', name: 'Sage teal' },
+    { hex: '#5BA84B', name: 'Forest green' },
+    { hex: '#A7C957', name: 'Lime' },
+    { hex: '#6FCF97', name: 'Mint' },
+    { hex: '#F2C94C', name: 'Amber' },
+    { hex: '#F2994A', name: 'Orange' },
+    { hex: '#EB5757', name: 'Coral' },
+    { hex: '#EB5C9D', name: 'Magenta' },
+    { hex: '#9B51E0', name: 'Purple' },
+    { hex: '#3F51B5', name: 'Indigo' },
+    { hex: '#2D9CDB', name: 'Sky blue' },
+    { hex: '#56CCF2', name: 'Light blue' },
+    { hex: '#4A6172', name: 'Slate' },
+    { hex: '#BDBDBD', name: 'Gray' },
+    { hex: '#8B5E3C', name: 'Brown' },
+    { hex: '#C77878', name: 'Dusty rose' }
+  ]}"
   var.drawerOpen="{false}"
   method.open="(data) => {
     editItem = data || null;
@@ -74,10 +92,11 @@
     </property>
 
     <VStack width="100%" gap="$space-3">
-      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card padding="$space-4" borderRadius="12px">
         <VStack gap="$space-3" width="100%">
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="500" color="$color-surface-900">Name</Text>
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your project</Text>
             <TextBox
               width="100%"
               initialValue="{nameInput}"
@@ -85,7 +104,8 @@
             />
           </VStack>
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="500" color="$color-surface-900">Client</Text>
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Client</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Link this project to a client (optional)</Text>
             <AutoComplete
               width="100%"
               initialValue="{clientIdInput}"
@@ -101,37 +121,112 @@
               </Items>
             </AutoComplete>
           </VStack>
-          <VStack gap="$space-2" width="100%">
-            <Text fontWeight="500" color="$color-surface-900">Color</Text>
-            <ColorPicker
-              initialValue="{colorInput}"
-              onDidChange="(v) => colorInput = v"
-            />
+        </VStack>
+      </Card>
+
+      <Card padding="$space-4" borderRadius="12px">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-1" width="100%">
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Rate</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Hourly billing rate for this project</Text>
           </VStack>
           <HStack gap="$space-2" width="100%">
-            <VStack width="*" gap="$space-2">
-              <Text fontWeight="500" color="$color-surface-900">Hourly rate</Text>
-              <NumberBox
-                width="100%"
-                initialValue="{hourlyRateInput}"
-                onDidChange="(v) => hourlyRateInput = v"
-                minValue="0"
-                step="1"
-              />
-            </VStack>
-            <VStack width="120px" gap="$space-2">
-              <Text fontWeight="500" color="$color-surface-900">Currency</Text>
-              <Select
-                width="100%"
-                initialValue="{currencyInput}"
-                onDidChange="(v) => currencyInput = v">
-                <Option value="EUR" label="EUR" />
-                <Option value="USD" label="USD" />
-                <Option value="GBP" label="GBP" />
-                <Option value="HUF" label="HUF" />
-              </Select>
-            </VStack>
+            <NumberBox
+              width="*"
+              initialValue="{hourlyRateInput}"
+              onDidChange="(v) => hourlyRateInput = v"
+              minValue="0"
+              step="1"
+            />
+            <Select
+              width="120px"
+              initialValue="{currencyInput}"
+              onDidChange="(v) => currencyInput = v">
+              <Option value="EUR" label="EUR" />
+              <Option value="USD" label="USD" />
+              <Option value="GBP" label="GBP" />
+              <Option value="HUF" label="HUF" />
+            </Select>
           </HStack>
+        </VStack>
+      </Card>
+
+      <Card padding="$space-4" borderRadius="12px">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-1" width="100%">
+            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Color</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">Choose a color to identify your project</Text>
+          </VStack>
+
+          <Card padding="$space-3" borderRadius="8px"
+            backgroundColor="$color-surface-50"
+            border="1px solid $color-surface-200">
+            <HStack verticalAlignment="center" gap="$space-3" width="100%">
+              <Stack width="40px" height="40px" borderRadius="8px"
+                backgroundColor="{colorInput}" />
+              <VStack gap="0">
+                <Text fontWeight="600" color="$color-surface-900">
+                  {(colorPalette.find(c => c.hex === colorInput) || { name: 'Custom' }).name}
+                </Text>
+                <Text variant="secondary" fontSize="$fontSize-small">{colorInput}</Text>
+              </VStack>
+              <SpaceFiller />
+              <Stack width="28px" height="28px" borderRadius="50%"
+                backgroundColor="$color-primary-500"
+                verticalAlignment="center" horizontalAlignment="center">
+                <Icon name="checkmark" color="white" size="sm" />
+              </Stack>
+            </HStack>
+          </Card>
+
+          <VStack gap="$space-2" width="100%">
+            <HStack gap="$space-2" width="100%">
+              <Items data="{colorPalette.slice(0, 8)}">
+                <Stack
+                  width="*"
+                  height="40px"
+                  borderRadius="10px"
+                  backgroundColor="{$item.hex}"
+                  cursor="pointer"
+                  verticalAlignment="center"
+                  horizontalAlignment="center"
+                  onClick="colorInput = $item.hex">
+                  <Stack
+                    when="{colorInput === $item.hex}"
+                    width="22px"
+                    height="22px"
+                    borderRadius="50%"
+                    backgroundColor="white"
+                    verticalAlignment="center" horizontalAlignment="center">
+                    <Icon name="checkmark" color="{$item.hex}" size="sm" />
+                  </Stack>
+                </Stack>
+              </Items>
+            </HStack>
+            <HStack gap="$space-2" width="100%">
+              <Items data="{colorPalette.slice(8)}">
+                <Stack
+                  width="*"
+                  height="40px"
+                  borderRadius="10px"
+                  backgroundColor="{$item.hex}"
+                  cursor="pointer"
+                  verticalAlignment="center"
+                  horizontalAlignment="center"
+                  onClick="colorInput = $item.hex">
+                  <Stack
+                    when="{colorInput === $item.hex}"
+                    width="22px"
+                    height="22px"
+                    borderRadius="50%"
+                    backgroundColor="white"
+                    verticalAlignment="center" horizontalAlignment="center">
+                    <Icon name="checkmark" color="{$item.hex}" size="sm" />
+                  </Stack>
+                </Stack>
+              </Items>
+            </HStack>
+          </VStack>
         </VStack>
       </Card>
 
