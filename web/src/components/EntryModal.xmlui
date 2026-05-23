@@ -97,7 +97,6 @@
 
   <ModalDialog id="modal" maxWidth="720px"
     padding="$space-4"
-    backgroundColor="$color-surface-50"
     borderRadius="16px"
     closeButtonVisible="false"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">
