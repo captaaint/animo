@@ -116,27 +116,59 @@ jobs:
             os: windows-2022
             target: x86_64-pc-windows-msvc
     steps:
+      # Skip the entire build if this platform's expected artifacts are
+      # already attached to the release (idempotent re-dispatch after a
+      # partial failure: only missing platforms actually rebuild).
+      - name: Check existing release artifacts
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ needs.verify.outputs.version }}"
+          case "${{ matrix.label }}" in
+            linux-amd64)   expected="Animo_${version}_amd64.AppImage Animo_${version}_amd64.deb" ;;
+            macos-arm64)   expected="Animo_${version}_aarch64.dmg" ;;
+            macos-intel)   expected="Animo_${version}_x64.dmg" ;;
+            windows-amd64) expected="Animo_${version}_x64.msi" ;;
+          esac
+          existing=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' 2>/dev/null || true)
+          skip=true
+          for f in $expected; do
+            if ! printf '%s\n' "$existing" | grep -qx "$f"; then
+              echo "missing: $f"; skip=false
+            fi
+          done
+          if [ "$skip" = true ]; then
+            echo "All expected ${{ matrix.label }} desktop artifacts already present — skipping build."
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip != 'true'
         with:
           ref: ${{ env.TAG }}
 
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.skip != 'true'
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.gate.outputs.skip != 'true'
         with:
           targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
+        if: steps.gate.outputs.skip != 'true'
         with:
           workspaces: desktop
           key: release-desktop-${{ matrix.label }}
 
       - name: Install Linux dependencies
-        if: matrix.os == 'ubuntu-22.04'
+        if: steps.gate.outputs.skip != 'true' && matrix.os == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -156,6 +188,7 @@ jobs:
       # then crashes inside rolldown. `--ignore-scripts` skips the broken
       # xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
       - name: Install workspace dependencies
+        if: steps.gate.outputs.skip != 'true'
         shell: bash
         run: |
           rm -rf node_modules package-lock.json
@@ -163,6 +196,7 @@ jobs:
 
       # Cache turbo's build artifacts across release runs.
       - uses: rharkor/caching-for-turbo@v2.3.1
+        if: steps.gate.outputs.skip != 'true'
 
       # Pre-build animo-blocks and the app bundle before Tauri builds the
       # desktop shell. Tauri's `beforeBuildCommand` (`npm --prefix app run
@@ -170,21 +204,24 @@ jobs:
       # without dist/animo-blocks.mjs, the bundle fails to resolve.
       # Turbo's `^build:extension` dependsOn builds animo-blocks first.
       - name: Pre-build animo-blocks + app
+        if: steps.gate.outputs.skip != 'true'
         run: npx turbo run build-prod --filter=animo-app
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
 
       - name: Install tauri CLI
+        if: steps.gate.outputs.skip != 'true'
         run: npm install -g @tauri-apps/cli@^2
 
       - name: Build desktop bundle
+        if: steps.gate.outputs.skip != 'true'
         working-directory: desktop
         run: tauri build --target ${{ matrix.target }}
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
 
       - name: Stage artifacts (Linux)
-        if: matrix.os == 'ubuntu-22.04'
+        if: steps.gate.outputs.skip != 'true' && matrix.os == 'ubuntu-22.04'
         shell: bash
         run: |
           mkdir -p staging
@@ -200,7 +237,7 @@ jobs:
           ls -la staging
 
       - name: Stage artifacts (macOS)
-        if: startsWith(matrix.os, 'macos')
+        if: steps.gate.outputs.skip != 'true' && startsWith(matrix.os, 'macos')
         shell: bash
         run: |
           mkdir -p staging
@@ -214,7 +251,7 @@ jobs:
           ls -la staging
 
       - name: Stage artifacts (Windows)
-        if: matrix.os == 'windows-2022'
+        if: steps.gate.outputs.skip != 'true' && matrix.os == 'windows-2022'
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Path staging -Force | Out-Null
@@ -224,6 +261,7 @@ jobs:
           Get-ChildItem staging
 
       - name: Upload artifacts to release
+        if: steps.gate.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
@@ -251,25 +289,56 @@ jobs:
             target: x86_64-pc-windows-msvc
             bin: animo-api.exe
     steps:
+      # Skip the entire build if this platform's expected artifact is
+      # already attached to the release (idempotent re-dispatch after a
+      # partial failure: only missing platforms actually rebuild).
+      - name: Check existing release artifacts
+        id: gate
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${{ needs.verify.outputs.version }}"
+          case "${{ matrix.label }}" in
+            linux-amd64)   expected="animo-api_${version}_linux-amd64.tar.gz" ;;
+            macos-arm64)   expected="animo-api_${version}_macos-arm64.tar.gz" ;;
+            windows-amd64) expected="animo-api_${version}_windows-amd64.zip" ;;
+          esac
+          existing=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' 2>/dev/null || true)
+          skip=true
+          for f in $expected; do
+            if ! printf '%s\n' "$existing" | grep -qx "$f"; then
+              echo "missing: $f"; skip=false
+            fi
+          done
+          if [ "$skip" = true ]; then
+            echo "All expected ${{ matrix.label }} api artifacts already present — skipping build."
+          fi
+          echo "skip=$skip" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip != 'true'
         with:
           ref: ${{ env.TAG }}
 
       - uses: dtolnay/rust-toolchain@stable
+        if: steps.gate.outputs.skip != 'true'
         with:
           targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
+        if: steps.gate.outputs.skip != 'true'
         with:
           workspaces: api
           key: release-api-${{ matrix.label }}
 
       - name: Build animo-api (release)
+        if: steps.gate.outputs.skip != 'true'
         working-directory: api
         run: cargo build --release --target ${{ matrix.target }} --bin animo-api
 
       - name: Package (POSIX)
-        if: matrix.os != 'windows-2022'
+        if: steps.gate.outputs.skip != 'true' && matrix.os != 'windows-2022'
         shell: bash
         run: |
           version="${{ needs.verify.outputs.version }}"
@@ -282,7 +351,7 @@ jobs:
           ls -la staging
 
       - name: Package (Windows)
-        if: matrix.os == 'windows-2022'
+        if: steps.gate.outputs.skip != 'true' && matrix.os == 'windows-2022'
         shell: pwsh
         run: |
           $version = "${{ needs.verify.outputs.version }}"
@@ -295,6 +364,7 @@ jobs:
           Get-ChildItem staging
 
       - name: Upload artifacts to release
+        if: steps.gate.outputs.skip != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
