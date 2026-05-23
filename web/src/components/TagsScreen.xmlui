@@ -51,9 +51,9 @@
     height="*" overflowY="auto">
 
     <!-- Desktop/tablet: table with combined Tag column + Color hex column -->
-    <Card when-xs="false" when-sm="true" padding="$space-4">
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
       <!-- Desktop/tablet: New tag button top-right -->
-      <HStack when-xs="false" when-sm="true" verticalAlignment="center">
+      <HStack verticalAlignment="center">
         <SpaceFiller />
         <Button
           label="New tag"
@@ -99,7 +99,7 @@
     </Card>
 
     <!-- Mobile: flat list rows with three-dot context menu -->
-    <VStack when-xs="true" when-sm="false" gap="$space-3">
+    <VStack when="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-3">
       <Card when="{(tagsDs.value || []).length > 0}" padding="$space-2" width="100%">
         <Items data="{tagsDs.value || []}">
           <VStack gap="0">
@@ -110,8 +110,7 @@
               gap="$space-3"
             >
               <Stack backgroundColor="{$item.color}" width="16px" height="16px" borderRadius="3px" />
-              <Text fontWeight="500">{$item.name}</Text>
-              <SpaceFiller />
+              <Text width="*" fontWeight="500" maxLines="1" overflowMode="ellipsis">{$item.name}</Text>
               <DropdownMenu alignment="end">
                 <property name="triggerTemplate">
                   <Button icon="dotmenu" variant="ghost" size="sm" themeColor="secondary" />

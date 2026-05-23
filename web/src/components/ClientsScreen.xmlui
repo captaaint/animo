@@ -58,9 +58,9 @@
   >
 
     <!-- Desktop/tablet: table with combined Client column + Color hex column -->
-    <Card when-xs="false" when-sm="true" padding="$space-4">
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
       <!-- Desktop/tablet: New client button top-right -->
-      <HStack when-xs="false" when-sm="true" verticalAlignment="center">
+      <HStack verticalAlignment="center">
         <SpaceFiller />
         <Button
           label="New client"
@@ -122,7 +122,7 @@
     </Card>
 
     <!-- Mobile: flat list rows with three-dot context menu -->
-    <VStack when-xs="true" when-sm="false" gap="$space-3">
+    <VStack when="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-3">
       <Card
         when="{(clientsDs.value || []).length > 0}"
         padding="$space-2"

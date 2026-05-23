@@ -58,7 +58,7 @@
     height="*" overflowY="auto">
 
     <!-- Desktop/tablet -->
-    <Card when-xs="false" when-sm="true" padding="$space-4">
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
       <HStack verticalAlignment="center">
         <SpaceFiller />
         <Button
@@ -107,7 +107,7 @@
     </Card>
 
     <!-- Mobile: flat list rows with two-line content and three-dot menu -->
-    <VStack when-xs="true" when-sm="false" gap="$space-3">
+    <VStack when="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-3">
       <Card when="{(projectsDs.value || []).length > 0}" padding="$space-2" width="100%">
         <Items data="{projectsDs.value || []}">
           <VStack gap="0">

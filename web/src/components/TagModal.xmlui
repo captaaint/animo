@@ -6,6 +6,7 @@
     { hex: '#3F8F8C', name: 'Sage teal' },
     { hex: '#5BA84B', name: 'Forest green' },
     { hex: '#A7C957', name: 'Lime' },
+    { hex: '#6FCF97', name: 'Mint' },
     { hex: '#F2C94C', name: 'Amber' },
     { hex: '#F2994A', name: 'Orange' },
     { hex: '#EB5757', name: 'Coral' },
@@ -16,7 +17,8 @@
     { hex: '#56CCF2', name: 'Light blue' },
     { hex: '#4A6172', name: 'Slate' },
     { hex: '#BDBDBD', name: 'Gray' },
-    { hex: '#8B5E3C', name: 'Brown' }
+    { hex: '#8B5E3C', name: 'Brown' },
+    { hex: '#C77878', name: 'Dusty rose' }
   ]}"
   method.open="(data) => {
     editItem = data || null;
@@ -38,11 +40,14 @@
     onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
   />
 
+  <Theme
+    fontSize-title-ModalDialog="$fontSize-large"
+    fontWeight-title-ModalDialog="600">
   <ModalDialog
     id="modal"
     title="{editItem ? 'Edit tag' : 'New tag'}"
     closeButtonVisible="true"
-    maxWidth="600px"
+    maxWidth="480px"
     padding="$space-4"
     borderRadius="16px">
     <VStack gap="$space-4" width="100%">
@@ -89,9 +94,11 @@
 
           <VStack gap="$space-2" width="100%">
             <HStack gap="$space-2" wrapContent="true" width="100%">
-              <Items data="{colorPalette.slice(0, 7)}">
+              <Items data="{colorPalette.slice(0, 8)}">
                 <Stack
-                  width="44px" height="44px" borderRadius="10px"
+                  width="*"
+                  height="44px"
+                  borderRadius="10px"
                   backgroundColor="{$item.hex}"
                   cursor="pointer"
                   verticalAlignment="center"
@@ -99,7 +106,9 @@
                   onClick="colorInput = $item.hex">
                   <Stack
                     when="{colorInput === $item.hex}"
-                    width="24px" height="24px" borderRadius="50%"
+                    width="24px"
+                    height="24px"
+                    borderRadius="50%"
                     backgroundColor="white"
                     verticalAlignment="center" horizontalAlignment="center">
                     <Icon name="checkmark" color="{$item.hex}" size="sm" />
@@ -108,9 +117,11 @@
               </Items>
             </HStack>
             <HStack gap="$space-2" wrapContent="true" width="100%">
-              <Items data="{colorPalette.slice(7)}">
+              <Items data="{colorPalette.slice(8)}">
                 <Stack
-                  width="44px" height="44px" borderRadius="10px"
+                  width="*"
+                  height="44px"
+                  borderRadius="10px"
                   backgroundColor="{$item.hex}"
                   cursor="pointer"
                   verticalAlignment="center"
@@ -118,7 +129,9 @@
                   onClick="colorInput = $item.hex">
                   <Stack
                     when="{colorInput === $item.hex}"
-                    width="24px" height="24px" borderRadius="50%"
+                    width="24px"
+                    height="24px"
+                    borderRadius="50%"
                     backgroundColor="white"
                     verticalAlignment="center" horizontalAlignment="center">
                     <Icon name="checkmark" color="{$item.hex}" size="sm" />
@@ -159,4 +172,5 @@
       </HStack>
     </VStack>
   </ModalDialog>
+  </Theme>
 </Component>

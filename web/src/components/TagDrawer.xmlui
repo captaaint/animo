@@ -6,6 +6,7 @@
     { hex: '#3F8F8C', name: 'Sage teal' },
     { hex: '#5BA84B', name: 'Forest green' },
     { hex: '#A7C957', name: 'Lime' },
+    { hex: '#6FCF97', name: 'Mint' },
     { hex: '#F2C94C', name: 'Amber' },
     { hex: '#F2994A', name: 'Orange' },
     { hex: '#EB5757', name: 'Coral' },
@@ -16,7 +17,8 @@
     { hex: '#56CCF2', name: 'Light blue' },
     { hex: '#4A6172', name: 'Slate' },
     { hex: '#BDBDBD', name: 'Gray' },
-    { hex: '#8B5E3C', name: 'Brown' }
+    { hex: '#8B5E3C', name: 'Brown' },
+    { hex: '#C77878', name: 'Dusty rose' }
   ]}"
   var.drawerOpen="{false}"
   method.open="(data) => {
@@ -119,10 +121,12 @@
           </Card>
 
           <VStack gap="$space-2" width="100%">
-            <HStack gap="$space-2" wrapContent="true" width="100%">
-              <Items data="{colorPalette.slice(0, 7)}">
+            <HStack gap="$space-2" width="100%">
+              <Items data="{colorPalette.slice(0, 8)}">
                 <Stack
-                  width="40px" height="40px" borderRadius="10px"
+                  width="*"
+                  height="40px"
+                  borderRadius="10px"
                   backgroundColor="{$item.hex}"
                   cursor="pointer"
                   verticalAlignment="center"
@@ -130,7 +134,9 @@
                   onClick="colorInput = $item.hex">
                   <Stack
                     when="{colorInput === $item.hex}"
-                    width="22px" height="22px" borderRadius="50%"
+                    width="22px"
+                    height="22px"
+                    borderRadius="50%"
                     backgroundColor="white"
                     verticalAlignment="center" horizontalAlignment="center">
                     <Icon name="checkmark" color="{$item.hex}" size="sm" />
@@ -138,10 +144,12 @@
                 </Stack>
               </Items>
             </HStack>
-            <HStack gap="$space-2" wrapContent="true" width="100%">
-              <Items data="{colorPalette.slice(7)}">
+            <HStack gap="$space-2" width="100%">
+              <Items data="{colorPalette.slice(8)}">
                 <Stack
-                  width="40px" height="40px" borderRadius="10px"
+                  width="*"
+                  height="40px"
+                  borderRadius="10px"
                   backgroundColor="{$item.hex}"
                   cursor="pointer"
                   verticalAlignment="center"
@@ -149,7 +157,9 @@
                   onClick="colorInput = $item.hex">
                   <Stack
                     when="{colorInput === $item.hex}"
-                    width="22px" height="22px" borderRadius="50%"
+                    width="22px"
+                    height="22px"
+                    borderRadius="50%"
                     backgroundColor="white"
                     verticalAlignment="center" horizontalAlignment="center">
                     <Icon name="checkmark" color="{$item.hex}" size="sm" />
