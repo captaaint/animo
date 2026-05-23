@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.1.2] - 2026-05-23
+
 ### Added
 
 - Drawer-based mobile editor for time entries (EntryDrawer) — bottom-sheet
@@ -106,6 +110,7 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - No code signing yet; macOS install requires manual Gatekeeper approval.
 - Single-user only at this stage; multi-tenant work deferred to a later release.
 
-[Unreleased]: https://github.com/captaaint/animo/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/captaaint/animo/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/captaaint/animo/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/captaaint/animo/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/captaaint/animo/releases/tag/v0.1.0

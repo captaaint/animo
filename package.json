@@ -1,6 +1,6 @@
 {
   "name": "animo",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "workspaces": [
     "app",
@@ -16,32 +16,26 @@
     "build:app": "turbo run build:demo --filter=animo-app",
     "build:website": "turbo run build:website --filter=animo-website",
     "check": "turbo run check",
-
     "//api": "Rust backend (animo-api)",
     "api": "DATABASE_URL=\"sqlite:dev.db?mode=rwc\" cargo run -p animo-api",
     "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api",
     "seed:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api --bin seed_demo",
-
     "//app": "XMLUI web app (single-package)",
     "app": "cd app && npm run start",
     "app:demo": "cd app && VITE_ANIMO_DEMO=true npm run start",
     "build:demo": "cd app && npm run build:demo",
     "preview:demo": "cd app && npm run preview:demo",
-
     "//dev": "Concurrent api + app (daily driver)",
     "dev": "concurrently -k -n api,app -c green,cyan \"npm:api\" \"npm:app\"",
     "dev:demo": "concurrently -k -n api,app -c green,cyan \"npm:api:demo\" \"npm:app\"",
-
     "//website": "Marketing site (SSG)",
     "website": "cd website && npm run start",
     "website:dev": "concurrently -k -n app,site -c cyan,magenta \"npm:app:demo\" \"VITE_ANIMO_DEMO_URL=http://localhost:5173 npm run website\"",
     "website:preview": "cd website && npm run preview",
-
     "//tauri": "Desktop shell",
     "tauri:dev": "cd desktop && tauri dev",
     "tauri:dev:demo": "cd desktop && DATABASE_URL=\"sqlite:../demo.db?mode=rwc\" tauri dev",
     "tauri:build": "cd desktop && tauri build",
-
     "//e2e": "Playwright tests",
     "e2e": "cd e2e && npm test",
     "e2e:ui": "cd e2e && npm run test:ui",
