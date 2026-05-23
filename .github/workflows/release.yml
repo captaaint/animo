@@ -156,6 +156,7 @@ jobs:
       # then crashes inside rolldown. `--ignore-scripts` skips the broken
       # xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
       - name: Install workspace dependencies
+        shell: bash
         run: |
           rm -rf node_modules package-lock.json
           npm install --prefer-offline --no-audit --no-fund --ignore-scripts
