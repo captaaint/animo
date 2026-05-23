@@ -5,7 +5,7 @@
 // Replaces the BarChart that used to ship from `xmlui-charts`. We wrap
 // react-chartjs-2's `<Bar>` (which sits on top of Chart.js v4) and expose the
 // same API surface the previous component had: `data`, `dataKeys`, `nameKey`,
-// `orientation`. See web/src/extensions/BarChart/BarChart.tsx.
+// `orientation`. See app/src/extensions/BarChart/BarChart.tsx.
 
 import { createMetadata, wrapComponent } from "xmlui";
 import BarChart from "./BarChart";

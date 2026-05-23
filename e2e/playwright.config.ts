@@ -49,7 +49,7 @@ export default defineConfig({
     },
     {
       command: 'npm run start',
-      cwd: path.join(__dirname, '..', 'web'),
+      cwd: path.join(__dirname, '..', 'app'),
       url: WEB_URL,
       reuseExistingServer: !isCI,
       timeout: 2 * 60 * 1000,

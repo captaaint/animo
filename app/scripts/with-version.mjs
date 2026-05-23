@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Inject VITE_ANIMO_VERSION (read from web/package.json) into the env of a
+// Inject VITE_ANIMO_VERSION (read from app/package.json) into the env of a
 // child build command, then exec it. Cross-platform replacement for the
 // `VITE_ANIMO_VERSION=$(node -p ...) <cmd>` shell trick.
 //

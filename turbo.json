@@ -40,7 +40,7 @@
       "dependsOn": ["^build:extension"],
       "outputs": ["dist/**"]
     },
-    "build:with-demo": {
+    "build:website": {
       "inputs": [
         "$TURBO_DEFAULT$",
         "!**/*.spec.ts",

@@ -46,7 +46,7 @@ export type PieChartProps = {
   width?: number | string;
 };
 
-// Animo palette — see web/src/themes/tracker-theme.ts. Same order as
+// Animo palette — see app/src/themes/tracker-theme.ts. Same order as
 // BarChart so slice colors stay consistent when the two charts sit
 // side-by-side on the Reports page.
 function formatDuration(seconds: number): string {

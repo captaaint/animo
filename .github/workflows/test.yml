@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      web: ${{ steps.filter.outputs.web }}
+      app: ${{ steps.filter.outputs.app }}
       api: ${{ steps.filter.outputs.api }}
       desktop: ${{ steps.filter.outputs.desktop }}
       e2e: ${{ steps.filter.outputs.e2e }}
@@ -31,12 +31,13 @@ jobs:
         id: filter
         with:
           filters: |
-            web:
-              - 'web/**'
+            app:
+              - 'app/**'
               - 'extensions/**'
               - 'package.json'
               - 'package-lock.json'
-              - 'netlify.toml'
+              - 'website/netlify.toml'
+              - 'demo/**'
             api:
               - 'api/**'
               - 'Cargo.toml'
@@ -47,17 +48,17 @@ jobs:
               - 'Cargo.toml'
               - 'Cargo.lock'
             e2e:
-              - 'web/**'
+              - 'app/**'
               - 'extensions/**'
               - 'api/**'
               - 'e2e/**'
               - 'package.json'
               - 'package-lock.json'
 
-  web:
-    name: Web (XMLUI build sanity)
+  app:
+    name: App (XMLUI build sanity)
     needs: changes
-    if: needs.changes.outputs.web == 'true' || github.event_name == 'workflow_dispatch'
+    if: needs.changes.outputs.app == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -71,21 +72,21 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      # Workspaces root install — covers web, website, and animo-blocks
+      # Workspaces root install — covers app, website, demo, and animo-blocks
       # in one npm ci. --ignore-scripts works around the broken
       # xmlui-pdf@0.1.13 postinstall.
       - name: Install workspace dependencies
         run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
 
       # Cache turbo's build artifacts across runs — animo-blocks/dist and
-      # web/dist get reused when their inputs haven't changed.
+      # app/dist get reused when their inputs haven't changed.
       - uses: rharkor/caching-for-turbo@v2.3.1
 
       # Turbo's `^build:extension` dependsOn in turbo.json automatically
-      # builds animo-blocks before animo-web's build:demo, so we don't
+      # builds animo-blocks before animo-app's build:demo, so we don't
       # need a separate pre-build step.
       - name: Build demo (production)
-        run: npx turbo run build:demo --filter=animo-web
+        run: npx turbo run build:demo --filter=animo-app
         env:
           VITE_ANIMO_DEMO: 'true'
 
@@ -177,7 +178,7 @@ jobs:
             package-lock.json
             e2e/package-lock.json
 
-      # Workspaces root install — covers web, website, and animo-blocks
+      # Workspaces root install — covers app, website, demo, and animo-blocks
       # in one npm ci. --ignore-scripts skips the broken xmlui-pdf@0.1.13
       # postinstall (runtime is unaffected).
       - name: Install workspace dependencies
@@ -191,11 +192,11 @@ jobs:
         working-directory: e2e
         run: npx playwright install --with-deps chromium
 
-      # Cache turbo artifacts — shares with the `web` job's cache key.
+      # Cache turbo artifacts — shares with the `app` job's cache key.
       - uses: rharkor/caching-for-turbo@v2.3.1
 
-      - name: Build web (demo mode)
-        run: npx turbo run build:demo --filter=animo-web
+      - name: Build app (demo mode)
+        run: npx turbo run build:demo --filter=animo-app
         env:
           VITE_ANIMO_DEMO: 'true'
 

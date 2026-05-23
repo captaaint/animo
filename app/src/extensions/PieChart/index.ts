@@ -4,7 +4,7 @@
 //
 // Wraps react-chartjs-2's `<Pie>` (Chart.js v4 ArcElement). One dataset, read
 // from `data[i][dataKey]`, sliced and labelled by `nameKey`. Pass `cutout` to
-// render a donut. See web/src/extensions/PieChart/PieChart.tsx.
+// render a donut. See app/src/extensions/PieChart/PieChart.tsx.
 
 import { createMetadata, wrapComponent } from "xmlui";
 import PieChart from "./PieChart";
