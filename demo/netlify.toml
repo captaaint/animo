@@ -1,15 +1,16 @@
 # Netlify config for the interactive demo deploy (demo.getanimo.app).
 #
-# The actual app code lives in animo/app/ (workspace `animo-app`). This
+# The actual app code lives in ../app/ (workspace `animo-app`). This
 # folder is a thin wrapper that builds the app in demo mode
 # (VITE_ANIMO_DEMO=true, which switches the runtime to use the MSW
 # in-browser API mock so no backend is required) and republishes the
 # artifact here for Netlify to serve.
 #
-# Set the Netlify site's "Base directory" to `animo/demo` in the
-# dashboard. NPM workspaces are detected automatically — Netlify runs the
-# install step from the workspace root (animo/) and hoists shared deps
-# (animo-blocks, xmlui, etc.) into a single node_modules tree.
+# Set the Netlify site's "Base directory" to `demo` in the dashboard
+# (this folder, relative to the repo root). NPM workspaces are detected
+# automatically — Netlify runs the install step from the workspace root
+# and hoists shared deps (animo-blocks, xmlui, etc.) into a single
+# node_modules tree.
 #
 # What this configures:
 #   * `publish` — relative to the base directory; the copied vite output.
@@ -21,7 +22,17 @@
 
 [build]
 publish = "dist"
-command = "npm run build:demo"
+# The cd-up + wipe + npm install is a workaround for npm/cli#4828: a
+# macOS-generated lockfile leaves out Linux-specific optional bindings
+# (e.g. @rolldown/binding-linux-x64-gnu), and Netlify's default `npm ci`
+# skips them — so the subsequent rolldown-driven build crashes with
+# "Cannot find native binding". Wiping and reinstalling on Linux fetches
+# the correct per-platform binaries.
+command = """
+cd .. && rm -rf node_modules package-lock.json && \
+npm install --no-audit --no-fund --ignore-scripts && \
+cd demo && npm run build:demo
+"""
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"
