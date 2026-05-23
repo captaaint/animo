@@ -233,6 +233,7 @@
               id="durInput"
               width="100%"
               iconAlign="start"
+              iconName="timer"
               step="60"
               initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
               onDidChange="(v) => {

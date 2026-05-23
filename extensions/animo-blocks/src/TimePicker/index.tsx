@@ -59,6 +59,11 @@ const metadata = createMetadata({
       defaultValue: "start",
       availableValues: ["start", "end", "none"],
     },
+    iconName: {
+      description: "Glyph to render: `clock` (default) or `timer` (stopwatch).",
+      valueType: "string",
+      availableValues: ["clock", "timer"],
+    },
     placeholder: {
       description: "Placeholder text shown when no value is set.",
       valueType: "string",
@@ -163,6 +168,12 @@ export const timePickerRenderer = createComponentRenderer(
             | "start"
             | "end"
             | "none"
+            | undefined
+        }
+        iconName={
+          extractValue.asOptionalString(props.iconName) as
+            | "clock"
+            | "timer"
             | undefined
         }
         placeholder={extractValue.asOptionalString(props.placeholder)}

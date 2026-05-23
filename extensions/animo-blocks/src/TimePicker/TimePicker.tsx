@@ -39,6 +39,7 @@ type TimePickerProps = {
   step?: number;
   bordered?: boolean;
   iconAlign?: IconAlign;
+  iconName?: "clock" | "timer";
   hoursLabel?: string;
   minutesLabel?: string;
   secondsLabel?: string;
@@ -224,6 +225,7 @@ type SlotProps = {
   enabled: boolean;
   readOnly: boolean;
   iconAlign: IconAlign;
+  iconName?: "clock" | "timer";
   ariaLabel?: string;
   placeholder: string;
   step: number;
@@ -243,6 +245,7 @@ function TimeSlot({
   enabled,
   readOnly,
   iconAlign,
+  iconName,
   ariaLabel,
   placeholder,
   step,
@@ -260,7 +263,9 @@ function TimeSlot({
     ? formatParts(...parseParts(value), withSeconds)
     : placeholder;
   const icon =
-    iconAlign === "none" ? null : (
+    iconAlign === "none" ? null : iconName === "timer" ? (
+      <TimerGlyph className={styles.triggerIcon} />
+    ) : (
       <ClockGlyph className={styles.triggerIcon} />
     );
 
@@ -321,6 +326,7 @@ export const TimePicker = forwardRef<HTMLDivElement, TimePickerProps>(
       step = 60,
       bordered = true,
       iconAlign = "start",
+      iconName,
       hoursLabel = "Hours",
       minutesLabel = "Minutes",
       secondsLabel = "Seconds",
@@ -417,6 +423,7 @@ export const TimePicker = forwardRef<HTMLDivElement, TimePickerProps>(
       enabled,
       readOnly,
       iconAlign,
+      iconName,
       placeholder,
       step,
       hoursLabel,
@@ -506,6 +513,21 @@ function ClockGlyph({ className }: { className?: string }) {
     >
       <circle cx="12" cy="12" r="9" />
       <polyline points="12 7 12 12 15 14" />
+    </svg>
+  );
+}
+
+function TimerGlyph({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className ?? styles.icon}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <line x1="10" x2="14" y1="2" y2="2" />
+      <line x1="12" x2="15" y1="14" y2="11" />
+      <circle cx="12" cy="14" r="8" />
     </svg>
   );
 }

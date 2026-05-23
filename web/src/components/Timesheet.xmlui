@@ -43,11 +43,20 @@
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
     onClosed="() => { if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
-    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+    onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
   />
 
   <DeleteConfirmModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="deleteConfirmModal"
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
+
+  <DeleteConfirmDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="deleteConfirmDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
     onConfirmed="(id) => deleteCall.execute(id)"
   />
 
@@ -125,7 +134,7 @@
         onOpenEntry="(e) => entryDrawer.open(e)"
         onAddNew="() => entryDrawer.open()"
         onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
-        onDeleteEntry="(e) => deleteConfirmModal.open(e.id)"
+        onDeleteEntry="(e) => deleteConfirmDrawer.open(e)"
       />
   </Stack>
 </Component>

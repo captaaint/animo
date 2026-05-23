@@ -212,6 +212,7 @@
                 <TimePicker
                   id="durInput"
                   iconAlign="start"
+                  iconName="timer"
                   step="60"
                   initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
                   onDidChange="(v) => {

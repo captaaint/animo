@@ -112,11 +112,20 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
-    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+    onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
   />
 
   <DeleteConfirmModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="deleteConfirmModal"
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
+
+  <DeleteConfirmDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="deleteConfirmDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
     onConfirmed="(id) => deleteCall.execute(id)"
   />
 
@@ -885,7 +894,7 @@
                           <MenuSeparator />
                           <MenuItem
                             icon="trash"
-                            onClick="deleteConfirmModal.open($item.id)"
+                            onClick="deleteConfirmDrawer.open($item)"
                           >
                             Delete
                           </MenuItem>
