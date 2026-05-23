@@ -1,6 +1,8 @@
 import * as Popover from "@radix-ui/react-popover";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import styles from "./Picker.module.scss";
+
 type Item = Record<string, unknown>;
 
 export type PickerProps = {
@@ -146,7 +148,12 @@ export function Picker(props: PickerProps) {
         <button
           type="button"
           aria-label={icon}
-          style={triggerStyle(hasValue, iconActiveColor)}
+          className={styles.trigger}
+          data-active={hasValue ? "true" : "false"}
+          style={{
+            border: hasValue ? `1px solid ${iconActiveColor}` : undefined,
+            color: hasValue ? iconActiveColor : undefined,
+          }}
         >
           <PickerIcon
             name={icon}
@@ -161,7 +168,7 @@ export function Picker(props: PickerProps) {
         <Popover.Content
           sideOffset={6}
           align="start"
-          style={contentStyle}
+          className={styles.content}
           onOpenAutoFocus={(e) => {
             // Focus the search input first when popover opens.
             if (searchable) {
@@ -185,7 +192,7 @@ export function Picker(props: PickerProps) {
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                style={inputStyle}
+                className={styles.searchInput}
               />
             </div>
           )}
@@ -235,23 +242,8 @@ function ItemRow({
     <button
       type="button"
       onClick={onClick}
-      style={{
-        ...itemStyle,
-        background: selected
-          ? "var(--xmlui-color-surface-200, rgb(241, 245, 249))"
-          : "transparent",
-      }}
-      onMouseEnter={(e) => {
-        if (!selected) {
-          (e.currentTarget as HTMLElement).style.background =
-            "var(--xmlui-color-surface-100, rgb(248, 250, 252))";
-        }
-      }}
-      onMouseLeave={(e) => {
-        if (!selected) {
-          (e.currentTarget as HTMLElement).style.background = "transparent";
-        }
-      }}
+      className={styles.item}
+      data-selected={selected ? "true" : "false"}
     >
       {item.color && (
         <span
@@ -324,25 +316,6 @@ const ICON_PATHS: Record<string, JSX.Element> = {
 
 // --- Styles ----------------------------------------------------------------
 
-const triggerStyle = (
-  hasValue: boolean,
-  activeColor: string,
-): React.CSSProperties => ({
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 4,
-  background: "transparent",
-  border: hasValue ? `1px solid ${activeColor}` : "1px solid transparent",
-  borderRadius: 6,
-  padding: "6px 10px",
-  cursor: "pointer",
-  color: hasValue
-    ? activeColor
-    : "var(--xmlui-textColor-secondary, rgb(71, 85, 105))",
-  fontWeight: hasValue ? 600 : 400,
-  fontSize: 14,
-});
-
 const badgeStyle = (color: string): React.CSSProperties => ({
   display: "inline-flex",
   alignItems: "center",
@@ -357,55 +330,10 @@ const badgeStyle = (color: string): React.CSSProperties => ({
   fontWeight: 600,
 });
 
-const contentStyle: React.CSSProperties = {
-  // Tone-aware popover surface. The theme defines
-  // `backgroundColor-popover-Picker` per tone:
-  //   light → `$color-primary-50` (Mist) — soft branded panel
-  //   dark  → `$backgroundColor-primary` (matches ModalDialog)
-  // Fallback chain keeps a sensible default if the theme isn't loaded.
-  background:
-    "var(--xmlui-backgroundColor-popover-Picker, var(--xmlui-backgroundColor-primary, white))",
-  color: "var(--xmlui-textColor-primary, inherit)",
-  boxShadow:
-    "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1)",
-  border: "1px solid var(--xmlui-borderColor, rgb(229, 231, 235))",
-  borderRadius: 8,
-  minWidth: 240,
-  maxWidth: 360,
-  overflow: "hidden",
-  zIndex: 1000,
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "var(--xmlui-color-surface-50, transparent)",
-  color: "var(--xmlui-textColor-primary, inherit)",
-  border: "1px solid var(--xmlui-borderColor, rgb(229, 231, 235))",
-  borderRadius: 6,
-  padding: "6px 8px",
-  fontSize: 14,
-  outline: "none",
-  boxSizing: "border-box",
-};
-
 const listStyle: React.CSSProperties = {
   maxHeight: 320,
   overflowY: "auto",
   padding: 4,
-};
-
-const itemStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: 8,
-  width: "100%",
-  padding: "8px 10px",
-  borderRadius: 4,
-  border: "none",
-  cursor: "pointer",
-  fontSize: 14,
-  color: "inherit",
-  textAlign: "left" as const,
 };
 
 const groupLabelStyle: React.CSSProperties = {

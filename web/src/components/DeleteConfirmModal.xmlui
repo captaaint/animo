@@ -1,0 +1,50 @@
+<Component name="DeleteConfirmModal"
+  var.targetId="{null}"
+  method.open="(id) => { targetId = id; modal.open(); }"
+>
+  <ModalDialog
+    id="modal"
+    maxWidth="480px"
+    padding="$space-4"
+    borderRadius="16px">
+    <VStack width="100%" gap="$space-4">
+      <HStack verticalAlignment="center" gap="$space-3">
+        <Stack
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          backgroundColor="$color-danger-100"
+          verticalAlignment="center"
+          horizontalAlignment="center">
+          <Icon name="trash" color="$color-danger-500" />
+        </Stack>
+        <Text fontSize="$fontSize-2xl" fontWeight="700" color="$color-surface-900">
+          {$props.title || 'Delete entry'}
+        </Text>
+      </HStack>
+      <Text color="$color-surface-700">
+        {$props.message || 'Are you sure you want to delete this time entry? This action cannot be undone.'}
+      </Text>
+      <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+      <HStack width="100%" gap="$space-3" verticalAlignment="center">
+        <SpaceFiller />
+        <Button
+          label="Cancel"
+          variant="outlined"
+          themeColor="secondary"
+          onClick="modal.close()"
+        />
+        <Theme
+          backgroundColor-Button-attention-solid="$color-danger-500"
+          backgroundColor-Button-attention-solid--hover="$color-danger-600">
+          <Button
+            icon="trash"
+            label="Delete"
+            themeColor="attention"
+            onClick="emitEvent('confirmed', targetId); modal.close();"
+          />
+        </Theme>
+      </HStack>
+    </VStack>
+  </ModalDialog>
+</Component>

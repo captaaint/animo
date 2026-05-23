@@ -1,0 +1,90 @@
+.searchInput {
+  width: 100%;
+  background: var(--xmlui-backgroundColor-Input, var(--xmlui-color-surface-0, transparent));
+  color: var(--xmlui-textColor-primary, inherit);
+  border: var(--xmlui-borderWidth-Input, 1px) var(--xmlui-borderStyle-Input, solid)
+    var(--xmlui-borderColor-Input, var(--xmlui-borderColor, rgb(229, 231, 235)));
+  border-radius: var(--xmlui-borderRadius-Input, 6px);
+  padding: 6px 8px;
+  font-size: var(--xmlui-fontSize-Input, 14px);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--xmlui-color-surface-500, currentColor);
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: var(--xmlui-outlineWidth-Input--focus, 2px)
+      var(--xmlui-outlineStyle-Input--focus, solid)
+      var(--xmlui-outlineColor-Input--focus, var(--xmlui-color-primary-300, rgba(63, 143, 140, 0.45)));
+    outline-offset: 1px;
+  }
+
+  &::placeholder {
+    color: var(--xmlui-textColor-placeholder-Input, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+  }
+}
+
+.content {
+  background: var(--xmlui-backgroundColor-popover-Picker, var(--xmlui-color-surface-raised, white));
+  color: var(--xmlui-textColor-primary, inherit);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--xmlui-borderColor, rgb(229, 231, 235));
+  border-radius: 8px;
+  min-width: 240px;
+  max-width: 360px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: inherit;
+  text-align: left;
+
+  &:hover {
+    background: var(--xmlui-backgroundColor-item-Select--hover, var(--xmlui-color-surface-100, rgba(0, 0, 0, 0.05)));
+  }
+
+  &[data-selected="true"] {
+    background: var(--xmlui-backgroundColor-item-Select--active, var(--xmlui-color-surface-200, rgba(0, 0, 0, 0.08)));
+
+    &:hover {
+      background: var(--xmlui-backgroundColor-item-Select--active, var(--xmlui-color-surface-200, rgba(0, 0, 0, 0.08)));
+    }
+  }
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--xmlui-textColor-secondary, rgb(71, 85, 105));
+  font-weight: 400;
+  font-size: 14px;
+
+  &:hover {
+    background: var(--xmlui-backgroundColor-item-Select--hover, var(--xmlui-color-surface-100, rgba(0, 0, 0, 0.05)));
+  }
+
+  &[data-active="true"] {
+    font-weight: 600;
+  }
+}

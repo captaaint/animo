@@ -98,10 +98,35 @@
   </ModalDialog>
 
   <EntryModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="entryModal"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+  />
+
+  <EntryDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="entryDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => summaryDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
+  />
+
+  <DeleteConfirmModal
+    when="{!vp.value || !vp.value.isMobile}"
+    id="deleteConfirmModal"
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
+
+  <DeleteConfirmDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="deleteConfirmDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onConfirmed="(id) => deleteCall.execute(id)"
   />
 
   <APICall
@@ -119,8 +144,6 @@
     method="DELETE"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    confirmTitle="Delete entry"
-    confirmMessage="Delete this entry?"
     onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
     onError="() => toast.error('Delete failed')"
   />
@@ -285,12 +308,17 @@
           variant="ghost"
           size="sm"
           testId="filter-clear"
-          enabled="{(projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)}"
+          enabled="{(projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0) || fromDate !== mondayOfWeek(new Date()) || toDate !== shiftDate(mondayOfWeek(new Date()), 6)}"
           onClick="
             projectFilter = [];
             tagFilter = [];
             if (projectFilterSel) projectFilterSel.setValue([]);
             if (tagFilterSel) tagFilterSel.setValue([]);
+            const defaultFrom = mondayOfWeek(new Date());
+            const defaultTo = shiftDate(defaultFrom, 6);
+            fromDate = defaultFrom;
+            toDate = defaultTo;
+            if (rangePicker) rangePicker.setValue({ from: defaultFrom, to: defaultTo });
           "
         />
         <SpaceFiller />
@@ -647,7 +675,7 @@
                     <MenuSeparator />
                     <MenuItem
                       icon="trash"
-                      onClick="deleteCall.execute($item.id)"
+                      onClick="deleteConfirmModal.open($item.id)"
                     >
                       Delete
                     </MenuItem>
@@ -859,14 +887,14 @@
                           </MenuItem>
                           <MenuItem
                             icon="pencil"
-                            onClick="entryModal.open($item)"
+                            onClick="entryDrawer.open($item)"
                           >
                             Edit
                           </MenuItem>
                           <MenuSeparator />
                           <MenuItem
                             icon="trash"
-                            onClick="deleteCall.execute($item.id)"
+                            onClick="deleteConfirmDrawer.open($item)"
                           >
                             Delete
                           </MenuItem>
