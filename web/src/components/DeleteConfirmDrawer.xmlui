@@ -1,0 +1,162 @@
+<Component name="DeleteConfirmDrawer"
+  var.entry="{null}"
+  var.drawerOpen="{false}"
+  method.open="(item) => { entry = item || null; drawerOpen = true; }"
+>
+  <Theme height-Drawer="auto" maxHeight-Drawer="92vh">
+  <Drawer
+    when="{drawerOpen}"
+    initiallyOpen="true"
+    position="bottom"
+    closeButtonVisible="false"
+    onClose="() => { drawerOpen = false; emitEvent('closed'); }">
+    <property name="headerTemplate">
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="drawerOpen = false; emitEvent('closed')"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {$props.title || 'Delete entry'}
+        </Text>
+        <SpaceFiller />
+        <Theme
+          backgroundColor-Button-attention-solid="$color-danger-500"
+          backgroundColor-Button-attention-solid--hover="$color-danger-600">
+          <Button
+            icon="trash"
+            themeColor="attention"
+            width="48px"
+            height="48px"
+            borderRadius="50%"
+            onClick="if (entry) emitEvent('confirmed', entry.id); drawerOpen = false;"
+          />
+        </Theme>
+      </HStack>
+    </property>
+
+    <VStack width="100%" gap="$space-3">
+      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <VStack gap="$space-1" width="100%">
+          <Text fontWeight="600" color="$color-surface-900">
+            {$props.confirmText || 'Delete this entry?'}
+          </Text>
+          <Text fontSize="$fontSize-small" color="$color-surface-700">
+            {$props.message || 'This action cannot be undone.'}
+          </Text>
+        </VStack>
+      </Card>
+
+      <Card
+        when="{entry &amp;&amp; entry.startTime}"
+        padding="$space-2" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <VStack width="100%" gap="0">
+          <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
+            <Icon name="doc" color="$color-primary-500" />
+            <VStack width="*" gap="$space-0_5">
+              <Text fontWeight="600" color="$color-surface-900">Description</Text>
+              <Text color="$color-surface-700">{(entry &amp;&amp; entry.description) || '—'}</Text>
+            </VStack>
+          </HStack>
+          <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+          <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
+            <Icon name="folder" color="$color-primary-500" />
+            <VStack width="*" gap="$space-0_5">
+              <Text fontWeight="600" color="$color-surface-900">Project</Text>
+              <Text color="$color-surface-700">
+                {entry &amp;&amp; entry.projectId
+                  ? ((($props.projects || []).find(p => p.id === entry.projectId) || {}).name || '—')
+                  : '—'}
+              </Text>
+            </VStack>
+          </HStack>
+          <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+          <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
+            <Icon name="tag" color="$color-primary-500" />
+            <VStack width="*" gap="$space-0_5">
+              <Text fontWeight="600" color="$color-surface-900">Tags</Text>
+              <HStack gap="$space-2" wrapContent="true">
+                <Items data="{(entry &amp;&amp; entry.tagIds) || []}">
+                  <Stack
+                    paddingHorizontal="$space-2"
+                    paddingVertical="$space-1"
+                    borderRadius="8px"
+                    backgroundColor="$color-primary-100">
+                    <Text color="$color-primary-700" fontSize="$fontSize-small">
+                      {((($props.tags || []).find(t => t.id === $item) || {}).name) || ''}
+                    </Text>
+                  </Stack>
+                </Items>
+                <Text when="{!entry || !entry.tagIds || entry.tagIds.length === 0}" color="$color-surface-700">—</Text>
+              </HStack>
+            </VStack>
+          </HStack>
+          <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+          <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
+            <Icon name="clock" color="$color-primary-500" />
+            <VStack width="*" gap="$space-0_5">
+              <Text fontWeight="600" color="$color-surface-900">Time</Text>
+              <Text color="$color-surface-700">
+                {entry &amp;&amp; entry.startTime &amp;&amp; entry.endTime
+                  ? entry.startTime.slice(11,16) + '–' + entry.endTime.slice(11,16)
+                  : '—'}
+              </Text>
+            </VStack>
+          </HStack>
+          <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+          <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
+            <Icon name="timer" color="$color-primary-500" />
+            <VStack width="*" gap="$space-0_5">
+              <Text fontWeight="600" color="$color-surface-900">Duration</Text>
+              <Text color="$color-surface-700">
+                {entry &amp;&amp; entry.startTime &amp;&amp; entry.endTime
+                  ? formatHms(parseTimeToSec(entry.endTime.slice(11,16)) - parseTimeToSec(entry.startTime.slice(11,16)))
+                  : '—'}
+              </Text>
+            </VStack>
+          </HStack>
+          <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+          <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
+            <Icon name="date" color="$color-primary-500" />
+            <VStack width="*" gap="$space-0_5">
+              <Text fontWeight="600" color="$color-surface-900">Date</Text>
+              <Text color="$color-surface-700">
+                {(entry &amp;&amp; entry.startTime &amp;&amp; entry.startTime.slice(0,10)) || '—'}
+              </Text>
+            </VStack>
+          </HStack>
+        </VStack>
+      </Card>
+
+      <Card
+        when="{entry &amp;&amp; !entry.startTime &amp;&amp; (entry.name || entry.color)}"
+        padding="$space-3" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <HStack width="100%" verticalAlignment="center" gap="$space-3">
+          <Stack
+            when="{!!(entry &amp;&amp; entry.color)}"
+            width="20px" height="20px" borderRadius="4px"
+            backgroundColor="{entry.color}"
+          />
+          <Text fontWeight="600" color="$color-surface-900">
+            {(entry &amp;&amp; entry.name) || ''}
+          </Text>
+        </HStack>
+      </Card>
+    </VStack>
+  </Drawer>
+  </Theme>
+</Component>

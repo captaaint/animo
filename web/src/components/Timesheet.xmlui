@@ -27,11 +27,37 @@
   <Viewport id="vp" />
 
   <EntryModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="entryModal"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
-    onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
+    onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); }"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+  />
+
+  <EntryDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="entryDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => entriesDs.refetch()"
+    onClosed="() => { if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
+    onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
+  />
+
+  <DeleteConfirmModal
+    when="{!vp.value || !vp.value.isMobile}"
+    id="deleteConfirmModal"
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
+
+  <DeleteConfirmDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="deleteConfirmDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onConfirmed="(id) => deleteCall.execute(id)"
   />
 
   <APICall id="duplicateCall"
@@ -46,8 +72,6 @@
     method="DELETE"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    confirmMessage="Delete this entry?"
-    confirmTitle="Delete entry"
     onSuccess="() => { toast.success('Entry deleted'); entriesDs.refetch(); }"
     onError="() => toast.error('Delete failed')" />
 
@@ -78,7 +102,7 @@
         onOpenEntry="(e) => entryModal.open(e)"
         onAddNew="() => entryModal.open()"
         onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
-        onDeleteEntry="(e) => deleteCall.execute(e.id)"
+        onDeleteEntry="(e) => deleteConfirmModal.open(e.id)"
       />
   </VStack>
 
@@ -95,8 +119,8 @@
         entries="{entriesDs.value || []}"
         projects="{projectsDs.value || []}"
         onWeekChange="(v) => weekStart = v"
-        onOpenEntry="(e) => entryModal.open(e)"
-        onAddSlot="(slot) => entryModal.openForSlot(slot)"
+        onOpenEntry="(e) => entryDrawer.open(e)"
+        onAddSlot="(slot) => entryDrawer.openForSlot(slot)"
         onSaved="() => entriesDs.refetch()"
       />
       <ListScreen when="{$props.view === 'list'}"
@@ -107,9 +131,10 @@
         tags="{tagsDs.value || []}"
         clients="{clientsDs.value || []}"
         onWeekChange="(v) => weekStart = v"
-        onOpenEntry="(e) => entryModal.open(e)"
-        onAddNew="() => entryModal.open()"
+        onOpenEntry="(e) => entryDrawer.open(e)"
+        onAddNew="() => entryDrawer.open()"
         onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
+        onDeleteEntry="(e) => deleteConfirmDrawer.open(e)"
       />
   </Stack>
 </Component>

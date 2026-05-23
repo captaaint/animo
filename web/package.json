@@ -3,13 +3,13 @@
   "version": "0.1.1",
   "private": true,
   "scripts": {
-    "start": "xmlui start",
-    "build": "node scripts/with-version.mjs xmlui build --buildMode=INLINE_ALL",
+    "start": "VITE_USED_COMPONENTS_ColorPicker=false VITE_USED_COMPONENTS_DatePicker=false xmlui start",
+    "build": "VITE_USED_COMPONENTS_ColorPicker=false VITE_USED_COMPONENTS_DatePicker=false node scripts/with-version.mjs xmlui build --buildMode=INLINE_ALL",
     "preview": "xmlui preview",
     "build-prod": "npm run build -- --prod",
     "release-ci": "npm run build-prod && xmlui zip-dist",
-    "build:demo": "VITE_ANIMO_DEMO=true node scripts/with-version.mjs xmlui build --prod --buildMode=INLINE_ALL",
-    "build:demo-ssg": "VITE_ANIMO_DEMO=true NODE_OPTIONS=\"--import ./scripts/ssg-register-css-noop.mjs\" node scripts/with-version.mjs xmlui ssg",
+    "build:demo": "VITE_USED_COMPONENTS_ColorPicker=false VITE_USED_COMPONENTS_DatePicker=false VITE_ANIMO_DEMO=true node scripts/with-version.mjs xmlui build --prod --buildMode=INLINE_ALL",
+    "build:demo-ssg": "VITE_USED_COMPONENTS_ColorPicker=false VITE_USED_COMPONENTS_DatePicker=false VITE_ANIMO_DEMO=true NODE_OPTIONS=\"--import ./scripts/ssg-register-css-noop.mjs\" node scripts/with-version.mjs xmlui ssg",
     "preview:demo": "npm run build:demo && xmlui preview",
     "preview:demo-ssg": "npm run build:demo-ssg && npx -y http-server ./dist-ssg",
     "check": "xmlui check src --format gnu"
