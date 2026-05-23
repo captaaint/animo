@@ -55,7 +55,7 @@ Gatekeeper / SmartScreen handling, and per-platform notes, see:
 | Backend     | Rust + [axum](https://docs.rs/axum/) + [sqlx](https://docs.rs/sqlx/) in [`api/`](api/)                  |
 | Database    | SQLite (single file, embedded migrations)                                                               |
 | Auth        | HttpOnly cookie session, Argon2id password hash, SHA-256 token hash                                     |
-| PDF export  | Client-side via [pdfmake](https://pdfmake.github.io/) — [`web/src/helpers/reportPdf.ts`](web/src/helpers/reportPdf.ts) |
+| PDF export  | Client-side via [pdfmake](https://pdfmake.github.io/) — [`app/src/helpers/reportPdf.ts`](app/src/helpers/reportPdf.ts) |
 | Desktop     | [Tauri 2](https://tauri.app) shell in [`desktop/`](desktop/) — embeds the axum server in-process        |
 | E2E tests   | [Playwright](https://playwright.dev/) in [`e2e/`](e2e/)                                                 |
 
@@ -75,7 +75,7 @@ Gatekeeper / SmartScreen handling, and per-platform notes, see:
 
 ```sh
 npm install --ignore-scripts
-cd web && npm install --ignore-scripts && cd ..
+cd app && npm install --ignore-scripts && cd ..
 
 npm run dev          # boots animo-api on :8080 and the XMLUI dev server on :5173
 ```
@@ -100,16 +100,16 @@ npm run tauri:build  # produces a DMG / MSI / DEB / AppImage in desktop/target/r
 ### Public demo bundle (no backend, MSW-mocked)
 
 ```sh
-npm run build:demo       # builds web/dist/ with VITE_ANIMO_DEMO=true baked in
+npm run build:demo       # builds app/dist/ with VITE_ANIMO_DEMO=true baked in
 npm run preview:demo     # build + preview locally
 ```
 
 The bundle ships a hand-written `/api/*` fetch handler
-([`web/src/demoApi.ts`](web/src/demoApi.ts)) that intercepts `window.fetch`
+([`app/src/demoApi.ts`](app/src/demoApi.ts)) that intercepts `window.fetch`
 before XMLUI mounts. Auth is bypassed (always returns "Demo User"), data
 covers four work-weeks of seed entries, and all CRUD persists in
 `localStorage`. The version stamp on the LoginScreen comes from
-`VITE_ANIMO_VERSION` — see [`web/scripts/with-version.mjs`](web/scripts/with-version.mjs).
+`VITE_ANIMO_VERSION` — see [`app/scripts/with-version.mjs`](app/scripts/with-version.mjs).
 
 ---
 
@@ -175,7 +175,7 @@ animo/
 ## Releasing
 
 Releases are driven by [`scripts/bump.sh`](scripts/bump.sh), which keeps a
-single version in sync across `package.json`, `web/package.json`,
+single version in sync across `package.json`, `app/package.json`,
 `api/Cargo.toml`, `desktop/Cargo.toml`, and `desktop/tauri.conf.json`,
 then commits + tags + pushes + dispatches the release workflow.
 

@@ -148,22 +148,28 @@ jobs:
             libssl-dev \
             build-essential
 
-      # Workspaces root install — covers web, website, and the animo-blocks
-      # extension package in a single npm ci. --ignore-scripts skips the
-      # broken xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
+      # Workspaces root install — covers app, website, demo, and the
+      # animo-blocks extension package. We wipe node_modules + the lockfile
+      # before `npm install` to work around npm/cli#4828: a macOS-generated
+      # lockfile leaves out Linux optional bindings (e.g.
+      # @rolldown/binding-linux-x64-gnu) under `npm ci`, and the build
+      # then crashes inside rolldown. `--ignore-scripts` skips the broken
+      # xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
       - name: Install workspace dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --no-fund --ignore-scripts
 
       # Cache turbo's build artifacts across release runs.
       - uses: rharkor/caching-for-turbo@v2.3.1
 
-      # Pre-build animo-blocks and the web bundle before Tauri builds the
-      # desktop shell. Tauri's `beforeBuildCommand` (`npm --prefix web run
-      # build-prod`) reads web/index.ts which imports `animo-blocks` —
+      # Pre-build animo-blocks and the app bundle before Tauri builds the
+      # desktop shell. Tauri's `beforeBuildCommand` (`npm --prefix app run
+      # build-prod`) reads app/index.ts which imports `animo-blocks` —
       # without dist/animo-blocks.mjs, the bundle fails to resolve.
       # Turbo's `^build:extension` dependsOn builds animo-blocks first.
-      - name: Pre-build animo-blocks + web
-        run: npx turbo run build-prod --filter=animo-web
+      - name: Pre-build animo-blocks + app
+        run: npx turbo run build-prod --filter=animo-app
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
 

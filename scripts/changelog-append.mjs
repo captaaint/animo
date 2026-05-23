@@ -6,7 +6,7 @@
 // toJSON(github.event.commits)).
 //
 // The CHANGELOG records only commits that affect the releasable products
-// (web, api, desktop) — everything else (infra, tooling, CI, docs, the
+// (app, api, desktop) — everything else (infra, tooling, CI, docs, the
 // marketing website, scope-less work) is filtered out so the changelog
 // stays a user-facing release-notes document, not a commit dump.
 //
@@ -16,7 +16,7 @@
 //   2. Require a conventional prefix whose *type* is in APP_TYPES
 //      (feat / fix / perf). Anything else (chore, ci, build, docs, style,
 //      test, refactor, wip, ad-hoc messages) is skipped.
-//   3. Require a conventional *scope* that's in APP_SCOPES (web / api /
+//   3. Require a conventional *scope* that's in APP_SCOPES (app / api /
 //      desktop). Bare `feat:` / `fix:` (no scope) and feat with any other
 //      scope (download, website, auth, …) are skipped — every release
 //      note has to be attributable to one of the three shipped products.
@@ -60,7 +60,7 @@ const APP_TYPES = new Set(['feat', 'fix', 'perf']);
 // commit must declare one of these as its scope to land in the changelog.
 // Anything outside this set (including a missing scope) is infrastructure
 // or non-product work and is filtered out.
-const APP_SCOPES = new Set(['web', 'api', 'desktop']);
+const APP_SCOPES = new Set(['app', 'api', 'desktop']);
 
 // Parse a conventional-commit subject into { type, scope }. Returns null
 // when the subject doesn't match the format (those commits are filtered).

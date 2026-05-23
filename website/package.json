@@ -6,7 +6,7 @@
     "start": "xmlui start",
     "build": "xmlui build --buildMode=INLINE_ALL",
     "build-prod": "npm run build -- --prod",
-    "build:with-demo": "node scripts/build-with-demo.mjs",
+    "build:website": "node scripts/build-website.mjs",
     "preview": "xmlui preview",
     "check": "xmlui check src --format gnu"
   },

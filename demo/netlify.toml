@@ -1,0 +1,35 @@
+# Netlify config for the interactive demo deploy (demo.getanimo.app).
+#
+# The actual app code lives in animo/app/ (workspace `animo-app`). This
+# folder is a thin wrapper that builds the app in demo mode
+# (VITE_ANIMO_DEMO=true, which switches the runtime to use the MSW
+# in-browser API mock so no backend is required) and republishes the
+# artifact here for Netlify to serve.
+#
+# Set the Netlify site's "Base directory" to `animo/demo` in the
+# dashboard. NPM workspaces are detected automatically — Netlify runs the
+# install step from the workspace root (animo/) and hoists shared deps
+# (animo-blocks, xmlui, etc.) into a single node_modules tree.
+#
+# What this configures:
+#   * `publish` — relative to the base directory; the copied vite output.
+#   * `command` — the demo workspace's build script orchestrates the
+#     animo-app build with VITE_ANIMO_DEMO=true and copies the result
+#     into ./dist.
+#   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`
+#     postinstall step that 404s in fresh installs.
+
+[build]
+publish = "dist"
+command = "npm run build:demo"
+
+[build.environment]
+NPM_FLAGS = "--ignore-scripts"
+NODE_VERSION = "20"
+
+# SPA fallback so deep-linked routes (e.g. /list, /reports) load the
+# single index.html and let the client-side router take over.
+[[redirects]]
+from = "/*"
+status = 200
+to = "/index.html"

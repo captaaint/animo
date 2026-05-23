@@ -4,10 +4,10 @@
   "version": "0.1.1",
   "identifier": "app.getanimo.timetracker",
   "build": {
-    "beforeDevCommand": "npm --prefix web run start",
-    "beforeBuildCommand": "npm --prefix web run build-prod",
+    "beforeDevCommand": "npm --prefix app run start",
+    "beforeBuildCommand": "npm --prefix app run build-prod",
     "devUrl": "http://localhost:5173",
-    "frontendDist": "../web/dist"
+    "frontendDist": "../app/dist"
   },
   "app": {
     "windows": [

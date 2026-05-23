@@ -97,7 +97,7 @@ function isoEnd(startIso: string, durationSec: number): string {
 
 function buildSeedState(): DemoState {
   // All colors below come from the Animo brand palette
-  // (see web/src/themes/tracker-theme.ts). Picked so that adjacent
+  // (see app/src/themes/tracker-theme.ts). Picked so that adjacent
   // categories don't share a hue and the calendar/Reports charts
   // read at a glance.
   const clients: Client[] = [
