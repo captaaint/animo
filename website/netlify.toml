@@ -1,0 +1,41 @@
+# Netlify config for the public landing site (getanimo.app).
+#
+# Deployment: standalone XMLUI website (SSG).
+#
+# Set the Netlify site's "Base directory" to `animo/website` in the
+# dashboard. NPM workspaces are detected automatically — Netlify runs the
+# install step from the workspace root (animo/) and hoists shared deps
+# (e.g. animo-blocks) into a single node_modules tree.
+#
+# What this configures:
+#   * `publish` — relative to the base directory; the xmlui SSG output.
+#   * `command` — turbo orchestrates the build; `^build:extension`
+#     dependsOn in turbo.json guarantees animo-blocks builds first.
+#   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`
+#     postinstall step that 404s in fresh installs.
+
+[build]
+publish = "dist-ssg"
+command = "npx turbo run build:website --filter=animo-website"
+
+[build.environment]
+NPM_FLAGS = "--ignore-scripts"
+NODE_VERSION = "20"
+
+# Disable Netlify's auto-trigger for production deploys. Netlify's
+# production branch is `main` (set in the Netlify dashboard, not here);
+# pushes to main from PR merges therefore do not auto-deploy. The only
+# legitimate production deploy path is the build hook fired by
+# .github/workflows/release-published.yml when a GitHub release is
+# published — that step refreshes the /download page with the new release
+# artifacts. Build hooks bypass `ignore` per Netlify docs, so they still
+# trigger normally. Deploy Previews (PRs) are unaffected — they run in
+# the deploy-preview context, which has no ignore override.
+[context.production.build]
+  ignore = "exit 0"
+
+# SPA fallback for website routes.
+[[redirects]]
+from = "/*"
+status = 200
+to = "/index.html"

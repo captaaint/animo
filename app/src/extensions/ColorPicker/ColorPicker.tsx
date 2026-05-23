@@ -8,7 +8,7 @@
 //
 // See docs/xmlui-bugs/colorpicker.md for the full bug report submitted
 // upstream. Once xmlui ships the fix, delete this whole extension and
-// remove the `VITE_USED_COMPONENTS_ColorPicker=false` flag in web/.env.
+// remove the `VITE_USED_COMPONENTS_ColorPicker=false` flag in app/.env.
 
 import type { ChangeEvent, CSSProperties, ForwardedRef } from "react";
 import { memo, useEffect, useTransition } from "react";

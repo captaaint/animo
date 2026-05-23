@@ -1,6 +1,6 @@
 # animo-blocks
 
-Shared XMLUI extension components used by `animo/web` and `animo/website`.
+Shared XMLUI extension components used by `animo/app` and `animo/website`.
 
 Consumed via a local `file:` dependency. The package exports source `.tsx`
 files directly — Vite (which XMLUI uses) follows the `file:` symlink and

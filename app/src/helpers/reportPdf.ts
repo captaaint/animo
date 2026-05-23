@@ -188,7 +188,7 @@ window.exportTimeReport = function exportTimeReport(
 // Layout — matches the user-supplied screenshot
 // =====================================================================================================================
 
-// Animo palette — match web/src/themes/tracker-theme.ts so the PDF and
+// Animo palette — match app/src/themes/tracker-theme.ts so the PDF and
 // the on-screen Reports view sit in the same visual language.
 const PRIMARY = "#3F8F8C"; // Sage Teal
 const TEXT = "#1E2328"; // Deep Charcoal

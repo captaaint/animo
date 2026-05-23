@@ -7,7 +7,7 @@
     "**/*.css",
     "**/*.scss"
   ],
-  "description": "Shared XMLUI extension components used by animo/web and animo/website.",
+  "description": "Shared XMLUI extension components used by animo/app and animo/website.",
   "exports": {
     ".": {
       "types": "./src/index.tsx",

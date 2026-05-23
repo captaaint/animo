@@ -1242,7 +1242,7 @@ export function WeekCalendar(props: WeekCalendarProps) {
         color: tokens["textColor"],
         overflow: "hidden",
         // Fill the parent slot — the page/Tabs chain plus the
-        // .xmlui-page-root flex override in web/index.html gives this a
+        // .xmlui-page-root flex override in app/index.html gives this a
         // definite height. The grid wrapper inside has flex:1 and the
         // pixelsPerHour state below adapts so the 24-hour content
         // always fits exactly with no scrollbar.

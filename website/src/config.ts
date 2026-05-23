@@ -1,11 +1,6 @@
 import type { StandaloneAppDescription } from "xmlui";
 import { WebsiteTheme } from "./themes/website-theme";
 
-const viteEnv = (import.meta as any).env ?? {};
-const demoIframeUrl = viteEnv.DEV
-  ? (viteEnv.VITE_ANIMO_DEMO_URL ?? "http://localhost:5173/")
-  : "/demo-app/#/";
-
 const App: StandaloneAppDescription = {
   name: "Animo",
   version: "0.1.0",
@@ -31,7 +26,6 @@ const App: StandaloneAppDescription = {
   appGlobals: {
     xsVerbose: false,
     useHashBasedRouting: false,
-    demoIframeUrl,
   },
 };
 

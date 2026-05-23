@@ -45,7 +45,7 @@ export type BarChartProps = {
   width?: number | string;
 };
 
-// Animo palette — keep in lock-step with web/src/themes/tracker-theme.ts.
+// Animo palette — keep in lock-step with app/src/themes/tracker-theme.ts.
 // Ordered for chart legibility: brand color first, then secondary brand
 // hue, then warning/danger accents. Categories beyond 5 cycle back.
 const DEFAULT_PALETTE = [

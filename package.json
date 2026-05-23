@@ -3,17 +3,18 @@
   "version": "0.1.1",
   "private": true,
   "workspaces": [
-    "web",
+    "app",
     "website",
+    "demo",
     "extensions/*"
   ],
   "packageManager": "npm@10.9.2",
   "scripts": {
     "//build": "Turbo build tasks (cached, dependency-aware)",
-    "build": "turbo run build:extension build:demo build:with-demo",
+    "build": "turbo run build:extension build:demo build:website",
     "build:blocks": "turbo run build:extension --filter=animo-blocks",
-    "build:web": "turbo run build:demo --filter=animo-web",
-    "build:website": "turbo run build:with-demo --filter=animo-website",
+    "build:app": "turbo run build:demo --filter=animo-app",
+    "build:website": "turbo run build:website --filter=animo-website",
     "check": "turbo run check",
 
     "//api": "Rust backend (animo-api)",
@@ -21,19 +22,19 @@
     "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api",
     "seed:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api --bin seed_demo",
 
-    "//web": "XMLUI web app (single-package)",
-    "web": "cd web && npm run start",
-    "web:demo": "cd web && VITE_ANIMO_DEMO=true npm run start",
-    "build:demo": "cd web && npm run build:demo",
-    "preview:demo": "cd web && npm run preview:demo",
+    "//app": "XMLUI web app (single-package)",
+    "app": "cd app && npm run start",
+    "app:demo": "cd app && VITE_ANIMO_DEMO=true npm run start",
+    "build:demo": "cd app && npm run build:demo",
+    "preview:demo": "cd app && npm run preview:demo",
 
-    "//dev": "Concurrent api + web (daily driver)",
-    "dev": "concurrently -k -n api,web -c green,cyan \"npm:api\" \"npm:web\"",
-    "dev:demo": "concurrently -k -n api,web -c green,cyan \"npm:api:demo\" \"npm:web\"",
+    "//dev": "Concurrent api + app (daily driver)",
+    "dev": "concurrently -k -n api,app -c green,cyan \"npm:api\" \"npm:app\"",
+    "dev:demo": "concurrently -k -n api,app -c green,cyan \"npm:api:demo\" \"npm:app\"",
 
     "//website": "Marketing site (SSG)",
     "website": "cd website && npm run start",
-    "website:dev": "concurrently -k -n web,site -c cyan,magenta \"npm:web:demo\" \"VITE_ANIMO_DEMO_URL=http://localhost:5173 npm run website\"",
+    "website:dev": "concurrently -k -n app,site -c cyan,magenta \"npm:app:demo\" \"VITE_ANIMO_DEMO_URL=http://localhost:5173 npm run website\"",
     "website:preview": "cd website && npm run preview",
 
     "//tauri": "Desktop shell",

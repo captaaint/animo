@@ -2,7 +2,7 @@
 //
 // Registered under the XMLUIExtensions namespace (default for extensions),
 // and the core xmlui ColorPicker is opted out via
-// `VITE_USED_COMPONENTS_ColorPicker=false` (see web/.env). With the core
+// `VITE_USED_COMPONENTS_ColorPicker=false` (see app/.env). With the core
 // renderer absent, unqualified `<ColorPicker>` in *.xmlui resolves to this
 // extension via the CORE → APP → EXTENSIONS lookup chain — so the modal
 // markup does not need to change. See docs/xmlui-bugs/colorpicker.md.
