@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # Synchronises a single version across four manifests:
 #   - package.json                (root, source of truth)
-#   - web/package.json            (XMLUI SPA)
+#   - app/package.json            (XMLUI SPA)
 #   - api/Cargo.toml              (animo-api server)
 #   - desktop/Cargo.toml          (Tauri shell)
 #   - desktop/tauri.conf.json     (Tauri bundle metadata)
@@ -156,7 +156,7 @@ PRE_SHA=$(git rev-parse HEAD)
 TOUCHED_FILES=(
   "CHANGELOG.md"
   "package.json"
-  "web/package.json"
+  "app/package.json"
   "api/Cargo.toml"
   "desktop/Cargo.toml"
   "desktop/tauri.conf.json"
@@ -184,7 +184,7 @@ echo "Bumping to ${VERSION}..."
 # JSON manifests: use Node for safe parse+stringify.
 node -e "
   const fs = require('fs');
-  for (const p of ['package.json', 'web/package.json', 'desktop/tauri.conf.json']) {
+  for (const p of ['package.json', 'app/package.json', 'desktop/tauri.conf.json']) {
     const j = JSON.parse(fs.readFileSync(p, 'utf8'));
     j.version = '${VERSION}';
     fs.writeFileSync(p, JSON.stringify(j, null, 2) + '\n');
