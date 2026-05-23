@@ -124,12 +124,26 @@
 .trigger,
 .clear,
 .nav,
-.preset {
+.preset,
+.adornmentTrigger {
   border: 0;
   background: transparent;
   color: inherit;
   cursor: pointer;
   font: inherit;
+}
+
+.adornmentTrigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  flex: 0 0 auto;
+  color: var(--xmlui-color-adornment-DatePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+
+  &:hover {
+    color: var(--xmlui-textColor-primary, inherit);
+  }
 }
 
 .trigger,

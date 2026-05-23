@@ -11,6 +11,7 @@ import { windowEventRenderer } from "./WindowEvent";
 import { viewportRenderer } from "./Viewport";
 import { centerRowRenderer } from "./CenterRow";
 import { datePickerRenderer } from "./DatePicker";
+import { timePickerRenderer } from "./TimePicker";
 
 export default {
   namespace: "XMLUIExtensions",
@@ -21,5 +22,6 @@ export default {
     viewportRenderer,
     centerRowRenderer,
     datePickerRenderer,
+    timePickerRenderer,
   ],
 };

@@ -552,11 +552,17 @@ export function DatePicker(props: DatePickerProps) {
             className={styles.control}
             data-has-adornment={hasAdornment ? "" : undefined}
           >
-            {(startText || startIcon) && (
-              <span className={styles.adornment}>
-                {startIcon && <CalendarGlyph />}
+            {!endIcon && (
+              <ArkDatePicker.Trigger
+                className={styles.adornmentTrigger}
+                aria-label="Open calendar"
+              >
+                <CalendarGlyph />
                 {startText}
-              </span>
+              </ArkDatePicker.Trigger>
+            )}
+            {endIcon && startText && (
+              <span className={styles.adornment}>{startText}</span>
             )}
 
             <ArkDatePicker.Input
@@ -576,11 +582,8 @@ export function DatePicker(props: DatePickerProps) {
               </>
             )}
 
-            {(endText || endIcon) && (
-              <span className={styles.adornment}>
-                {endText}
-                {endIcon && <CalendarGlyph />}
-              </span>
+            {endText && !endIcon && (
+              <span className={styles.adornment}>{endText}</span>
             )}
 
             <ArkDatePicker.ClearTrigger
@@ -589,12 +592,15 @@ export function DatePicker(props: DatePickerProps) {
             >
               <CloseGlyph />
             </ArkDatePicker.ClearTrigger>
-            <ArkDatePicker.Trigger
-              className={styles.trigger}
-              aria-label="Open calendar"
-            >
-              <CalendarGlyph />
-            </ArkDatePicker.Trigger>
+            {endIcon && (
+              <ArkDatePicker.Trigger
+                className={styles.trigger}
+                aria-label="Open calendar"
+              >
+                <CalendarGlyph />
+                {endText}
+              </ArkDatePicker.Trigger>
+            )}
           </ArkDatePicker.Control>
         </div>
 

@@ -1,0 +1,155 @@
+.root {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+  width: max-content;
+  min-width: 0;
+  color: var(--xmlui-textColor-primary, inherit);
+
+  &[data-validation-status="error"] .control {
+    border-color: var(--xmlui-borderColor-TimePicker--error, var(--xmlui-color-danger-500, #dc2626));
+  }
+
+  &[data-validation-status="warning"] .control {
+    border-color: var(--xmlui-borderColor-TimePicker--warning, var(--xmlui-color-warning-500, #d97706));
+  }
+
+  &[data-validation-status="valid"] .control {
+    border-color: var(--xmlui-borderColor-TimePicker--success, var(--xmlui-color-success-500, #16a34a));
+  }
+
+  &[data-bordered="false"] .control {
+    border-width: 0;
+    box-shadow: none;
+    background: transparent;
+
+    &:hover {
+      border-width: 0;
+      background: transparent;
+    }
+
+    &:focus-within {
+      outline: none;
+    }
+  }
+}
+
+.label {
+  color: var(--xmlui-textColor-label-formItem, var(--xmlui-textColor-primary, inherit));
+  font-family: var(--xmlui-fontFamily-label-formItem, inherit);
+  font-size: var(--xmlui-fontSize-label-formItem, inherit);
+  font-weight: var(--xmlui-fontWeight-label-formItem, inherit);
+  font-style: var(--xmlui-fontStyle-label-formItem, normal);
+  text-transform: var(--xmlui-textTransform-label-formItem, none);
+  user-select: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: var(--xmlui-minHeight-TimePicker, var(--xmlui-minHeight-Input, 40px));
+  line-height: normal;
+  gap: 8px;
+  padding: var(--xmlui-paddingVertical-TimePicker, var(--xmlui-paddingVertical-Input, 0))
+    var(--xmlui-paddingHorizontal-TimePicker, var(--xmlui-paddingHorizontal-Input, 12px));
+  border-width: var(--xmlui-borderWidth-TimePicker, var(--xmlui-borderWidth-Input, 1px));
+  border-style: var(--xmlui-borderStyle-TimePicker, var(--xmlui-borderStyle-Input, solid));
+  border-color: var(--xmlui-borderColor-TimePicker, var(--xmlui-borderColor-Input, var(--xmlui-borderColor, rgb(229, 231, 235))));
+  border-radius: var(--xmlui-borderRadius-TimePicker, var(--xmlui-borderRadius-Input, 8px));
+  background: var(--xmlui-backgroundColor-TimePicker, var(--xmlui-backgroundColor-Input, transparent));
+  color: var(--xmlui-textColor-TimePicker, var(--xmlui-textColor-primary, inherit));
+  box-shadow: var(--xmlui-boxShadow-TimePicker, var(--xmlui-boxShadow-Input, none));
+  box-sizing: border-box;
+
+  &:hover {
+    border-color: var(--xmlui-borderColor-TimePicker--hover, var(--xmlui-borderColor-Input--hover, var(--xmlui-borderColor-TimePicker, var(--xmlui-borderColor-Input, currentColor))));
+    background-color: var(--xmlui-backgroundColor-TimePicker--hover, var(--xmlui-backgroundColor-Input--hover, var(--xmlui-backgroundColor-TimePicker, var(--xmlui-backgroundColor-Input, transparent))));
+  }
+
+  &:focus-within {
+    outline: var(--xmlui-outlineWidth-TimePicker--focus, 2px)
+      var(--xmlui-outlineStyle-TimePicker--focus, solid)
+      var(--xmlui-outlineColor-TimePicker--focus, var(--xmlui-color-primary-300, rgba(63, 143, 140, 0.45)));
+    outline-offset: var(--xmlui-outlineOffset-TimePicker--focus, 1px);
+  }
+
+  &[data-disabled] {
+    opacity: 0.55;
+    pointer-events: none;
+  }
+}
+
+.input {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--xmlui-textColor-value-TimePicker, var(--xmlui-textColor-primary, inherit));
+  font: inherit;
+  font-size: var(--xmlui-fontSize-TimePicker, var(--xmlui-fontSize-Input, inherit));
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  appearance: none;
+
+  &::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+    width: 1em;
+    height: 1em;
+    margin-inline-start: 4px;
+  }
+
+  &::placeholder {
+    color: var(--xmlui-textColor-placeholder-TimePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+  }
+}
+
+.separator {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  color: var(--xmlui-color-adornment-TimePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+}
+
+.adornment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--xmlui-color-adornment-TimePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+
+  &:hover:not(:disabled) {
+    color: var(--xmlui-textColor-primary, inherit);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

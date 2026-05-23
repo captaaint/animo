@@ -95,7 +95,7 @@
       else toast.error('End must be after start');
     }" />
 
-  <ModalDialog id="modal" maxWidth="560px"
+  <ModalDialog id="modal" maxWidth="880px"
     padding="$space-4"
     closeButtonVisible="false"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">
@@ -125,108 +125,180 @@
         />
       </HStack>
 
-      <VStack gap="$space-2" width="100%">
-        <Text fontWeight="500" color="$color-surface-900">
-          What did you work on?
-        </Text>
-        <Stack
-          width="100%"
-          minHeight="126px"
-          border="1px solid $color-surface-200"
-          borderRadius="$borderRadius"
-          padding="$space-2"
-        >
-          <VStack width="100%" height="100%" gap="$space-2">
-            <Theme
-              borderWidth-TextArea="0"
-              borderColor-TextArea="transparent"
-              borderColor-TextArea--hover="transparent"
-              borderColor-TextArea--focus="transparent"
-              boxShadow-TextArea="none"
-              boxShadow-TextArea--hover="none"
-              boxShadow-TextArea--focus="none"
+      <HStack gap="$space-5" width="100%" verticalAlignment="stretch">
+        <VStack width="*" gap="$space-3">
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">
+              What did you work on?
+            </Text>
+            <Stack
+              width="100%"
+              minHeight="240px"
+              border="1px solid $color-surface-200"
+              borderRadius="$borderRadius"
+              padding="$space-3"
             >
-              <TextArea
-                id="descrInput"
-                width="100%"
-                height="80px"
-                rows="4"
-                maxLength="200"
-                resize="none"
-                initialValue="{descr}"
-                onDidChange="(v) => descr = v || ''"
-                placeholder="Add description..."
-              />
-            </Theme>
-            <HStack width="100%">
-              <SpaceFiller />
-              <Text fontSize="$fontSize-small" variant="secondary" fontWeight="700">
-                {descr.length} / 200
-              </Text>
-            </HStack>
+              <VStack width="100%" height="100%" gap="$space-2">
+                <Theme
+                  borderWidth-TextArea="0"
+                  borderColor-TextArea="transparent"
+                  borderColor-TextArea--hover="transparent"
+                  borderColor-TextArea--focus="transparent"
+                  boxShadow-TextArea="none"
+                  boxShadow-TextArea--hover="none"
+                  boxShadow-TextArea--focus="none"
+                >
+                  <TextArea
+                    id="descrInput"
+                    width="100%"
+                    height="180px"
+                    rows="8"
+                    maxLength="200"
+                    resize="none"
+                    initialValue="{descr}"
+                    onDidChange="(v) => descr = v || ''"
+                    placeholder="Add description..."
+                  />
+                </Theme>
+                <HStack width="100%">
+                  <SpaceFiller />
+                  <Text fontSize="$fontSize-small" variant="secondary" fontWeight="700">
+                    {descr.length} / 200
+                  </Text>
+                </HStack>
+              </VStack>
+            </Stack>
           </VStack>
-        </Stack>
-      </VStack>
 
-      <VStack gap="$space-2" width="100%">
-        <Text fontWeight="500" color="$color-surface-900">
-          Project
-        </Text>
-        <AutoComplete
-          width="100%"
-          initialValue="{projectId}"
-          onDidChange="(v) => projectId = v"
-          placeholder="No project">
-          <Items data="{$props.projects || []}">
-            <Option value="{$item.id}" label="{$item.name}">
-              <HStack verticalAlignment="center" gap="$space-2">
-                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
-                <Text>{$item.name}</Text>
-              </HStack>
-            </Option>
-          </Items>
-        </AutoComplete>
-      </VStack>
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">
+              Project
+            </Text>
+            <AutoComplete
+              width="100%"
+              initialValue="{projectId}"
+              onDidChange="(v) => projectId = v"
+              placeholder="No project">
+              <Items data="{$props.projects || []}">
+                <Option value="{$item.id}" label="{$item.name}">
+                  <HStack verticalAlignment="center" gap="$space-2">
+                    <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                    <Text>{$item.name}</Text>
+                  </HStack>
+                </Option>
+              </Items>
+            </AutoComplete>
+          </VStack>
 
-      <VStack gap="$space-2" width="100%">
-        <Text fontWeight="500" color="$color-surface-900">
-          Tags
-        </Text>
-        <AutoComplete
-          width="100%"
-          multi="true"
-          initialValue="{entryTagIds}"
-          onDidChange="(v) => entryTagIds = v || []"
-          placeholder="No tags">
-          <Items data="{$props.tags || []}">
-            <Option value="{$item.id}" label="{$item.name}">
-              <HStack verticalAlignment="center" gap="$space-2">
-                <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
-                <Text>{$item.name}</Text>
-              </HStack>
-            </Option>
-          </Items>
-        </AutoComplete>
-      </VStack>
-
-      <HStack gap="$space-5" width="100%" verticalAlignment="end">
-        <VStack width="*" gap="$space-2">
-          <Text fontWeight="500" color="$color-surface-900">
-            Date
-          </Text>
-          <DatePicker
-            width="100%"
-            initialValue="{entryDate}"
-            onDidChange="(v) => entryDate = v"
-            dateFormat="yyyy-MM-dd"
-            startIcon="date"
-          />
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">
+              Tags
+            </Text>
+            <AutoComplete
+              width="100%"
+              multi="true"
+              initialValue="{entryTagIds}"
+              onDidChange="(v) => entryTagIds = v || []"
+              placeholder="No tags">
+              <Items data="{$props.tags || []}">
+                <Option value="{$item.id}" label="{$item.name}">
+                  <HStack verticalAlignment="center" gap="$space-2">
+                    <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                    <Text>{$item.name}</Text>
+                  </HStack>
+                </Option>
+              </Items>
+            </AutoComplete>
+            <Text fontSize="$fontSize-small" variant="secondary">
+              Add tags to help organize your time entries
+            </Text>
+          </VStack>
         </VStack>
-        <VStack width="112px" gap="$space-2">
-          <Text fontWeight="500" color="$color-surface-900">
-            Billable
-          </Text>
-          <HStack verticalAlignment="center">
+
+        <Stack width="1px" backgroundColor="$color-surface-200" verticalAlignment="stretch" />
+
+        <VStack width="*" gap="$space-3">
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="700" color="$color-surface-900">Time</Text>
+            <HStack gap="$space-3" width="100%" verticalAlignment="end">
+              <VStack width="fit-content" gap="$space-1">
+                <Text fontSize="$fontSize-small" color="$color-surface-700">Start</Text>
+                <TimePicker
+                  id="startInput"
+                  iconAlign="start"
+                  initialValue="{startStr}"
+                  onDidChange="(v) => {
+                    if (!v || v === startStr) return;
+                    const oldDur = parseTimeToSec(endStr) - parseTimeToSec(startStr);
+                    startStr = v;
+                    const newEnd = addSecToTime(v, oldDur > 0 ? oldDur : 3600);
+                    if (newEnd !== endStr) {
+                      endStr = newEnd;
+                      endInput.setValue(newEnd);
+                    }
+                    durInput.setValue(formatHms(parseTimeToSec(newEnd) - parseTimeToSec(v)));
+                  }"
+                />
+              </VStack>
+              <VStack verticalAlignment="end" paddingBottom="$space-2">
+                <Text fontSize="$fontSize-large" variant="secondary">→</Text>
+              </VStack>
+              <VStack width="fit-content" gap="$space-1">
+                <Text fontSize="$fontSize-small" color="$color-surface-700">End</Text>
+                <TimePicker
+                  id="endInput"
+                  iconAlign="start"
+                  initialValue="{endStr}"
+                  onDidChange="(v) => {
+                    if (!v || v === endStr) return;
+                    endStr = v;
+                    durInput.setValue(formatHms(parseTimeToSec(v) - parseTimeToSec(startStr)));
+                  }"
+                />
+              </VStack>
+            </HStack>
+            <VStack width="100%" gap="$space-1">
+              <Text fontSize="$fontSize-small" color="$color-surface-700">Duration</Text>
+              <TimePicker
+                id="durInput"
+                width="100%"
+                iconAlign="start"
+                step="1"
+                initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
+                onDidChange="(v) => {
+                  const sec = parseHmsToSec(v);
+                  if (sec <= 0) return;
+                  const newEnd = addSecToTime(startStr, sec);
+                  if (newEnd === endStr) return;
+                  endStr = newEnd;
+                  endInput.setValue(newEnd);
+                }"
+              />
+            </VStack>
+          </VStack>
+
+          <Stack width="100%" height="1px" backgroundColor="$color-surface-200" />
+
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">
+              Date
+            </Text>
+            <DatePicker
+              width="100%"
+              initialValue="{entryDate}"
+              onDidChange="(v) => entryDate = v"
+              dateFormat="yyyy-MM-dd"
+              startIcon="date"
+            />
+          </VStack>
+
+          <HStack gap="$space-3" width="100%" verticalAlignment="center">
+            <VStack width="*" gap="$space-1">
+              <Text fontWeight="500" color="$color-surface-900">Billable</Text>
+              <Text fontSize="$fontSize-small" variant="secondary">
+                Mark this entry as billable
+              </Text>
+            </VStack>
             <Switch
               initialValue="{billable}"
               onDidChange="(v) => billable = !!v"
@@ -234,72 +306,6 @@
           </HStack>
         </VStack>
       </HStack>
-
-      <VStack gap="$space-2" width="100%">
-        <Text fontWeight="500" color="$color-surface-900">
-          Time range
-        </Text>
-        <HStack
-          width="100%"
-          gap="0"
-          verticalAlignment="center"
-          border="1px solid $color-surface-200"
-          borderRadius="$borderRadius"
-        >
-          <TimeInput
-            id="startInput"
-            width="*"
-            border="none"
-            startIcon="clock"
-            initialValue="{startStr}"
-            onDidChange="(v) => {
-              if (!v || v === startStr) return;
-              const oldDur = parseTimeToSec(endStr) - parseTimeToSec(startStr);
-              startStr = v;
-              const newEnd = addSecToTime(v, oldDur > 0 ? oldDur : 3600);
-              if (newEnd !== endStr) {
-                endStr = newEnd;
-                endInput.setValue(newEnd);
-              }
-              durInput.setValue(formatHms(parseTimeToSec(newEnd) - parseTimeToSec(v)));
-            }"
-          />
-          <Stack width="1px" height="36px" backgroundColor="$color-surface-200" />
-          <TimeInput
-            id="endInput"
-            width="*"
-            border="none"
-            startIcon="clock"
-            initialValue="{endStr}"
-            onDidChange="(v) => {
-              if (!v || v === endStr) return;
-              endStr = v;
-              durInput.setValue(formatHms(parseTimeToSec(v) - parseTimeToSec(startStr)));
-            }"
-          />
-        </HStack>
-      </VStack>
-
-      <VStack gap="$space-2" width="100%">
-        <Text fontWeight="500" color="$color-surface-900">
-          Duration
-        </Text>
-        <TextBox
-          id="durInput"
-          width="100%"
-          startIcon="clock"
-          endIcon="equals"
-          initialValue="{formatHms(parseTimeToSec(endStr) - parseTimeToSec(startStr))}"
-          onDidChange="(v) => {
-            const sec = parseHmsToSec(v);
-            if (sec <= 0) return;
-            const newEnd = addSecToTime(startStr, sec);
-            if (newEnd === endStr) return;
-            endStr = newEnd;
-            endInput.setValue(newEnd);
-          }"
-        />
-      </VStack>
     </VStack>
   </ModalDialog>
 </Component>
