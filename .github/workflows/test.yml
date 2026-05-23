@@ -25,11 +25,22 @@ jobs:
       desktop: ${{ steps.filter.outputs.desktop }}
       e2e: ${{ steps.filter.outputs.e2e }}
     steps:
+      # fetch-depth: 0 gives paths-filter the merge-base it needs to do a
+      # local git diff for pull_request events — avoids hitting the GitHub
+      # API (which intermittently returns "Bad credentials" when the
+      # default token is restricted by branch-protection rules).
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: dorny/paths-filter@v3
         id: filter
         with:
+          token: ${{ github.token }}
+          # Compare against the PR base for pull_request events; for
+          # workflow_dispatch / push the action falls back to its default.
+          base: ${{ github.event.pull_request.base.sha || '' }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           filters: |
             app:
               - 'app/**'
