@@ -7,7 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- Drawer-based mobile editor for time entries (EntryDrawer) — bottom-sheet
+  with sticky header, Time picker with the new Lucide timer icon for
+  Duration, and full-width Save/Cancel/Delete actions. (a596d38)
+- Reusable DeleteConfirmModal (desktop) and DeleteConfirmDrawer (mobile)
+  components with an optional entity-detail card. (a596d38)
+- Unified card-based modal/drawer layout for Tag/Project/Client editors
+  with a 16-color palette grid (Sage teal default, named swatches with
+  hex preview). (a596d38)
+- Cross-tree TimerBar control via shared timerBus helpers. (fc9f630)
+- Download grid on the marketing site. (#21)
+
+### Changed
+
+- Viewport-aware modal vs drawer rendering across Tags / Projects /
+  Clients / Reports / Calendar — the same breakpoint now drives both the
+  layout switch and the editor surface, so the tablet zone no longer
+  renders inconsistently. (a596d38)
+- Tag / Project / Client delete flow goes through the shared
+  DeleteConfirmModal / DeleteConfirmDrawer instead of the legacy
+  `confirmTitle` / `confirmMessage` props on `APICall`. (a596d38)
+- TimePicker accepts `iconName="timer"` and stretches to fill its
+  container when `width="*"`. (a596d38)
+- DatePicker now matches the chevron-from-right spacing used by Select
+  fields when `width="100%"`. (a596d38)
+
+### Fixed
+
+- Tag list rows truncate long names with ellipsis on mobile. (a596d38)
+- Color palette grid stays on a single row on every viewport width.
+  (a596d38)
+- macOS version markers in release docs updated for compatibility. (#20)
 
 ## [0.1.1] - 2026-05-21
 

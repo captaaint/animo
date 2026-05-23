@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+#
+# .githooks/commit-msg — enforce Conventional Commits on local commits.
+#
+# Activation: same as the rest of the hooks in this directory.
+#   git config core.hooksPath .githooks
+# or run scripts/install-hooks.sh once after cloning.
+#
+# Why this exists:
+#   The CHANGELOG-on-dev workflow (scripts/changelog-append.mjs) filters
+#   commits by conventional type + scope. Anything outside the convention
+#   silently disappears from the release notes. This hook catches the
+#   mistake locally — before it ships — instead of after release.
+#
+# What it enforces:
+#   type(scope)?!?: subject
+#     type ∈ feat, fix, perf, chore, ci, build, docs, style, test, refactor, revert
+#     scope is optional, but feat/fix/perf without an app/api/desktop scope
+#     gets a warning (still allowed — non-product feat work happens too).
+#   subject must be non-empty.
+#
+# Auto-bypassed:
+#   Merge commits, "Release vX" tags, revert commits, fixup!/squash!,
+#   and auto-changelog commits — all already filtered out of the changelog
+#   pipeline, so blocking them here would be friction without value.
+#
+# Emergency bypass:
+#   git commit --no-verify
+#   (use sparingly — the workflow that consumes these messages won't bend.)
+
+set -euo pipefail
+
+# $1 is the path to the .git/COMMIT_EDITMSG file git passes in.
+MSG_FILE=${1:-}
+if [ -z "$MSG_FILE" ] || [ ! -f "$MSG_FILE" ]; then
+  exit 0  # nothing to check
+fi
+
+# First non-empty, non-comment line is the subject.
+SUBJECT=$(grep -v '^#' "$MSG_FILE" | sed '/^[[:space:]]*$/d' | head -n 1 || true)
+
+if [ -z "$SUBJECT" ]; then
+  # An empty message will be rejected by git itself; nothing for us to add.
+  exit 0
+fi
+
+# Skip patterns: things the changelog pipeline already ignores.
+case "$SUBJECT" in
+  "Merge "*|"Revert "*|"fixup!"*|"squash!"*|"Release v"*|"chore(changelog)"*)
+    exit 0
+    ;;
+esac
+
+# Conventional Commits regex:
+#   ^(type)(\(scope\))?!?: subject
+# Subject must follow the ": " separator and be non-empty.
+TYPE_RE='(feat|fix|perf|chore|ci|build|docs|style|test|refactor|revert)'
+PATTERN="^${TYPE_RE}(\([a-z0-9-]+\))?!?: .+"
+
+if ! echo "$SUBJECT" | grep -qE "$PATTERN"; then
+  cat >&2 <<EOF
+commit-msg hook rejected: subject doesn't follow Conventional Commits.
+
+  got: $SUBJECT
+
+Expected format:
+  type(scope)?!?: subject
+
+  type     one of: feat | fix | perf | chore | ci | build | docs | style |
+                   test | refactor | revert
+  scope    optional, lowercase, e.g. (app), (api), (desktop)
+  !        optional breaking-change marker
+  subject  non-empty, after a ": " separator
+
+Examples:
+  feat(app): drawer-based entry editor for mobile
+  fix(api): timezone bug in entries endpoint
+  perf(desktop): faster cold start
+  chore(deps): bump xmlui to 0.12.27
+  feat(app)!: drop legacy export format
+
+Note: only feat/fix/perf with scope (app|api|desktop) reach the public
+CHANGELOG. Everything else commits fine but stays out of release notes —
+which is the intended behaviour for infra/website/demo/internal work.
+
+Bypass for emergencies (not as a habit):
+  git commit --no-verify
+EOF
+  exit 1
+fi
+
+# Optional informational nudge: a product-affecting type without an
+# APP scope means the commit won't show in the next release's changelog.
+# Don't fail — sometimes you really do want a scope-less feat/fix on the
+# infra side. Just remind the author so they can fix it before pushing.
+TYPE=$(echo "$SUBJECT" | sed -E 's/^([a-z]+).*/\1/')
+SCOPE=$(echo "$SUBJECT" | sed -nE 's/^[a-z]+\(([a-z0-9-]+)\).*/\1/p')
+case "$TYPE" in
+  feat|fix|perf)
+    case "$SCOPE" in
+      app|api|desktop) ;;  # will land in CHANGELOG
+      "")
+        echo "commit-msg: note: '$TYPE' without scope — won't appear in CHANGELOG. Add a scope (app/api/desktop) if this is product work." >&2
+        ;;
+      *)
+        echo "commit-msg: note: scope '$SCOPE' isn't in (app/api/desktop) — won't appear in CHANGELOG. Use one of those for product-facing work." >&2
+        ;;
+    esac
+    ;;
+esac
+
+exit 0
