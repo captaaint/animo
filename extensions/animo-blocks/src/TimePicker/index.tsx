@@ -59,6 +59,32 @@ const metadata = createMetadata({
       defaultValue: "start",
       availableValues: ["start", "end", "none"],
     },
+    placeholder: {
+      description: "Placeholder text shown when no value is set.",
+      valueType: "string",
+      defaultValue: "--:--",
+    },
+    hoursLabel: {
+      description: "Label of the hours column in the dropdown.",
+      valueType: "string",
+      defaultValue: "Hours",
+    },
+    minutesLabel: {
+      description: "Label of the minutes column in the dropdown.",
+      valueType: "string",
+      defaultValue: "Minutes",
+    },
+    secondsLabel: {
+      description: "Label of the seconds column (used when `step` < 60).",
+      valueType: "string",
+      defaultValue: "Seconds",
+    },
+    hourCycle: {
+      description: "Hour cycle: 24 (00-23) or 12 (00-11).",
+      valueType: "number",
+      defaultValue: 24,
+      availableValues: [24, 12],
+    },
     width: {
       description: "CSS width for the picker root.",
       valueType: "string",
@@ -139,6 +165,11 @@ export const timePickerRenderer = createComponentRenderer(
             | "none"
             | undefined
         }
+        placeholder={extractValue.asOptionalString(props.placeholder)}
+        hoursLabel={extractValue.asOptionalString(props.hoursLabel)}
+        minutesLabel={extractValue.asOptionalString(props.minutesLabel)}
+        secondsLabel={extractValue.asOptionalString(props.secondsLabel)}
+        hourCycle={extractValue.asOptionalNumber(props.hourCycle) as 12 | 24 | undefined}
         validationStatus={
           extractValue.asOptionalString(props.validationStatus) as
             | "none"
