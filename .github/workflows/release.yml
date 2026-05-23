@@ -149,10 +149,16 @@ jobs:
             build-essential
 
       # Workspaces root install — covers app, website, demo, and the
-      # animo-blocks extension package in a single npm ci. --ignore-scripts
-      # skips the broken xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
+      # animo-blocks extension package. We wipe node_modules + the lockfile
+      # before `npm install` to work around npm/cli#4828: a macOS-generated
+      # lockfile leaves out Linux optional bindings (e.g.
+      # @rolldown/binding-linux-x64-gnu) under `npm ci`, and the build
+      # then crashes inside rolldown. `--ignore-scripts` skips the broken
+      # xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
       - name: Install workspace dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --no-fund --ignore-scripts
 
       # Cache turbo's build artifacts across release runs.
       - uses: rharkor/caching-for-turbo@v2.3.1

@@ -83,11 +83,18 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      # Workspaces root install — covers app, website, demo, and animo-blocks
-      # in one npm ci. --ignore-scripts works around the broken
-      # xmlui-pdf@0.1.13 postinstall.
+      # Workspaces root install — covers app, website, demo, and animo-blocks.
+      # We delete package-lock.json + node_modules before `npm install` to
+      # work around npm/cli#4828: when the lockfile was generated on a
+      # different platform (macOS dev machine), `npm ci` on Linux skips
+      # platform-specific optional bindings (e.g. @rolldown/binding-linux-x64-gnu),
+      # and the build then crashes inside rolldown with "Cannot find native
+      # binding". `--ignore-scripts` skips the broken xmlui-pdf@0.1.13
+      # postinstall (runtime is unaffected).
       - name: Install workspace dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --no-fund --ignore-scripts
 
       # Cache turbo's build artifacts across runs — animo-blocks/dist and
       # app/dist get reused when their inputs haven't changed.
@@ -189,11 +196,16 @@ jobs:
             package-lock.json
             e2e/package-lock.json
 
-      # Workspaces root install — covers app, website, demo, and animo-blocks
-      # in one npm ci. --ignore-scripts skips the broken xmlui-pdf@0.1.13
+      # Workspaces root install — covers app, website, demo, and animo-blocks.
+      # See npm/cli#4828: a macOS-generated lockfile leaves out Linux
+      # optional bindings (e.g. @rolldown/binding-linux-x64-gnu) under
+      # `npm ci`, so we wipe and reinstall to get the right per-platform
+      # binaries. `--ignore-scripts` skips the broken xmlui-pdf@0.1.13
       # postinstall (runtime is unaffected).
       - name: Install workspace dependencies
-        run: npm ci --prefer-offline --no-audit --no-fund --ignore-scripts
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --no-fund --ignore-scripts
 
       - name: Install e2e dependencies
         working-directory: e2e
