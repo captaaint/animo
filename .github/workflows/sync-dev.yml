@@ -24,9 +24,17 @@ jobs:
           fetch-depth: 0
 
       - name: Force-reset dev to origin/main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Re-embed the bot token into the remote URL. actions/checkout@v4
+          # sets this up by default, but it can get lost after fetches or
+          # in certain runner configurations — producing "could not read
+          # Username for github.com" when the persisted credential isn't
+          # picked up. Setting the URL explicitly is robust either way.
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git fetch origin main
           git reset --hard origin/main
           git push --force-with-lease origin dev
