@@ -7,7 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Fixed
+
+- Windows desktop release build: app npm scripts now use `cross-env` so
+  the `VITE_USED_COMPONENTS_*` env-var prefixes work under cmd.exe, not
+  just POSIX shells. v0.1.2's Windows MSI was missing for this reason.
+- Release workflow's `Install workspace dependencies` step now pins
+  `shell: bash` so `rm -rf node_modules package-lock.json` runs under
+  Git Bash on Windows runners instead of PowerShell.
+- `scripts/bump.sh` points at `app/package.json` after the `web/` → `app/`
+  directory rename, so version bumps no longer ENOENT on the SPA manifest.
+
+### Changed
+
+- Release workflow's per-platform desktop/api jobs now short-circuit at
+  a gate step when the expected artifact is already attached to the
+  release — re-dispatching after a partial failure only rebuilds the
+  missing platforms.
 
 ## [0.1.2] - 2026-05-23
 
