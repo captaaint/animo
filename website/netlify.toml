@@ -2,10 +2,11 @@
 #
 # Deployment: standalone XMLUI website (SSG).
 #
-# Set the Netlify site's "Base directory" to `animo/website` in the
-# dashboard. NPM workspaces are detected automatically — Netlify runs the
-# install step from the workspace root (animo/) and hoists shared deps
-# (e.g. animo-blocks) into a single node_modules tree.
+# Set the Netlify site's "Base directory" to `website` in the dashboard
+# (this folder, relative to the repo root). NPM workspaces are detected
+# automatically — Netlify runs the install step from the workspace root
+# and hoists shared deps (e.g. animo-blocks) into a single node_modules
+# tree.
 #
 # What this configures:
 #   * `publish` — relative to the base directory; the xmlui SSG output.
@@ -16,7 +17,17 @@
 
 [build]
 publish = "dist-ssg"
-command = "npx turbo run build:website --filter=animo-website"
+# The cd-up + wipe + npm install is a workaround for npm/cli#4828: a
+# macOS-generated lockfile leaves out Linux-specific optional bindings
+# (e.g. @rolldown/binding-linux-x64-gnu), and Netlify's default `npm ci`
+# skips them — so the subsequent rolldown-driven build crashes with
+# "Cannot find native binding". Wiping and reinstalling on Linux fetches
+# the correct per-platform binaries.
+command = """
+cd .. && rm -rf node_modules package-lock.json && \
+npm install --no-audit --no-fund --ignore-scripts && \
+cd website && npx turbo run build:website --filter=animo-website
+"""
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"
