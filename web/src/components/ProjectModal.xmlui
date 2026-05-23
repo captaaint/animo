@@ -87,6 +87,20 @@
             <Option value="HUF" label="HUF" />
           </Select>
         </HStack>
+        <Theme
+          when="{!!editItem}"
+          textColor-Button-attention-outlined="$color-danger-500"
+          borderColor-Button-attention-outlined="$color-danger-500">
+          <Button
+            type="button"
+            width="100%"
+            icon="trash"
+            label="Delete"
+            variant="outlined"
+            themeColor="attention"
+            onClick="const item = editItem; modal.close(); emitEvent('deleteRequested', item);"
+          />
+        </Theme>
       </VStack>
     </Form>
   </ModalDialog>

@@ -1,0 +1,102 @@
+<Component name="ClientDrawer"
+  var.editItem="{null}"
+  var.nameInput="{''}"
+  var.colorInput="{'#3F8F8C'}"
+  var.drawerOpen="{false}"
+  method.open="(data) => {
+    editItem = data || null;
+    nameInput = data ? data.name : '';
+    colorInput = data ? data.color : '#3F8F8C';
+    drawerOpen = true;
+  }"
+>
+  <APICall id="saveCall"
+    method="{editItem ? 'PATCH' : 'POST'}"
+    url="{editItem ? apiBase + '/clients/' + editItem.id : apiBase + '/clients'}"
+    credentials="include"
+    body="{{ name: nameInput, color: colorInput }}"
+    onSuccess="() => {
+      toast.success(editItem ? 'Client updated' : 'Client added');
+      emitEvent('saved');
+      drawerOpen = false;
+      emitEvent('closed');
+    }"
+    onError="() => toast.error('Save failed')"
+  />
+
+  <Theme height-Drawer="auto" maxHeight-Drawer="92vh">
+  <Drawer
+    when="{drawerOpen}"
+    initiallyOpen="true"
+    position="bottom"
+    closeButtonVisible="false"
+    onClose="() => { drawerOpen = false; emitEvent('closed'); }">
+    <property name="headerTemplate">
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="drawerOpen = false; emitEvent('closed')"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {editItem ? 'Edit client' : 'New client'}
+        </Text>
+        <SpaceFiller />
+        <Button
+          icon="checkmark"
+          themeColor="primary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          onClick="if (!nameInput || nameInput.trim().length === 0) { toast.error('Name is required'); return; } saveCall.execute();"
+        />
+      </HStack>
+    </property>
+
+    <VStack width="100%" gap="$space-3">
+      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Name</Text>
+            <TextBox
+              width="100%"
+              initialValue="{nameInput}"
+              onDidChange="(v) => nameInput = v || ''"
+            />
+          </VStack>
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Color</Text>
+            <ColorPicker
+              initialValue="{colorInput}"
+              onDidChange="(v) => colorInput = v"
+            />
+          </VStack>
+        </VStack>
+      </Card>
+
+      <Theme
+        when="{!!editItem}"
+        textColor-Button-attention-outlined="$color-danger-500"
+        borderColor-Button-attention-outlined="$color-danger-500">
+        <Button
+          type="button"
+          width="100%"
+          icon="trash"
+          label="Delete"
+          variant="outlined"
+          themeColor="attention"
+          onClick="const item = editItem; drawerOpen = false; emitEvent('deleteRequested', item);"
+        />
+      </Theme>
+    </VStack>
+  </Drawer>
+  </Theme>
+</Component>

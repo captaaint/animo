@@ -10,10 +10,39 @@
     credentials="include"
   />
 
+  <Viewport id="vp" />
+
   <ProjectModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="projectModal"
     clients="{clientsDs.value || []}"
     onSaved="() => projectsDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+  />
+
+  <ProjectDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="projectDrawer"
+    clients="{clientsDs.value || []}"
+    onSaved="() => projectsDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
+  />
+
+  <DeleteConfirmModal
+    when="{!vp.value || !vp.value.isMobile}"
+    id="deleteConfirmModal"
+    title="Delete project"
+    message="Are you sure you want to delete this project? This action cannot be undone."
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
+
+  <DeleteConfirmDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="deleteConfirmDrawer"
+    title="Delete project"
+    confirmText="Delete this project?"
+    message="This action cannot be undone."
+    onConfirmed="(id) => deleteCall.execute(id)"
   />
 
   <APICall
@@ -21,8 +50,6 @@
     method="DELETE"
     url="{apiBase + '/projects/' + $param}"
     credentials="include"
-    confirmMessage="Are you sure?"
-    confirmTitle="Delete project"
     onSuccess="() => { toast.success('Project deleted'); projectsDs.refetch(); }"
     onError="() => toast.error('Delete failed')"
   />
@@ -67,7 +94,7 @@
             <Button icon="pencil" size="xs" variant="ghost" themeColor="secondary" padding="$space-2"
               onClick="projectModal.open($item)" />
             <Button icon="trash" size="xs" variant="ghost" themeColor="attention" padding="$space-2"
-              onClick="deleteCall.execute($item.id)" />
+              onClick="deleteConfirmModal.open($item.id)" />
           </HStack>
         </Column>
       </Table>
@@ -112,9 +139,9 @@
                 <property name="triggerTemplate">
                   <Button icon="dotmenu" variant="ghost" size="sm" themeColor="secondary" />
                 </property>
-                <MenuItem icon="pencil" onClick="projectModal.open($item)">Edit</MenuItem>
+                <MenuItem icon="pencil" onClick="projectDrawer.open($item)">Edit</MenuItem>
                 <MenuSeparator />
-                <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">Delete</MenuItem>
+                <MenuItem icon="trash" onClick="deleteConfirmDrawer.open($item)">Delete</MenuItem>
               </DropdownMenu>
             </HStack>
             <ContentSeparator when="{!$isLast}" />
@@ -132,7 +159,7 @@
         width="100%"
         label="New project"
         icon="plus"
-        onClick="projectModal.open()"
+        onClick="projectDrawer.open()"
       />
     </VStack>
 

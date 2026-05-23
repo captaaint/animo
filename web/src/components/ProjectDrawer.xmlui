@@ -1,0 +1,155 @@
+<Component name="ProjectDrawer"
+  var.editItem="{null}"
+  var.nameInput="{''}"
+  var.clientIdInput="{null}"
+  var.colorInput="{'#3F8F8C'}"
+  var.hourlyRateInput="{0}"
+  var.currencyInput="{'EUR'}"
+  var.drawerOpen="{false}"
+  method.open="(data) => {
+    editItem = data || null;
+    nameInput = data ? data.name : '';
+    clientIdInput = data ? data.clientId : null;
+    colorInput = data ? data.color : '#3F8F8C';
+    hourlyRateInput = data &amp;&amp; data.hourlyRate ? data.hourlyRate : 0;
+    currencyInput = data &amp;&amp; data.currency ? data.currency : 'EUR';
+    drawerOpen = true;
+  }"
+>
+  <APICall id="saveCall"
+    method="{editItem ? 'PATCH' : 'POST'}"
+    url="{editItem ? apiBase + '/projects/' + editItem.id : apiBase + '/projects'}"
+    credentials="include"
+    body="{{
+      name: nameInput,
+      clientId: clientIdInput || null,
+      color: colorInput,
+      hourlyRate: Number(hourlyRateInput) || 0,
+      currency: currencyInput || 'EUR'
+    }}"
+    onSuccess="() => {
+      toast.success(editItem ? 'Project updated' : 'Project added');
+      emitEvent('saved');
+      drawerOpen = false;
+      emitEvent('closed');
+    }"
+    onError="() => toast.error('Save failed')"
+  />
+
+  <Theme height-Drawer="auto" maxHeight-Drawer="92vh">
+  <Drawer
+    when="{drawerOpen}"
+    initiallyOpen="true"
+    position="bottom"
+    closeButtonVisible="false"
+    onClose="() => { drawerOpen = false; emitEvent('closed'); }">
+    <property name="headerTemplate">
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="drawerOpen = false; emitEvent('closed')"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {editItem ? 'Edit project' : 'New project'}
+        </Text>
+        <SpaceFiller />
+        <Button
+          icon="checkmark"
+          themeColor="primary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          onClick="if (!nameInput || nameInput.trim().length === 0) { toast.error('Name is required'); return; } saveCall.execute();"
+        />
+      </HStack>
+    </property>
+
+    <VStack width="100%" gap="$space-3">
+      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <VStack gap="$space-3" width="100%">
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Name</Text>
+            <TextBox
+              width="100%"
+              initialValue="{nameInput}"
+              onDidChange="(v) => nameInput = v || ''"
+            />
+          </VStack>
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Client</Text>
+            <AutoComplete
+              width="100%"
+              initialValue="{clientIdInput}"
+              onDidChange="(v) => clientIdInput = v"
+              placeholder="(no client)">
+              <Items data="{$props.clients || []}">
+                <Option value="{$item.id}" label="{$item.name}">
+                  <HStack verticalAlignment="center" gap="$space-2">
+                    <Stack width="10px" height="10px" borderRadius="3px" backgroundColor="{$item.color}" />
+                    <Text>{$item.name}</Text>
+                  </HStack>
+                </Option>
+              </Items>
+            </AutoComplete>
+          </VStack>
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Color</Text>
+            <ColorPicker
+              initialValue="{colorInput}"
+              onDidChange="(v) => colorInput = v"
+            />
+          </VStack>
+          <HStack gap="$space-2" width="100%">
+            <VStack width="*" gap="$space-2">
+              <Text fontWeight="500" color="$color-surface-900">Hourly rate</Text>
+              <NumberBox
+                width="100%"
+                initialValue="{hourlyRateInput}"
+                onDidChange="(v) => hourlyRateInput = v"
+                minValue="0"
+                step="1"
+              />
+            </VStack>
+            <VStack width="120px" gap="$space-2">
+              <Text fontWeight="500" color="$color-surface-900">Currency</Text>
+              <Select
+                width="100%"
+                initialValue="{currencyInput}"
+                onDidChange="(v) => currencyInput = v">
+                <Option value="EUR" label="EUR" />
+                <Option value="USD" label="USD" />
+                <Option value="GBP" label="GBP" />
+                <Option value="HUF" label="HUF" />
+              </Select>
+            </VStack>
+          </HStack>
+        </VStack>
+      </Card>
+
+      <Theme
+        when="{!!editItem}"
+        textColor-Button-attention-outlined="$color-danger-500"
+        borderColor-Button-attention-outlined="$color-danger-500">
+        <Button
+          type="button"
+          width="100%"
+          icon="trash"
+          label="Delete"
+          variant="outlined"
+          themeColor="attention"
+          onClick="const item = editItem; drawerOpen = false; emitEvent('deleteRequested', item);"
+        />
+      </Theme>
+    </VStack>
+  </Drawer>
+  </Theme>
+</Component>

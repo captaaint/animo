@@ -1,4 +1,4 @@
-<Component name="TagModal"
+<Component name="TagDrawer"
   var.editItem="{null}"
   var.nameInput="{''}"
   var.colorInput="{'#3F8F8C'}"
@@ -18,11 +18,12 @@
     { hex: '#BDBDBD', name: 'Gray' },
     { hex: '#8B5E3C', name: 'Brown' }
   ]}"
+  var.drawerOpen="{false}"
   method.open="(data) => {
     editItem = data || null;
     nameInput = data ? data.name : '';
     colorInput = data ? data.color : '#3F8F8C';
-    modal.open();
+    drawerOpen = true;
   }"
 >
   <APICall id="saveCall"
@@ -33,20 +34,50 @@
     onSuccess="() => {
       toast.success(editItem ? 'Tag updated' : 'Tag added');
       emitEvent('saved');
-      modal.close();
+      drawerOpen = false;
+      emitEvent('closed');
     }"
     onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
   />
 
-  <ModalDialog
-    id="modal"
-    title="{editItem ? 'Edit tag' : 'New tag'}"
-    closeButtonVisible="true"
-    maxWidth="600px"
-    padding="$space-4"
-    borderRadius="16px">
-    <VStack gap="$space-4" width="100%">
+  <Theme height-Drawer="auto" maxHeight-Drawer="92vh">
+  <Drawer
+    when="{drawerOpen}"
+    initiallyOpen="true"
+    position="bottom"
+    closeButtonVisible="false"
+    onClose="() => { drawerOpen = false; emitEvent('closed'); }">
+    <property name="headerTemplate">
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="drawerOpen = false; emitEvent('closed')"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {editItem ? 'Edit tag' : 'New tag'}
+        </Text>
+        <SpaceFiller />
+        <Button
+          icon="checkmark"
+          themeColor="primary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          onClick="if (!nameInput || nameInput.trim().length === 0) { toast.error('Name is required'); return; } saveCall.execute();"
+        />
+      </HStack>
+    </property>
 
+    <VStack width="100%" gap="$space-3">
       <Card padding="$space-4" borderRadius="12px">
         <VStack gap="$space-2" width="100%">
           <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
@@ -91,7 +122,7 @@
             <HStack gap="$space-2" wrapContent="true" width="100%">
               <Items data="{colorPalette.slice(0, 7)}">
                 <Stack
-                  width="44px" height="44px" borderRadius="10px"
+                  width="40px" height="40px" borderRadius="10px"
                   backgroundColor="{$item.hex}"
                   cursor="pointer"
                   verticalAlignment="center"
@@ -99,7 +130,7 @@
                   onClick="colorInput = $item.hex">
                   <Stack
                     when="{colorInput === $item.hex}"
-                    width="24px" height="24px" borderRadius="50%"
+                    width="22px" height="22px" borderRadius="50%"
                     backgroundColor="white"
                     verticalAlignment="center" horizontalAlignment="center">
                     <Icon name="checkmark" color="{$item.hex}" size="sm" />
@@ -110,7 +141,7 @@
             <HStack gap="$space-2" wrapContent="true" width="100%">
               <Items data="{colorPalette.slice(7)}">
                 <Stack
-                  width="44px" height="44px" borderRadius="10px"
+                  width="40px" height="40px" borderRadius="10px"
                   backgroundColor="{$item.hex}"
                   cursor="pointer"
                   verticalAlignment="center"
@@ -118,7 +149,7 @@
                   onClick="colorInput = $item.hex">
                   <Stack
                     when="{colorInput === $item.hex}"
-                    width="24px" height="24px" borderRadius="50%"
+                    width="22px" height="22px" borderRadius="50%"
                     backgroundColor="white"
                     verticalAlignment="center" horizontalAlignment="center">
                     <Icon name="checkmark" color="{$item.hex}" size="sm" />
@@ -130,33 +161,21 @@
         </VStack>
       </Card>
 
-      <HStack width="100%" gap="$space-3" verticalAlignment="center">
-        <Theme
-          when="{!!editItem}"
-          textColor-Button-attention-outlined="$color-danger-500"
-          borderColor-Button-attention-outlined="$color-danger-500">
-          <Button
-            type="button"
-            icon="trash"
-            label="Delete"
-            variant="outlined"
-            themeColor="attention"
-            onClick="const item = editItem; modal.close(); emitEvent('deleteRequested', item);"
-          />
-        </Theme>
-        <SpaceFiller />
+      <Theme
+        when="{!!editItem}"
+        textColor-Button-attention-outlined="$color-danger-500"
+        borderColor-Button-attention-outlined="$color-danger-500">
         <Button
-          label="Cancel"
+          type="button"
+          width="100%"
+          icon="trash"
+          label="Delete"
           variant="outlined"
-          themeColor="secondary"
-          onClick="modal.close()"
+          themeColor="attention"
+          onClick="const item = editItem; drawerOpen = false; emitEvent('deleteRequested', item);"
         />
-        <Button
-          label="{editItem ? 'Save tag' : 'Save tag'}"
-          themeColor="primary"
-          onClick="if (!nameInput || nameInput.trim().length === 0) { toast.error('Name is required'); return; } saveCall.execute();"
-        />
-      </HStack>
+      </Theme>
     </VStack>
-  </ModalDialog>
+  </Drawer>
+  </Theme>
 </Component>

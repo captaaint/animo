@@ -19,11 +19,11 @@
           <Icon name="trash" color="$color-danger-500" />
         </Stack>
         <Text fontSize="$fontSize-2xl" fontWeight="700" color="$color-surface-900">
-          Delete entry
+          {$props.title || 'Delete entry'}
         </Text>
       </HStack>
       <Text color="$color-surface-700">
-        Are you sure you want to delete this time entry? This action cannot be undone.
+        {$props.message || 'Are you sure you want to delete this time entry? This action cannot be undone.'}
       </Text>
       <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
       <HStack width="100%" gap="$space-3" verticalAlignment="center">

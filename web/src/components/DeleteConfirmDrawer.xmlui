@@ -26,7 +26,7 @@
         />
         <SpaceFiller />
         <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
-          Delete entry
+          {$props.title || 'Delete entry'}
         </Text>
         <SpaceFiller />
         <Theme
@@ -48,15 +48,17 @@
       <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack gap="$space-1" width="100%">
           <Text fontWeight="600" color="$color-surface-900">
-            Delete this entry?
+            {$props.confirmText || 'Delete this entry?'}
           </Text>
           <Text fontSize="$fontSize-small" color="$color-surface-700">
-            This action cannot be undone.
+            {$props.message || 'This action cannot be undone.'}
           </Text>
         </VStack>
       </Card>
 
-      <Card padding="$space-2" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card
+        when="{entry &amp;&amp; entry.startTime}"
+        padding="$space-2" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack width="100%" gap="0">
           <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
             <Icon name="doc" color="$color-primary-500" />
@@ -138,6 +140,21 @@
             </VStack>
           </HStack>
         </VStack>
+      </Card>
+
+      <Card
+        when="{entry &amp;&amp; !entry.startTime &amp;&amp; (entry.name || entry.color)}"
+        padding="$space-3" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <HStack width="100%" verticalAlignment="center" gap="$space-3">
+          <Stack
+            when="{!!(entry &amp;&amp; entry.color)}"
+            width="20px" height="20px" borderRadius="4px"
+            backgroundColor="{entry.color}"
+          />
+          <Text fontWeight="600" color="$color-surface-900">
+            {(entry &amp;&amp; entry.name) || ''}
+          </Text>
+        </HStack>
       </Card>
     </VStack>
   </Drawer>

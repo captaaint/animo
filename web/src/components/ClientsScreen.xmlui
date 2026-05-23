@@ -5,15 +5,44 @@
     credentials="include"
   />
 
-  <ClientModal id="clientModal" onSaved="() => clientsDs.refetch()" />
+  <Viewport id="vp" />
+
+  <ClientModal
+    when="{!vp.value || !vp.value.isMobile}"
+    id="clientModal"
+    onSaved="() => clientsDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+  />
+
+  <ClientDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="clientDrawer"
+    onSaved="() => clientsDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
+  />
+
+  <DeleteConfirmModal
+    when="{!vp.value || !vp.value.isMobile}"
+    id="deleteConfirmModal"
+    title="Delete client"
+    message="Are you sure you want to delete this client? This action cannot be undone."
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
+
+  <DeleteConfirmDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="deleteConfirmDrawer"
+    title="Delete client"
+    confirmText="Delete this client?"
+    message="This action cannot be undone."
+    onConfirmed="(id) => deleteCall.execute(id)"
+  />
 
   <APICall
     id="deleteCall"
     method="DELETE"
     url="{apiBase + '/clients/' + $param}"
     credentials="include"
-    confirmMessage="Are you sure?"
-    confirmTitle="Delete client"
     onSuccess="() => { toast.success('Client deleted'); clientsDs.refetch(); }"
     onError="() => toast.error('Delete failed')"
   />
@@ -79,7 +108,7 @@
               variant="ghost"
               themeColor="attention"
               padding="$space-2"
-              onClick="deleteCall.execute($item.id)"
+              onClick="deleteConfirmModal.open($item.id)"
             />
           </HStack>
         </Column>
@@ -126,11 +155,11 @@
                     themeColor="secondary"
                   />
                 </property>
-                <MenuItem icon="pencil" onClick="clientModal.open($item)">
+                <MenuItem icon="pencil" onClick="clientDrawer.open($item)">
                   Edit
                 </MenuItem>
                 <MenuSeparator />
-                <MenuItem icon="trash" onClick="deleteCall.execute($item.id)">
+                <MenuItem icon="trash" onClick="deleteConfirmDrawer.open($item)">
                   Delete
                 </MenuItem>
               </DropdownMenu>
@@ -154,7 +183,7 @@
         width="100%"
         label="New client"
         icon="plus"
-        onClick="clientModal.open()"
+        onClick="clientDrawer.open()"
       />
     </VStack>
 
