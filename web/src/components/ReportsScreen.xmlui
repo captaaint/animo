@@ -103,6 +103,7 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
   />
 
   <EntryDrawer
@@ -111,6 +112,12 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+  />
+
+  <DeleteConfirmModal
+    id="deleteConfirmModal"
+    onConfirmed="(id) => deleteCall.execute(id)"
   />
 
   <APICall
@@ -128,8 +135,6 @@
     method="DELETE"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    confirmTitle="Delete entry"
-    confirmMessage="Delete this entry?"
     onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
     onError="() => toast.error('Delete failed')"
   />
@@ -661,7 +666,7 @@
                     <MenuSeparator />
                     <MenuItem
                       icon="trash"
-                      onClick="deleteCall.execute($item.id)"
+                      onClick="deleteConfirmModal.open($item.id)"
                     >
                       Delete
                     </MenuItem>
@@ -880,7 +885,7 @@
                           <MenuSeparator />
                           <MenuItem
                             icon="trash"
-                            onClick="deleteCall.execute($item.id)"
+                            onClick="deleteConfirmModal.open($item.id)"
                           >
                             Delete
                           </MenuItem>

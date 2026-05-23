@@ -33,6 +33,7 @@
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
     onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); }"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
   />
 
   <EntryDrawer
@@ -42,6 +43,12 @@
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
     onClosed="() => { if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
+    onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
+  />
+
+  <DeleteConfirmModal
+    id="deleteConfirmModal"
+    onConfirmed="(id) => deleteCall.execute(id)"
   />
 
   <APICall id="duplicateCall"
@@ -56,8 +63,6 @@
     method="DELETE"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    confirmMessage="Delete this entry?"
-    confirmTitle="Delete entry"
     onSuccess="() => { toast.success('Entry deleted'); entriesDs.refetch(); }"
     onError="() => toast.error('Delete failed')" />
 
@@ -88,7 +93,7 @@
         onOpenEntry="(e) => entryModal.open(e)"
         onAddNew="() => entryModal.open()"
         onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
-        onDeleteEntry="(e) => deleteCall.execute(e.id)"
+        onDeleteEntry="(e) => deleteConfirmModal.open(e.id)"
       />
   </VStack>
 
@@ -120,6 +125,7 @@
         onOpenEntry="(e) => entryDrawer.open(e)"
         onAddNew="() => entryDrawer.open()"
         onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
+        onDeleteEntry="(e) => deleteConfirmModal.open(e.id)"
       />
   </Stack>
 </Component>

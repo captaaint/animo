@@ -73,20 +73,6 @@
     onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
   />
 
-  <APICall id="deleteCall"
-    method="DELETE"
-    url="{apiBase + '/time-entries/' + (editItem ? editItem.id : '')}"
-    credentials="include"
-    confirmTitle="Delete entry"
-    confirmMessage="Delete this entry?"
-    onSuccess="() => {
-      toast.success('Entry deleted');
-      emitEvent('saved');
-      drawerOpen = false;
-      emitEvent('closed');
-    }"
-    onError="() => toast.error('Delete failed')"
-  />
 
   <KeyListener enabled="{drawerOpen}"
     onEnter="() => {
@@ -300,7 +286,11 @@
           label="Delete"
           variant="outlined"
           themeColor="attention"
-          onClick="deleteCall.execute()"
+          onClick="() => {
+            const item = editItem;
+            drawerOpen = false;
+            emitEvent('deleteRequested', item);
+          }"
         />
       </Theme>
     </VStack>

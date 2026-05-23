@@ -75,20 +75,6 @@
     onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
   />
 
-  <APICall id="deleteCall"
-    method="DELETE"
-    url="{apiBase + '/time-entries/' + (editItem ? editItem.id : '')}"
-    credentials="include"
-    confirmTitle="Delete entry"
-    confirmMessage="Delete this entry?"
-    onSuccess="() => {
-      toast.success('Entry deleted');
-      emitEvent('saved');
-      modal.close();
-    }"
-    onError="() => toast.error('Delete failed')"
-  />
-
   <KeyListener enabled="{modalOpen}"
     onEnter="() => {
       if (parseTimeToSec(endStr) &gt; parseTimeToSec(startStr)) saveCall.execute();
@@ -281,7 +267,7 @@
             icon="trash"
             variant="ghost"
             themeColor="attention"
-            onClick="deleteCall.execute()"
+            onClick="const item = editItem; modal.close(); emitEvent('deleteRequested', item);"
           />
         </Theme>
         <SpaceFiller />
