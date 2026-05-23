@@ -159,7 +159,7 @@
   color: var(--xmlui-color-adornment-DatePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
 
   &:hover {
-    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-backgroundColor-item-Select--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249))));
   }
 }
 
@@ -232,7 +232,7 @@
   font-size: 14px;
 
   &:hover {
-    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-backgroundColor-item-Select--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249))));
   }
 }
 
@@ -318,7 +318,7 @@
 
   &:hover,
   &[data-focus] {
-    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+    background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-backgroundColor-item-Select--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249))));
   }
 
   &[data-selected],

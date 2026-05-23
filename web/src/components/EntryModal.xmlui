@@ -299,10 +299,10 @@
       <HStack width="100%" verticalAlignment="center" gap="$space-3">
         <Theme textColor-Button-attention-ghost="$color-danger-500">
           <Button
+            when="{!!editItem}"
             icon="trash"
             variant="ghost"
             themeColor="attention"
-            enabled="{!!editItem}"
             onClick="deleteCall.execute()"
           />
         </Theme>
