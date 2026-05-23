@@ -432,6 +432,12 @@ export const TimePicker = forwardRef<HTMLDivElement, TimePickerProps>(
         data-mode={mode}
         data-bordered={bordered ? "true" : "false"}
         data-validation-status={validationStatus}
+        data-stretch={
+          (() => {
+            const w = String(width ?? "").trim().toLowerCase();
+            return w === "100%" || w === "*" || w === "full" ? "true" : undefined;
+          })()
+        }
         data-testid={testId}
         style={{ width, minWidth, maxWidth }}
         id={id}

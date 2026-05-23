@@ -27,11 +27,21 @@
   <Viewport id="vp" />
 
   <EntryModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="entryModal"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
-    onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
+    onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); }"
+  />
+
+  <EntryDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="entryDrawer"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => entriesDs.refetch()"
+    onClosed="() => { if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
   />
 
   <APICall id="duplicateCall"
@@ -95,8 +105,8 @@
         entries="{entriesDs.value || []}"
         projects="{projectsDs.value || []}"
         onWeekChange="(v) => weekStart = v"
-        onOpenEntry="(e) => entryModal.open(e)"
-        onAddSlot="(slot) => entryModal.openForSlot(slot)"
+        onOpenEntry="(e) => entryDrawer.open(e)"
+        onAddSlot="(slot) => entryDrawer.openForSlot(slot)"
         onSaved="() => entriesDs.refetch()"
       />
       <ListScreen when="{$props.view === 'list'}"
@@ -107,8 +117,8 @@
         tags="{tagsDs.value || []}"
         clients="{clientsDs.value || []}"
         onWeekChange="(v) => weekStart = v"
-        onOpenEntry="(e) => entryModal.open(e)"
-        onAddNew="() => entryModal.open()"
+        onOpenEntry="(e) => entryDrawer.open(e)"
+        onAddNew="() => entryDrawer.open()"
         onDuplicateEntry="(e) => { duplicatePayload = duplicateEntryPayload(e); duplicateCall.execute(); }"
       />
   </Stack>

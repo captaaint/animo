@@ -98,7 +98,16 @@
   </ModalDialog>
 
   <EntryModal
+    when="{!vp.value || !vp.value.isMobile}"
     id="entryModal"
+    projects="{projectsDs.value || []}"
+    tags="{tagsDs.value || []}"
+    onSaved="() => summaryDs.refetch()"
+  />
+
+  <EntryDrawer
+    when="{vp.value &amp;&amp; vp.value.isMobile}"
+    id="entryDrawer"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
@@ -864,7 +873,7 @@
                           </MenuItem>
                           <MenuItem
                             icon="pencil"
-                            onClick="entryModal.open($item)"
+                            onClick="entryDrawer.open($item)"
                           >
                             Edit
                           </MenuItem>

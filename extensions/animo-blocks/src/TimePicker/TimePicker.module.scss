@@ -7,6 +7,18 @@
   min-width: 0;
   color: var(--xmlui-textColor-primary, inherit);
 
+  &[data-stretch="true"] {
+    display: flex;
+    width: 100%;
+
+    .control,
+    .trigger {
+      width: 100%;
+      max-width: none;
+      flex: 1 1 auto;
+    }
+  }
+
   &[data-validation-status="error"] .control {
     border-color: var(--xmlui-borderColor-TimePicker--error, var(--xmlui-color-danger-500, #dc2626));
   }

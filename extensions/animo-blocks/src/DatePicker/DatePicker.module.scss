@@ -31,6 +31,24 @@
 
 .fullWidth {
   width: 100%;
+
+  .control {
+    width: 100%;
+    max-width: none;
+    padding-right: 6.5px;
+  }
+
+  .pickerRow {
+    width: 100%;
+    max-width: none;
+  }
+
+  .input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+    text-align: left;
+  }
 }
 
 .autoWidth {
