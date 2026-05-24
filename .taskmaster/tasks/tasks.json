@@ -43,11 +43,12 @@
         "dependencies": [
           "1"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 7,
         "recommendedSubtasks": 5,
-        "expansionPrompt": "Break down the authentication removal into subtasks covering: 1) Identifying and removing auth routes and session handling code, 2) Dropping sessions table and removing password hashing dependencies, 3) Removing session/auth middleware from the middleware stack, 4) Implementing the LocalUser extractor to replace AuthUser, 5) Updating all existing handlers to use LocalUser and verifying user_id scoping still works. Include verification that no auth code remains."
+        "expansionPrompt": "Break down the authentication removal into subtasks covering: 1) Identifying and removing auth routes and session handling code, 2) Dropping sessions table and removing password hashing dependencies, 3) Removing session/auth middleware from the middleware stack, 4) Implementing the LocalUser extractor to replace AuthUser, 5) Updating all existing handlers to use LocalUser and verifying user_id scoping still works. Include verification that no auth code remains.",
+        "updatedAt": "2026-05-24T21:12:48.334Z"
       },
       {
         "id": "4",
@@ -74,12 +75,12 @@
         "testStrategy": "1. Verify /login and /register routes return 404 or redirect to main app\n2. Verify no sign-out option appears in UI\n3. Verify user menu still works for profile/settings access\n4. Verify no auth-related console errors on app load\n5. Verify Settings page doesn't show email field\n6. Test that navigation doesn't redirect to login",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "in-progress",
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down the frontend auth removal into subtasks covering: 1) Deleting authentication screen files and removing auth routes from Main.xmlui, 2) Removing sign-out functionality from user menu/header and cleaning up auth API client methods, 3) Updating components that display email to show name/username instead and removing idle timeout behavior. Include verification of no auth-related console errors.",
-        "updatedAt": "2026-05-24T21:01:11.594Z"
+        "updatedAt": "2026-05-24T21:13:42.831Z"
       },
       {
         "id": "6",
@@ -175,9 +176,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-24T21:02:42.413Z",
+      "lastModified": "2026-05-24T21:13:42.831Z",
       "taskCount": 10,
-      "completedCount": 2,
+      "completedCount": 3,
       "tags": [
         "master"
       ]

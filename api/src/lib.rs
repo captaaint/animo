@@ -1,4 +1,3 @@
-pub mod auth;
 pub mod clients;
 pub mod config;
 pub mod entries;
@@ -11,7 +10,7 @@ pub mod users;
 
 use axum::{
     http::{header, HeaderValue, Method},
-    routing::{get, patch, post},
+    routing::{get, patch},
     Json, Router,
 };
 use serde_json::{json, Value};
@@ -21,7 +20,7 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
-pub use crate::config::{Config, CookieSameSite};
+pub use crate::config::Config;
 pub use crate::state::AppState;
 
 /// Builds the SQLx pool, runs embedded migrations, and returns an [`AppState`]
@@ -45,10 +44,6 @@ pub async fn build_state(cfg: Config) -> anyhow::Result<AppState> {
 pub fn build_app(state: AppState) -> Router {
     let cfg = state.config.clone();
     let api = Router::new()
-        .route("/auth/register", post(auth::routes::register))
-        .route("/auth/login", post(auth::routes::login))
-        .route("/auth/logout", post(auth::routes::logout))
-        .route("/auth/me", get(auth::routes::me))
         .route("/clients", get(clients::list).post(clients::create))
         .route(
             "/clients/:id",

@@ -10,6 +10,8 @@ pub enum AppError {
     NotFound,
     #[error("unauthorized")]
     Unauthorized,
+    #[error("setup required")]
+    SetupRequired,
     #[error("forbidden")]
     Forbidden,
     #[error("validation: {0}")]
@@ -29,6 +31,7 @@ impl AppError {
         match self {
             AppError::NotFound => StatusCode::NOT_FOUND,
             AppError::Unauthorized => StatusCode::UNAUTHORIZED,
+            AppError::SetupRequired => StatusCode::PRECONDITION_REQUIRED,
             AppError::Forbidden => StatusCode::FORBIDDEN,
             AppError::Validation(_) | AppError::BadRequest(_) => StatusCode::BAD_REQUEST,
             AppError::Conflict(_) => StatusCode::CONFLICT,

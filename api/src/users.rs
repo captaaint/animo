@@ -1,5 +1,10 @@
+use crate::error::AppError;
+use crate::state::AppState;
+use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use serde::{Deserialize, Serialize};
 use sqlx::{Sqlite, SqlitePool, Transaction};
+use std::ops::Deref;
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -9,6 +14,36 @@ pub struct User {
     pub username: String,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct LocalUser(pub User);
+
+impl Deref for LocalUser {
+    type Target = User;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[axum::async_trait]
+impl FromRequestParts<AppState> for LocalUser {
+    type Rejection = AppError;
+
+    async fn from_request_parts(
+        _parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let user = sqlx::query_as::<_, User>(
+            "SELECT id, name, username, created_at, updated_at FROM users ORDER BY created_at LIMIT 1",
+        )
+        .fetch_optional(&state.db)
+        .await?
+        .ok_or(AppError::SetupRequired)?;
+
+        Ok(LocalUser(user))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]

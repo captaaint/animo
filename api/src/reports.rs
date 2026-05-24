@@ -1,6 +1,6 @@
-use crate::auth::AuthUser;
 use crate::error::{AppError, AppResult};
 use crate::state::AppState;
+use crate::users::LocalUser;
 use axum::extract::{Query, State};
 use axum::http::{header, StatusCode};
 use axum::response::{IntoResponse, Response};
@@ -159,7 +159,7 @@ fn group_daily(entries: &[EntryRow], from: &str, to: &str) -> AppResult<Vec<DayT
 
 pub async fn summary(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Query(q): Query<RangeQuery>,
 ) -> AppResult<Json<Summary>> {
     let entries = fetch_entries(&state, &user.id, &q.from, &q.to).await?;
@@ -201,7 +201,7 @@ pub async fn summary(
 
 pub async fn export_pdf(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Query(q): Query<RangeQuery>,
 ) -> AppResult<Response> {
     let entries = fetch_entries(&state, &user.id, &q.from, &q.to).await?;
