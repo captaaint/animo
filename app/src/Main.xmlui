@@ -39,10 +39,48 @@
     <Spinner />
   </Stack>
 
-  <OnboardingScreen
+  <HStack
     when="{localUser.value && localUser.value.kind === 'needs-setup'}"
-    onCreate="(name, username) => localUser.createUser(name, username)"
-  />
+    width="*"
+    minHeight="100vh"
+    horizontalAlignment="center"
+    verticalAlignment="center"
+    padding="$space-4"
+  >
+    <Card maxWidth="440px" width="*" padding="$space-5" gap="$space-4">
+      <VStack gap="$space-1">
+        <Text fontWeight="700" fontSize="$fontSize-large">Welcome to Animo</Text>
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Let's set up your local profile. It stays on this device and scopes
+          your time tracking to you.
+        </Text>
+      </VStack>
+      <Form
+        data="{{ name: '', username: '' }}"
+        hideButtonRow="true"
+        onSubmit="(data) => localUser.createUser(data.name, data.username)"
+      >
+        <TextBox bindTo="name" label="Display name" required="true" autoFocus="true" maxLength="100" />
+        <TextBox bindTo="username" label="Username" required="true" maxLength="30" />
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Lowercase letters, numbers, and underscores recommended (3-30 chars).
+        </Text>
+        <Text
+          when="{localUser.value && localUser.value.error}"
+          color="$color-danger-600"
+          fontSize="$fontSize-small"
+        >
+          {localUser.value.error}
+        </Text>
+        <Button
+          type="submit"
+          label="{localUser.value && localUser.value.loading ? 'Creating...' : 'Get Started'}"
+          themeColor="primary"
+          enabled="{!(localUser.value && localUser.value.loading)}"
+        />
+      </Form>
+    </Card>
+  </HStack>
 
   <AppHeader when="{localUser.value && localUser.value.kind === 'ready'}">
     <!-- Fixed width so the TimerBar doesn't shift sideways as the user
@@ -157,6 +195,9 @@
       <SettingsScreen
         userName="{localUser.value && localUser.value.user ? localUser.value.user.name : ''}"
         username="{localUser.value && localUser.value.user ? localUser.value.user.username : ''}"
+        theme="{localUser.value && localUser.value.user && localUser.value.user.preferences ? localUser.value.user.preferences.theme : 'system'}"
+        onSaveProfile="(name, username) => localUser.updateUser({ name: name, username: username })"
+        onSaveTheme="(theme) => localUser.updateUser({ preferences: { theme: theme } })"
       />
     </Page>
   </Pages>

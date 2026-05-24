@@ -1,4 +1,31 @@
-<Component name="SettingsScreen">
+<Component name="SettingsScreen"
+  var.nameInput="{$props.userName || ''}"
+  var.usernameInput="{$props.username || ''}"
+  var.themeInput="{$props.theme || 'system'}"
+  var.savingProfile="{false}"
+  var.normalizeUsername="{(v) => (v || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30)}"
+  var.nameError="{
+    !nameInput || !nameInput.trim()
+      ? 'Display name is required'
+      : (nameInput.length > 100 ? 'Display name must be 100 characters or less' : null)
+  }"
+  var.usernameErrorMsg="{
+    !usernameInput
+      ? 'Username is required'
+      : (usernameInput.length < 3
+          ? 'Username must be at least 3 characters'
+          : (usernameInput.length > 30
+              ? 'Username must be 30 characters or less'
+              : (/^[a-z0-9_]+$/.test(usernameInput)
+                  ? null
+                  : 'Only lowercase letters, numbers, and underscores allowed')))
+  }"
+  var.profileDirty="{
+    (nameInput || '').trim() !== ($props.userName || '') ||
+    (usernameInput || '') !== ($props.username || '')
+  }"
+  var.canSaveProfile="{!nameError && !usernameErrorMsg && profileDirty && !savingProfile}"
+>
   <HStack width="*" horizontalAlignment="center">
     <Card maxWidth="720px" width="*" padding="$space-4" gap="$space-4">
       <VStack gap="$space-3">
@@ -7,23 +34,84 @@
         </Text>
         <ContentSeparator />
 
-        <Stack>
-          <HStack verticalAlignment="center" gap="$space-3">
-            <Avatar
-              size="md"
-              name="{$props.userName || 'Local User'}"
-              backgroundColor="$color-surface-100"
-              color="$color-surface-900"
-              border="1px solid $color-surface-300"
+        <HStack verticalAlignment="center" gap="$space-3">
+          <Avatar
+            size="md"
+            name="{$props.userName || 'Local User'}"
+            backgroundColor="$color-surface-100"
+            color="$color-surface-900"
+            border="1px solid $color-surface-300"
+          />
+          <VStack gap="$space-0">
+            <Text fontWeight="600">{$props.userName || 'Local User'}</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">
+              {$props.username ? '@' + $props.username : 'Local workspace'}
+            </Text>
+          </VStack>
+        </HStack>
+
+        <Form
+          data="{{ name: $props.userName || '', username: $props.username || '' }}"
+          hideButtonRow="true"
+          onSubmit="() => {
+            if (!canSaveProfile) return;
+            $props.onSaveProfile(nameInput.trim(), usernameInput);
+            toast.success('Profile updated');
+          }"
+        >
+          <TextBox
+            label="Display name"
+            required="true"
+            maxLength="100"
+            initialValue="{nameInput}"
+            onDidChange="(v) => nameInput = v"
+          />
+          <Text
+            when="{nameError && nameInput.length > 0}"
+            color="$color-danger-600"
+            fontSize="$fontSize-small"
+          >
+            {nameError}
+          </Text>
+
+          <TextBox
+            label="Username"
+            required="true"
+            maxLength="30"
+            initialValue="{usernameInput}"
+            onDidChange="(v) => usernameInput = normalizeUsername(v)"
+          />
+          <Text variant="secondary" fontSize="$fontSize-small">
+            Lowercase letters, numbers, and underscores only (3-30 chars).
+          </Text>
+          <Text
+            when="{usernameErrorMsg && usernameInput.length > 0}"
+            color="$color-danger-600"
+            fontSize="$fontSize-small"
+          >
+            {usernameErrorMsg}
+          </Text>
+
+          <HStack gap="$space-2">
+            <Button
+              type="submit"
+              label="{savingProfile ? 'Saving...' : 'Save profile'}"
+              themeColor="primary"
+              enabled="{canSaveProfile}"
             />
-            <VStack gap="$space-0">
-              <Text>{$props.userName || 'Local User'}</Text>
-              <Text variant="secondary" fontSize="$fontSize-small">
-                {$props.username ? '@' + $props.username : 'Local workspace'}
-              </Text>
-            </VStack>
+            <Button
+              type="button"
+              label="Revert"
+              variant="outlined"
+              themeColor="secondary"
+              enabled="{profileDirty && !savingProfile}"
+              onClick="() => {
+                nameInput = $props.userName || '';
+                usernameInput = $props.username || '';
+              }"
+            />
           </HStack>
-        </Stack>
+        </Form>
       </VStack>
 
       <VStack gap="$space-3">
@@ -32,19 +120,41 @@
         </Text>
         <ContentSeparator />
 
-        <Stack>
-          <HStack
-            verticalAlignment="center"
-            gap="$space-3"
-            paddingVertical="$space-3"
+        <!--
+          Two complementary controls:
+          - ToneSwitch flips the live UI tone (persisted to localStorage by
+            <TonePersist/> in Main.xmlui). Survives reloads on this device.
+          - Select below stores the preference on the user profile so it
+            travels with the local DB (and so a future bootstrap can apply it
+            on a fresh device / after a reseed).
+        -->
+        <HStack
+          verticalAlignment="center"
+          gap="$space-3"
+          paddingVertical="$space-3"
+        >
+          <Icon name="palette" size="18px" />
+          <Text>Theme (this device)</Text>
+          <SpaceFiller />
+          <ToneSwitch />
+        </HStack>
+
+        <HStack verticalAlignment="center" gap="$space-3">
+          <Text>Saved theme preference</Text>
+          <SpaceFiller />
+          <Select
+            initialValue="{themeInput}"
+            onDidChange="(v) => {
+              themeInput = v;
+              $props.onSaveTheme(v);
+              toast.success('Theme preference saved');
+            }"
           >
-            <Icon name="palette" size="18px" />
-            <Text>Theme</Text>
-            <SpaceFiller />
-            <Text variant="secondary" fontSize="$fontSize-small">Light</Text>
-            <ToneSwitch />
-          </HStack>
-        </Stack>
+            <Option value="system" label="System" />
+            <Option value="light" label="Light" />
+            <Option value="dark" label="Dark" />
+          </Select>
+        </HStack>
       </VStack>
 
     </Card>
