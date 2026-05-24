@@ -98,6 +98,10 @@ async fn main() -> Result<()> {
             id
         }
     };
+    sqlx::query("INSERT OR IGNORE INTO user_preferences (user_id) VALUES (?)")
+        .bind(&user_id)
+        .execute(&db)
+        .await?;
 
     // -- wipe demo user's data only (never touches other users) --------------
     sqlx::query(

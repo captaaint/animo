@@ -5,7 +5,7 @@ use crate::auth::{
 use crate::config::CookieSameSite;
 use crate::error::{AppError, AppResult};
 use crate::state::AppState;
-use crate::users::username_from_email;
+use crate::users::{create_default_preferences_tx, username_from_email};
 use axum::extract::State;
 use axum::http::header::{HeaderMap, USER_AGENT};
 use axum::response::IntoResponse;
@@ -142,6 +142,7 @@ pub async fn register(
         return Err(AppError::Conflict("username already registered".into()));
     }
 
+    let mut tx = state.db.begin().await?;
     sqlx::query(
         "INSERT INTO users (id, email, password_hash, name, username) VALUES (?, ?, ?, ?, ?)",
     )
@@ -150,8 +151,10 @@ pub async fn register(
     .bind(&hash)
     .bind(&payload.name)
     .bind(&username)
-    .execute(&state.db)
+    .execute(&mut *tx)
     .await?;
+    create_default_preferences_tx(&mut tx, &id).await?;
+    tx.commit().await?;
 
     let ua = user_agent_str(&headers);
     let token = create_session(&state, &id, None, ua.as_deref()).await?;

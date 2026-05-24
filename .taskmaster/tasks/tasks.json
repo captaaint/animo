@@ -26,12 +26,12 @@
         "dependencies": [
           "1"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down the user preferences implementation into subtasks covering: 1) Creating the user_preferences table migration with proper schema and constraints, 2) Implementing the Rust UserPreferences model and CRUD operations, 3) Setting up automatic preference creation when a user is created (transaction handling). Include helper functions for getting/setting individual preferences.",
-        "updatedAt": "2026-05-24T20:59:29.248Z"
+        "updatedAt": "2026-05-24T21:02:42.413Z"
       },
       {
         "id": "3",
@@ -78,7 +78,8 @@
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down the frontend auth removal into subtasks covering: 1) Deleting authentication screen files and removing auth routes from Main.xmlui, 2) Removing sign-out functionality from user menu/header and cleaning up auth API client methods, 3) Updating components that display email to show name/username instead and removing idle timeout behavior. Include verification of no auth-related console errors."
+        "expansionPrompt": "Break down the frontend auth removal into subtasks covering: 1) Deleting authentication screen files and removing auth routes from Main.xmlui, 2) Removing sign-out functionality from user menu/header and cleaning up auth API client methods, 3) Updating components that display email to show name/username instead and removing idle timeout behavior. Include verification of no auth-related console errors.",
+        "updatedAt": "2026-05-24T21:01:11.594Z"
       },
       {
         "id": "6",
@@ -174,9 +175,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-24T20:59:29.248Z",
+      "lastModified": "2026-05-24T21:02:42.413Z",
       "taskCount": 10,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]
