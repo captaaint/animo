@@ -39,44 +39,10 @@
     <Spinner />
   </Stack>
 
-  <HStack
+  <OnboardingScreen
     when="{localUser.value && localUser.value.kind === 'needs-setup'}"
-    width="*"
-    minHeight="100vh"
-    horizontalAlignment="center"
-    verticalAlignment="center"
-    padding="$space-4"
-  >
-    <Card maxWidth="440px" width="*" padding="$space-5" gap="$space-4">
-      <VStack gap="$space-1">
-        <Text fontWeight="700" fontSize="$fontSize-large">Create your local profile</Text>
-        <Text variant="secondary" fontSize="$fontSize-small">
-          This profile stays on this device and keeps your time tracking data scoped to you.
-        </Text>
-      </VStack>
-      <Form
-        data="{{ name: '', username: '' }}"
-        hideButtonRow="true"
-        onSubmit="(data) => localUser.createUser(data.name, data.username)"
-      >
-        <TextBox bindTo="name" label="Display name" required="true" autoFocus="true" />
-        <TextBox bindTo="username" label="Username" required="true" />
-        <Text
-          when="{localUser.value && localUser.value.error}"
-          color="$color-danger-600"
-          fontSize="$fontSize-small"
-        >
-          {localUser.value.error}
-        </Text>
-        <Button
-          type="submit"
-          label="{localUser.value && localUser.value.loading ? 'Creating...' : 'Continue'}"
-          themeColor="primary"
-          enabled="{!(localUser.value && localUser.value.loading)}"
-        />
-      </Form>
-    </Card>
-  </HStack>
+    onCreate="(name, username) => localUser.createUser(name, username)"
+  />
 
   <AppHeader when="{localUser.value && localUser.value.kind === 'ready'}">
     <!-- Fixed width so the TimerBar doesn't shift sideways as the user

@@ -1,0 +1,124 @@
+<Component name="OnboardingScreen"
+  var.displayName="{''}"
+  var.username="{''}"
+  var.submitting="{false}"
+  var.serverError="{null}"
+  var.normalizeUsername="{(v) => (v || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30)}"
+  var.displayNameError="{
+    !displayName || !displayName.trim()
+      ? 'Display name is required'
+      : (displayName.length > 100 ? 'Display name must be 100 characters or less' : null)
+  }"
+  var.usernameError="{
+    !username
+      ? 'Username is required'
+      : (username.length < 3
+          ? 'Username must be at least 3 characters'
+          : (username.length > 30
+              ? 'Username must be 30 characters or less'
+              : (/^[a-z0-9_]+$/.test(username)
+                  ? null
+                  : 'Only lowercase letters, numbers, and underscores allowed')))
+  }"
+  var.canSubmit="{!displayNameError && !usernameError && !submitting}"
+>
+  <HStack
+    width="*"
+    minHeight="100vh"
+    horizontalAlignment="center"
+    verticalAlignment="center"
+    padding="$space-4"
+  >
+    <Card maxWidth="440px" width="*" padding="$space-5" gap="$space-4">
+      <!--
+        TODO(onboarding-graphic): Replace this placeholder SVG with the final
+        brand illustration when design is ready. Keep the wrapping Stack so the
+        surrounding layout/spacing stays the same.
+      -->
+      <Stack horizontalAlignment="center" paddingBottom="$space-2">
+        <HtmlTag value="svg" viewBox="0 0 200 150" width="200" height="150"
+          aria-hidden="true" role="img">
+          <HtmlTag value="rect" x="20" y="20" width="160" height="110" rx="8"
+            fill="#E5E7EB" />
+          <HtmlTag value="circle" cx="100" cy="60" r="25" fill="#D1D5DB" />
+          <HtmlTag value="rect" x="60" y="95" width="80" height="10" rx="5"
+            fill="#D1D5DB" />
+        </HtmlTag>
+      </Stack>
+
+      <VStack gap="$space-1">
+        <Text fontWeight="700" fontSize="$fontSize-large">Welcome to Animo</Text>
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Let's set up your local profile. It stays on this device and scopes
+          your time tracking to you.
+        </Text>
+      </VStack>
+
+      <Form
+        data="{{ name: '', username: '' }}"
+        hideButtonRow="true"
+        onSubmit="async () => {
+          if (!canSubmit) return;
+          submitting = true;
+          serverError = null;
+          try {
+            await $props.onCreate(displayName.trim(), username);
+          } catch (e) {
+            serverError = (e && e.message) ? e.message : 'Could not create profile';
+          } finally {
+            submitting = false;
+          }
+        }"
+      >
+        <TextBox
+          label="Display name"
+          required="true"
+          autoFocus="true"
+          maxLength="100"
+          initialValue="{displayName}"
+          onDidChange="(v) => displayName = v"
+        />
+        <Text
+          when="{displayNameError && displayName.length > 0}"
+          color="$color-danger-600"
+          fontSize="$fontSize-small"
+        >
+          {displayNameError}
+        </Text>
+
+        <TextBox
+          label="Username"
+          required="true"
+          maxLength="30"
+          initialValue="{username}"
+          onDidChange="(v) => username = normalizeUsername(v)"
+        />
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Lowercase letters, numbers, and underscores only (3-30 chars).
+        </Text>
+        <Text
+          when="{usernameError && username.length > 0}"
+          color="$color-danger-600"
+          fontSize="$fontSize-small"
+        >
+          {usernameError}
+        </Text>
+
+        <Text
+          when="{serverError}"
+          color="$color-danger-600"
+          fontSize="$fontSize-small"
+        >
+          {serverError}
+        </Text>
+
+        <Button
+          type="submit"
+          label="{submitting ? 'Creating...' : 'Get Started'}"
+          themeColor="primary"
+          enabled="{canSubmit}"
+        />
+      </Form>
+    </Card>
+  </HStack>
+</Component>
