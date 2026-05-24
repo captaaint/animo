@@ -94,11 +94,24 @@
           "4",
           "5"
         ],
-        "status": "pending",
-        "subtasks": [],
+        "status": "done",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Fix LocalUserGate setup form UX issues",
+            "description": "Two UX bugs on the initial 'Create your local profile' screen (when no user exists yet)",
+            "details": "1) Extra 'Cancel' and 'Save' buttons appear under the 'Continue' submit button — they are not in the Main.xmlui Form definition, likely coming from the XMLUI Form default button row. Need to disable/hide the default button row (e.g., via Form's buttonRowTemplate or equivalent prop) so only our explicit 'Continue' button remains.\\n\\n2) A red 'Not Found' error message renders before the user has interacted with the form. Root cause is in app/src/extensions/LocalUserGate/LocalUserGate.tsx refresh(): when the bootstrap fetch returns a non-OK response, the catch block stores res.statusText ('Not Found') into state.error, which the form binds to. The initial bootstrap probe should treat 'no user yet' as needs-setup with error=null; only errors from explicit user actions (createUser) should be surfaced.\n<info added on 2026-05-24T21:43:15.042Z>\nBoth issues resolved:\n\n1) hideButtonRow=\"true\" added to Main.xmlui Form — default Cancel/Save buttons no longer render; only the explicit 'Continue' submit button is visible.\n\n2) refresh() catch block in LocalUserGate.tsx now leaves state.error as null when initial bootstrap fetch fails — prevents 'Not Found' or other fetch error text from displaying before user submits the form. Submit errors from createUser() still surface correctly.\n</info added on 2026-05-24T21:43:15.042Z>",
+            "status": "done",
+            "dependencies": [],
+            "parentTaskId": 6,
+            "updatedAt": "2026-05-24T21:44:39.241Z",
+            "parentId": "undefined"
+          }
+        ],
         "complexity": 6,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Break down the LocalUserGate implementation into subtasks covering: 1) Creating the extension directory structure and TypeScript interface definitions, 2) Implementing the core state management (bootstrapping, needs-setup, ready states), 3) Implementing createUser and updateUser methods with API integration, 4) Integrating LocalUserGate into Main.xmlui with conditional rendering and removing old AuthGate. Include error handling and refresh functionality."
+        "expansionPrompt": "Break down the LocalUserGate implementation into subtasks covering: 1) Creating the extension directory structure and TypeScript interface definitions, 2) Implementing the core state management (bootstrapping, needs-setup, ready states), 3) Implementing createUser and updateUser methods with API integration, 4) Integrating LocalUserGate into Main.xmlui with conditional rendering and removing old AuthGate. Include error handling and refresh functionality.",
+        "updatedAt": "2026-05-24T21:44:39.241Z"
       },
       {
         "id": "7",
@@ -177,9 +190,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-24T21:25:00.947Z",
+      "lastModified": "2026-05-24T21:44:39.241Z",
       "taskCount": 10,
-      "completedCount": 5,
+      "completedCount": 6,
       "tags": [
         "master"
       ]

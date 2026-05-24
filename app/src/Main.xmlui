@@ -6,26 +6,79 @@
   global.entriesTick="{0}"
   onDidNavigate="(to) => pageTitle = pageTitleFromPath(to)"
 >
+  <LocalUserGate id="localUser" apiBase="{apiBase}" />
   <Viewport id="appVp" />
 
   <DataSource
     id="appProjectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
+    when="{localUser.value && localUser.value.kind === 'ready'}"
   />
   <DataSource
     id="appClientsDs"
     url="{apiBase + '/clients'}"
     credentials="include"
+    when="{localUser.value && localUser.value.kind === 'ready'}"
   />
   <DataSource
     id="appTagsDs"
     url="{apiBase + '/tags'}"
     credentials="include"
+    when="{localUser.value && localUser.value.kind === 'ready'}"
   />
   <TonePersist />
 
-  <AppHeader>
+  <Stack
+    when="{!localUser.value || localUser.value.kind === 'bootstrapping'}"
+    width="*"
+    height="100vh"
+    verticalAlignment="center"
+    horizontalAlignment="center"
+  >
+    <Spinner />
+  </Stack>
+
+  <HStack
+    when="{localUser.value && localUser.value.kind === 'needs-setup'}"
+    width="*"
+    minHeight="100vh"
+    horizontalAlignment="center"
+    verticalAlignment="center"
+    padding="$space-4"
+  >
+    <Card maxWidth="440px" width="*" padding="$space-5" gap="$space-4">
+      <VStack gap="$space-1">
+        <Text fontWeight="700" fontSize="$fontSize-large">Create your local profile</Text>
+        <Text variant="secondary" fontSize="$fontSize-small">
+          This profile stays on this device and keeps your time tracking data scoped to you.
+        </Text>
+      </VStack>
+      <Form
+        data="{{ name: '', username: '' }}"
+        hideButtonRow="true"
+        onSubmit="(data) => localUser.createUser(data.name, data.username)"
+      >
+        <TextBox bindTo="name" label="Display name" required="true" autoFocus="true" />
+        <TextBox bindTo="username" label="Username" required="true" />
+        <Text
+          when="{localUser.value && localUser.value.error}"
+          color="$color-danger-600"
+          fontSize="$fontSize-small"
+        >
+          {localUser.value.error}
+        </Text>
+        <Button
+          type="submit"
+          label="{localUser.value && localUser.value.loading ? 'Creating...' : 'Continue'}"
+          themeColor="primary"
+          enabled="{!(localUser.value && localUser.value.loading)}"
+        />
+      </Form>
+    </Card>
+  </HStack>
+
+  <AppHeader when="{localUser.value && localUser.value.kind === 'ready'}">
     <!-- Fixed width so the TimerBar doesn't shift sideways as the user
          navigates between sections (Calendar → Reports → Projects …). -->
     <Text
@@ -46,7 +99,7 @@
     />
   </AppHeader>
 
-  <NavPanel>
+  <NavPanel when="{localUser.value && localUser.value.kind === 'ready'}">
     <property name="footerTemplate">
       <Stack width="100%">
       <Theme
@@ -74,11 +127,11 @@
                 horizontalAlignment="center"
               >
                 <Text fontSize="10px" fontWeight="700" color="$color-surface-600">
-                  {userInitials('Local User')}
+                  {userInitials(localUser.value && localUser.value.user ? localUser.value.user.name : '')}
                 </Text>
               </Stack>
               <Text fontWeight="500" fontSize="14px">
-                Local User
+                {localUser.value && localUser.value.user ? localUser.value.user.name : ''}
               </Text>
               <SpaceFiller />
               <Icon name="chevrondown" size="16px" />
@@ -109,7 +162,7 @@
     </NavGroup>
   </NavPanel>
 
-  <Pages>
+  <Pages when="{localUser.value && localUser.value.kind === 'ready'}">
     <Page url="/login">
       <Redirect to="/" />
     </Page>
@@ -135,7 +188,10 @@
       <ReportsScreen />
     </Page>
     <Page url="/settings">
-      <SettingsScreen />
+      <SettingsScreen
+        userName="{localUser.value && localUser.value.user ? localUser.value.user.name : ''}"
+        username="{localUser.value && localUser.value.user ? localUser.value.user.username : ''}"
+      />
     </Page>
   </Pages>
 </App>

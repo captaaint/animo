@@ -2,6 +2,7 @@ import { startApp } from "xmlui";
 import xmluiPdf from "xmlui-pdf";
 import animoBlocks from "animo-blocks";
 import weekCalendarExt from "./src/extensions/WeekCalendar";
+import localUserGateExt from "./src/extensions/LocalUserGate";
 import barChartExt from "./src/extensions/BarChart";
 import pieChartExt from "./src/extensions/PieChart";
 import stopwatchExt from "./src/extensions/Stopwatch";
@@ -12,6 +13,7 @@ const extensions = [
   xmluiPdf,
   animoBlocks,
   weekCalendarExt,
+  localUserGateExt,
   barChartExt,
   pieChartExt,
   stopwatchExt,

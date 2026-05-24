@@ -43,8 +43,28 @@ type TimeEntry = {
   billable: boolean;
   tagIds: string[];
 };
+type UserPreferences = {
+  id: number;
+  userId: string;
+  theme: string;
+  uiDensity: string;
+  dateFormat: string;
+  timeFormat: string;
+  preferencesJson: string;
+  createdAt: string;
+  updatedAt: string;
+};
+type LocalUser = {
+  id: string;
+  name: string;
+  username: string;
+  createdAt: string;
+  updatedAt: string;
+  preferences: UserPreferences;
+};
 
 type DemoState = {
+  user: LocalUser;
   clients: Client[];
   projects: Project[];
   tags: Tag[];
@@ -93,6 +113,26 @@ function isoEnd(startIso: string, durationSec: number): string {
 }
 
 function buildSeedState(): DemoState {
+  const now = new Date().toISOString();
+  const user: LocalUser = {
+    id: "demo-user",
+    name: "Demo User",
+    username: "demo",
+    createdAt: now,
+    updatedAt: now,
+    preferences: {
+      id: 1,
+      userId: "demo-user",
+      theme: "system",
+      uiDensity: "comfortable",
+      dateFormat: "YYYY-MM-DD",
+      timeFormat: "24h",
+      preferencesJson: "{}",
+      createdAt: now,
+      updatedAt: now,
+    },
+  };
+
   // All colors below come from the Animo brand palette
   // (see app/src/themes/tracker-theme.ts). Picked so that adjacent
   // categories don't share a hue and the calendar/Reports charts
@@ -169,7 +209,7 @@ function buildSeedState(): DemoState {
     }
   }
 
-  return { clients, projects, tags, timeEntries, nextId };
+  return { user, clients, projects, tags, timeEntries, nextId };
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
@@ -185,6 +225,7 @@ function loadState(): DemoState {
     if (raw) {
       const parsed = JSON.parse(raw) as DemoState;
       if (parsed && Array.isArray(parsed.timeEntries)) {
+        if (!parsed.user) parsed.user = buildSeedState().user;
         state = parsed;
         return state;
       }
@@ -293,6 +334,29 @@ function enrichEntry(entry: TimeEntry, projects: Project[], clients: Client[]) {
 
 async function handle(method: string, path: string, query: URLSearchParams, init?: RequestInit): Promise<Response> {
   const s = loadState();
+
+  // ----- local user -----
+  if (path === "/user/bootstrap" && method === "GET") {
+    return json({ setupComplete: true, user: s.user });
+  }
+  if (path === "/user/bootstrap" && method === "POST") {
+    return json({ error: "conflict: user already exists" }, 409);
+  }
+  if (path === "/user/me" && method === "GET") return json(s.user);
+  if (path === "/user/me" && method === "PATCH") {
+    const body = (await readJson<Partial<LocalUser> & { preferences?: Partial<UserPreferences> }>(init)) || {};
+    s.user = {
+      ...s.user,
+      name: body.name || s.user.name,
+      username: body.username || s.user.username,
+      updatedAt: new Date().toISOString(),
+      preferences: body.preferences
+        ? { ...s.user.preferences, ...body.preferences, updatedAt: new Date().toISOString() }
+        : s.user.preferences,
+    };
+    saveState();
+    return json(s.user);
+  }
 
   // ----- clients -----
   if (path === "/clients" && method === "GET") return json(s.clients);
