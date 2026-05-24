@@ -80,12 +80,14 @@ cd app && npm install --ignore-scripts && cd ..
 npm run dev          # boots animo-api on :8080 and the XMLUI dev server on :5173
 ```
 
-Open the Vite URL, register a new account, and you're in. Useful extras:
+Open the Vite URL. On first run you'll see the onboarding screen — pick a
+display name and username and you're in (the profile lives in the local DB,
+no email or password). Useful extras:
 
 ```sh
 npm run api          # just the Rust API
 npm run web          # just the XMLUI dev server
-npm run seed:demo    # populate demo.db (login: demo@example.com / demo1234)
+npm run seed:demo    # populate demo.db with the "Demo User" (@demo) profile
 npm run dev:demo     # dev mode against demo.db
 ```
 

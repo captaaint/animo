@@ -134,19 +134,19 @@
         "id": "8",
         "title": "Update Demo Seed Data for Local User Model",
         "description": "Modify demo/seed data scripts to create a local user profile without email/password, ensuring existing demo data relationships remain intact.",
-        "details": "Update seed data generation for the new user model:\n\n1. Locate seed data files (likely in `backend/src/seed.rs` or similar)\n\n2. Update user seeding:\n```rust\n// Old approach (REMOVE)\nlet demo_user = User {\n    email: \"demo@example.com\".to_string(),\n    password_hash: hash_password(\"demo123\")?,\n    name: \"Demo User\".to_string(),\n};\n\n// New approach\nlet demo_user = User {\n    name: \"Demo User\".to_string(),\n    username: \"demo_user\".to_string(),\n};\n\n// Insert user\nlet user_id = sqlx::query(\n    \"INSERT INTO users (name, username) VALUES (?, ?) RETURNING id\"\n)\n.bind(&demo_user.name)\n.bind(&demo_user.username)\n.fetch_one(&db)\n.await?\n.get::<i64, _>(\"id\");\n\n// Create default preferences\nsqlx::query(\n    \"INSERT INTO user_preferences (user_id, theme) VALUES (?, ?)\"\n)\n.bind(user_id)\n.bind(\"system\")\n.execute(&db)\n.await?;\n```\n\n3. Remove any password-related output:\n```rust\n// REMOVE lines like:\nprintln!(\"Demo credentials: demo@example.com / demo123\");\n\n// Replace with:\nprintln!(\"Demo user created: {} (@{})\", demo_user.name, demo_user.username);\n```\n\n4. Ensure all related demo data (clients, projects, tags, time_entries) still references the demo user_id correctly\n\n5. Update any seed data documentation or README files\n\n6. If there's a reset/reseed command, ensure it works with new schema",
+        "details": "Update seed data generation for the new user model:\n\n1. Locate seed data files (likely in `backend/src/seed.rs` or similar)\n\n2. Update user seeding:\n```rust\n// Old approach (REMOVE)\nlet demo_user = User {\n    email: \"demo@example.com\".to_string(),\n    password_hash: hash_password(\"demo123\")?,\n    name: \"Demo User\".to_string(),\n};\n\n// New approach\nlet demo_user = User {\n    name: \"Demo User\".to_string(),\n    username: \"demo_user\".to_string(),\n};\n\n// Insert user\nlet user_id = sqlx::query(\n    \"INSERT INTO users (name, username) VALUES (?, ?) RETURNING id\"\n)\n.bind(&demo_user.name)\n.bind(&demo_user.username)\n.fetch_one(&db)\n.await?\n.get::<i64, _>(\"id\");\n\n// Create default preferences\nsqlx::query(\n    \"INSERT INTO user_preferences (user_id, theme) VALUES (?, ?)\"\n)\n.bind(user_id)\n.bind(\"system\")\n.execute(&db)\n.await?;\n```\n\n3. Remove any password-related output:\n```rust\n// REMOVE lines like:\nprintln!(\"Demo credentials: demo@example.com / demo123\");\n\n// Replace with:\nprintln!(\"Demo user created: {} (@{})\", demo_user.name, demo_user.username);\n```\n\n4. Ensure all related demo data (clients, projects, tags, time_entries) still references the demo user_id correctly\n\n5. Update any seed data documentation or README files\n\n6. If there's a reset/reseed command, ensure it works with new schema\n<info added on 2026-05-24T21:59:10.962Z>\n7. Verification Complete - Seed Migration Aligned with Local User Model\n\nConfirmed that api/src/bin/seed_demo.rs is fully migrated:\n- User insertion uses (id, name, username) only - no email, password_hash, or authentication fields\n- Demo profile: \"Demo User\" with username @demo\n- User preferences created via INSERT OR IGNORE with default theme\n- No password-related console output or demo credential messages\n- Re-seed safety: DELETE operations scoped to demo user_id only, preserving other users\n\nMigration compatibility verified:\n- migrations/0005_local_user_profile.sql relaxes legacy users table constraints (drops password_hash NOT NULL requirement)\n- Ensures seed script works on databases initialized with 0001_init.sql\n\nDocumentation updated:\n- README.md corrected to remove authentication references\n- Replaced \"register a new account\" with onboarding screen description\n- Updated seed command description from \"login: demo@example.com / demo1234\" to \"populate demo.db with the 'Demo User' (@demo) profile\"\n\nNo further seed data changes required - implementation complete and verified.\n</info added on 2026-05-24T21:59:10.962Z>",
         "testStrategy": "1. Run seed command on fresh database\n2. Verify demo user is created with name and username (no email/password)\n3. Verify user_preferences record is created with defaults\n4. Verify all demo clients, projects, tags, entries reference the demo user\n5. Verify no password-related output in console\n6. Test that app loads correctly with seeded demo data\n7. Test reseed/reset functionality if available",
         "priority": "medium",
         "dependencies": [
           "1",
           "2"
         ],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "complexity": 3,
         "recommendedSubtasks": 0,
         "expansionPrompt": "",
-        "updatedAt": "2026-05-24T21:54:36.115Z"
+        "updatedAt": "2026-05-24T21:59:12.748Z"
       },
       {
         "id": "9",
@@ -192,9 +192,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-24T21:54:36.115Z",
+      "lastModified": "2026-05-24T21:59:12.748Z",
       "taskCount": 10,
-      "completedCount": 7,
+      "completedCount": 8,
       "tags": [
         "master"
       ]
