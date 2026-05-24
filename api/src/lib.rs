@@ -7,6 +7,7 @@ pub mod projects;
 pub mod reports;
 pub mod state;
 pub mod tags;
+pub mod users;
 
 use axum::{
     http::{header, HeaderValue, Method},

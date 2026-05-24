@@ -5,6 +5,7 @@ use crate::auth::{
 use crate::config::CookieSameSite;
 use crate::error::{AppError, AppResult};
 use crate::state::AppState;
+use crate::users::username_from_email;
 use axum::extract::State;
 use axum::http::header::{HeaderMap, USER_AGENT};
 use axum::response::IntoResponse;
@@ -40,12 +41,13 @@ pub struct UserPayload {
     pub id: String,
     pub email: String,
     pub name: String,
+    pub username: String,
     pub roles: Vec<String>,
     pub permissions: Vec<String>,
 }
 
 impl UserPayload {
-    fn for_user(id: String, email: String, name: String) -> Self {
+    fn for_user(id: String, email: String, name: String, username: String) -> Self {
         // RBAC seed table is on the v2 plan roadmap; until then everyone is
         // treated as "user" with the standard own-resource permissions
         // (matches what the SPA expects from /auth/me — see plan §3.6).
@@ -53,6 +55,7 @@ impl UserPayload {
             id,
             email,
             name,
+            username,
             roles: vec!["user".into()],
             permissions: vec![
                 "time_entry.read_own".into(),
@@ -129,17 +132,30 @@ pub async fn register(
 
     let hash = hash_password(&payload.password)?;
     let id = Uuid::new_v4().to_string();
-    sqlx::query("INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)")
-        .bind(&id)
-        .bind(&payload.email)
-        .bind(&hash)
-        .bind(&payload.name)
-        .execute(&state.db)
-        .await?;
+    let username = username_from_email(&payload.email);
+    let username_exists: Option<(String,)> =
+        sqlx::query_as("SELECT id FROM users WHERE username = ?")
+            .bind(&username)
+            .fetch_optional(&state.db)
+            .await?;
+    if username_exists.is_some() {
+        return Err(AppError::Conflict("username already registered".into()));
+    }
+
+    sqlx::query(
+        "INSERT INTO users (id, email, password_hash, name, username) VALUES (?, ?, ?, ?, ?)",
+    )
+    .bind(&id)
+    .bind(&payload.email)
+    .bind(&hash)
+    .bind(&payload.name)
+    .bind(&username)
+    .execute(&state.db)
+    .await?;
 
     let ua = user_agent_str(&headers);
     let token = create_session(&state, &id, None, ua.as_deref()).await?;
-    let user = UserPayload::for_user(id, payload.email, payload.name);
+    let user = UserPayload::for_user(id, payload.email, payload.name, username);
     let jar = jar.add(build_session_cookie(
         token,
         state.config.cookie_same_site,
@@ -158,17 +174,18 @@ pub async fn login(
         .validate()
         .map_err(|e| AppError::Validation(e.to_string()))?;
 
-    let row: Option<(String, String, String, String)> =
-        sqlx::query_as("SELECT id, email, password_hash, name FROM users WHERE email = ?")
-            .bind(&payload.email)
-            .fetch_optional(&state.db)
-            .await?;
-    let (id, email, hash, name) = row.ok_or(AppError::Unauthorized)?;
+    let row: Option<(String, String, String, String, String)> = sqlx::query_as(
+        "SELECT id, email, password_hash, name, username FROM users WHERE email = ?",
+    )
+    .bind(&payload.email)
+    .fetch_optional(&state.db)
+    .await?;
+    let (id, email, hash, name, username) = row.ok_or(AppError::Unauthorized)?;
     verify_password(&payload.password, &hash)?;
 
     let ua = user_agent_str(&headers);
     let token = create_session(&state, &id, None, ua.as_deref()).await?;
-    let user = UserPayload::for_user(id, email, name);
+    let user = UserPayload::for_user(id, email, name, username);
     let jar = jar.add(build_session_cookie(
         token,
         state.config.cookie_same_site,
@@ -178,7 +195,7 @@ pub async fn login(
 }
 
 pub async fn me(user: AuthUser) -> AppResult<Json<serde_json::Value>> {
-    let payload = UserPayload::for_user(user.id, user.email, user.name);
+    let payload = UserPayload::for_user(user.id, user.email, user.name, user.username);
     Ok(Json(json!({ "user": payload })))
 }
 

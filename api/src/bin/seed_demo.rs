@@ -65,6 +65,7 @@ async fn main() -> Result<()> {
     let demo_email = "demo@example.com";
     let demo_password = "demo1234";
     let demo_name = "Demo User";
+    let demo_username = "demo";
     let password_hash = hash_password(demo_password)?;
 
     let existing: Option<(String,)> = sqlx::query_as("SELECT id FROM users WHERE email = ?")
@@ -73,9 +74,10 @@ async fn main() -> Result<()> {
         .await?;
     let user_id = match existing {
         Some((id,)) => {
-            sqlx::query("UPDATE users SET password_hash = ?, name = ? WHERE id = ?")
+            sqlx::query("UPDATE users SET password_hash = ?, name = ?, username = ? WHERE id = ?")
                 .bind(&password_hash)
                 .bind(demo_name)
+                .bind(demo_username)
                 .bind(&id)
                 .execute(&db)
                 .await?;
@@ -83,11 +85,14 @@ async fn main() -> Result<()> {
         }
         None => {
             let id = Uuid::new_v4().to_string();
-            sqlx::query("INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)")
+            sqlx::query(
+                "INSERT INTO users (id, email, password_hash, name, username) VALUES (?, ?, ?, ?, ?)",
+            )
                 .bind(&id)
                 .bind(demo_email)
                 .bind(&password_hash)
                 .bind(demo_name)
+                .bind(demo_username)
                 .execute(&db)
                 .await?;
             id

@@ -78,6 +78,7 @@ pub struct AuthUser {
     pub id: String,
     pub email: String,
     pub name: String,
+    pub username: String,
 }
 
 #[axum::async_trait]
@@ -104,8 +105,9 @@ impl FromRequestParts<AppState> for AuthUser {
             String,
             Option<String>,
             String,
+            String,
         )> = sqlx::query_as(
-            "SELECT s.id, s.user_id, s.last_seen_at, s.expires_at, u.email, u.name, u.id \
+            "SELECT s.id, s.user_id, s.last_seen_at, s.expires_at, u.email, u.name, u.id, u.username \
                  FROM sessions s JOIN users u ON u.id = s.user_id \
                  WHERE s.token_hash = ? AND s.revoked_at IS NULL",
         )
@@ -113,7 +115,7 @@ impl FromRequestParts<AppState> for AuthUser {
         .fetch_optional(&state.db)
         .await?;
 
-        let (session_id, user_id, last_seen_at, expires_at, email, name, _) =
+        let (session_id, user_id, last_seen_at, expires_at, email, name, _, username) =
             row.ok_or(AppError::Unauthorized)?;
 
         let now = Utc::now();
@@ -144,6 +146,7 @@ impl FromRequestParts<AppState> for AuthUser {
             id: user_id,
             email,
             name,
+            username,
         })
     }
 }
