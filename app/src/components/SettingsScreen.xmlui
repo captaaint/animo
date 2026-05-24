@@ -3,7 +3,7 @@
     <Card maxWidth="720px" width="*" padding="$space-4" gap="$space-4">
       <VStack gap="$space-3">
         <Text variant="secondary" fontSize="$fontSize-small">
-          Signed in as
+          Local profile
         </Text>
         <ContentSeparator />
 
@@ -11,15 +11,15 @@
           <HStack verticalAlignment="center" gap="$space-3">
             <Avatar
               size="md"
-              name="{$props.userName || ''}"
+              name="{$props.userName || 'Local User'}"
               backgroundColor="$color-surface-100"
               color="$color-surface-900"
               border="1px solid $color-surface-300"
             />
             <VStack gap="$space-0">
-              <Text>{$props.userName || ''}</Text>
-              <Text when="{$props.userEmail}" variant="secondary" fontSize="$fontSize-small">
-                {$props.userEmail}
+              <Text>{$props.userName || 'Local User'}</Text>
+              <Text variant="secondary" fontSize="$fontSize-small">
+                {$props.username ? '@' + $props.username : 'Local workspace'}
               </Text>
             </VStack>
           </HStack>
@@ -47,25 +47,6 @@
         </Stack>
       </VStack>
 
-      <VStack gap="$space-3">
-        <Text variant="secondary" fontSize="$fontSize-small">
-          Account
-        </Text>
-        <ContentSeparator />
-
-        <Stack>
-          <HStack
-            verticalAlignment="center"
-            gap="$space-3"
-            paddingVertical="$space-3"
-          >
-            <Icon name="shield" size="18px" />
-            <Text>Account &amp; Security</Text>
-            <SpaceFiller />
-            <Icon name="chevronright" size="16px" />
-          </HStack>
-        </Stack>
-      </VStack>
     </Card>
   </HStack>
 </Component>

@@ -75,12 +75,12 @@
         "testStrategy": "1. Verify /login and /register routes return 404 or redirect to main app\n2. Verify no sign-out option appears in UI\n3. Verify user menu still works for profile/settings access\n4. Verify no auth-related console errors on app load\n5. Verify Settings page doesn't show email field\n6. Test that navigation doesn't redirect to login",
         "priority": "high",
         "dependencies": [],
-        "status": "in-progress",
+        "status": "done",
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 3,
         "expansionPrompt": "Break down the frontend auth removal into subtasks covering: 1) Deleting authentication screen files and removing auth routes from Main.xmlui, 2) Removing sign-out functionality from user menu/header and cleaning up auth API client methods, 3) Updating components that display email to show name/username instead and removing idle timeout behavior. Include verification of no auth-related console errors.",
-        "updatedAt": "2026-05-24T21:13:42.831Z"
+        "updatedAt": "2026-05-24T21:16:57.017Z"
       },
       {
         "id": "6",
@@ -176,9 +176,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-24T21:13:42.831Z",
+      "lastModified": "2026-05-24T21:16:57.017Z",
       "taskCount": 10,
-      "completedCount": 3,
+      "completedCount": 4,
       "tags": [
         "master"
       ]

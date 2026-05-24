@@ -5,8 +5,7 @@
 //
 // Why not XMLUI's built-in MSW interceptor?
 //   We tried that first. XMLUI registers the service worker inside React's
-//   useEffect after `startApp` runs, but the AuthGate immediately fires
-//   `/auth/me` on mount and loses the race — the first request hits the
+//   useEffect after `startApp` runs, and early DataSource requests can hit the
 //   static Netlify host and gets HTML back. The `waitForApiInterceptor` prop
 //   that would block children rendering until MSW is up isn't exposed
 //   through `startApp`. Monkey-patching `window.fetch` synchronously in
@@ -17,8 +16,6 @@
 //     generated relative to "today" at first launch, then snapshotted to
 //     localStorage on every mutation.
 //   * To reset the demo, clear site data in the browser dev tools.
-//   * No auth: `/auth/me` always returns the demo user, login/register/logout
-//     are pass-through stubs.
 
 const STORAGE_KEY = "animo-demo-state-v1";
 
@@ -217,26 +214,6 @@ function nextId(prefix: string): string {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
-// Demo identity
-// ---------------------------------------------------------------------------------------------------------------------
-
-const DEMO_USER = {
-  id: "demo-user",
-  email: "demo@getanimo.app",
-  name: "Demo User",
-  roles: ["user"],
-  permissions: [
-    "time_entry.read_own",
-    "time_entry.write_own",
-    "time_entry.delete_own",
-    "project.read_own",
-    "project.write_own",
-    "client.read_own",
-    "report.read_own",
-  ],
-};
-
-// ---------------------------------------------------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -316,12 +293,6 @@ function enrichEntry(entry: TimeEntry, projects: Project[], clients: Client[]) {
 
 async function handle(method: string, path: string, query: URLSearchParams, init?: RequestInit): Promise<Response> {
   const s = loadState();
-
-  // ----- auth -----
-  if (path === "/auth/me" && method === "GET") return json({ user: DEMO_USER });
-  if (path === "/auth/login" && method === "POST") return json({ user: DEMO_USER });
-  if (path === "/auth/register" && method === "POST") return json({ user: DEMO_USER });
-  if (path === "/auth/logout" && method === "POST") return json({ ok: true });
 
   // ----- clients -----
   if (path === "/clients" && method === "GET") return json(s.clients);

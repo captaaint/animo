@@ -31,12 +31,6 @@
     url="{apiBase + '/tags'}"
     credentials="include"
   />
-  <DataSource
-    id="meDs"
-    url="{apiBase + '/auth/me'}"
-    credentials="include"
-  />
-
   <ModalDialog
     id="progressModal"
     padding="$space-4"
@@ -180,7 +174,7 @@
         {
           fromDate: fromDate,
           toDate: toDate,
-          user: ((meDs.value || {}).user) || { name: 'User', email: '' },
+          user: { name: 'Local User' },
           totalSeconds: sumDurationSeconds(filtered),
           entries: enriched
         },

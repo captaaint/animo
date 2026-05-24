@@ -5,7 +5,6 @@
 import xmluiPdf from "xmlui-pdf";
 import animoBlocks from "animo-blocks";
 import weekCalendarExt from "./src/extensions/WeekCalendar";
-import authGateExt from "./src/extensions/AuthGate";
 import barChartExt from "./src/extensions/BarChart";
 import pieChartExt from "./src/extensions/PieChart";
 import stopwatchExt from "./src/extensions/Stopwatch";
@@ -16,7 +15,6 @@ export default [
   xmluiPdf,
   animoBlocks,
   weekCalendarExt,
-  authGateExt,
   barChartExt,
   pieChartExt,
   stopwatchExt,

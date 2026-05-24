@@ -2,76 +2,30 @@
   layout="vertical-sticky"
   scrollWholePage="true"
   global.apiBase="{window.__ANIMO_API_BASE__ || 'http://127.0.0.1:8080/api'}"
-  global.token="{readToken()}"
   global.pageTitle="{pageTitleFromPath(window.location.pathname)}"
   global.entriesTick="{0}"
   onDidNavigate="(to) => pageTitle = pageTitleFromPath(to)"
 >
-  <AuthGate
-    id="auth"
-    apiBase="{apiBase}"
-    idleTimeoutSeconds="604800"
-    idleWarningSeconds="120"
-    onSignIn="Actions.navigate('/')"
-    onSignOut="Actions.navigate('/login')"
-  />
-
   <Viewport id="appVp" />
 
   <DataSource
     id="appProjectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
-    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <DataSource
     id="appClientsDs"
     url="{apiBase + '/clients'}"
     credentials="include"
-    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <DataSource
     id="appTagsDs"
     url="{apiBase + '/tags'}"
     credentials="include"
-    when="{auth.value && auth.value.kind === 'authenticated'}"
   />
   <TonePersist />
 
-  <ModalDialog
-    id="signOutConfirm"
-    closeButtonVisible="false"
-    maxWidth="380px"
-    padding="$space-0"
-  >
-    <VStack padding="$space-5" gap="$space-4">
-      <Text fontWeight="700" fontSize="$fontSize-medium">
-        Sign out
-      </Text>
-      <Text textAlign="center" color="$color-surface-700" fontSize="$fontSize-small">
-        Are you sure you want to sign out?
-      </Text>
-      <HStack gap="$space-2">
-        <Button
-          label="Sign out"
-          themeColor="primary"
-          width="*"
-          size="sm"
-          onClick="auth.signOut(); signOutConfirm.close()"
-        />
-        <Button
-          label="Cancel"
-          variant="outlined"
-          themeColor="secondary"
-          width="*"
-          size="sm"
-          onClick="signOutConfirm.close()"
-        />
-      </HStack>
-    </VStack>
-  </ModalDialog>
-
-  <AppHeader when="{auth.value && auth.value.kind === 'authenticated'}">
+  <AppHeader>
     <!-- Fixed width so the TimerBar doesn't shift sideways as the user
          navigates between sections (Calendar → Reports → Projects …). -->
     <Text
@@ -92,7 +46,7 @@
     />
   </AppHeader>
 
-  <NavPanel when="{auth.value && auth.value.kind === 'authenticated'}">
+  <NavPanel>
     <property name="footerTemplate">
       <Stack width="100%">
       <Theme
@@ -120,11 +74,11 @@
                 horizontalAlignment="center"
               >
                 <Text fontSize="10px" fontWeight="700" color="$color-surface-600">
-                  {userInitials(auth.value && auth.value.user ? auth.value.user.name : '')}
+                  {userInitials('Local User')}
                 </Text>
               </Stack>
               <Text fontWeight="500" fontSize="14px">
-                {auth.value && auth.value.user ? auth.value.user.name : ''}
+                Local User
               </Text>
               <SpaceFiller />
               <Icon name="chevrondown" size="16px" />
@@ -134,12 +88,6 @@
         <MenuItem icon="cog" onClick="Actions.navigate('/settings')">
           <Text fontSize="$fontSize-small" fontWeight="600">Settings</Text>
         </MenuItem>
-        <MenuSeparator />
-        <Theme color-MenuItem="$color-danger-600" color-MenuItem--hover="$color-danger-600">
-          <MenuItem icon="exit" onClick="signOutConfirm.open()">
-            <Text color="$color-danger-600" fontSize="$fontSize-small" fontWeight="600">Sign out</Text>
-          </MenuItem>
-        </Theme>
       </DropdownMenu>
       </Theme>
       </Stack>
@@ -163,51 +111,31 @@
 
   <Pages>
     <Page url="/login">
-      <Redirect to="/" when="{auth.value && auth.value.kind === 'authenticated'}" />
-      <LoginScreen
-        signIn="{auth.signIn}"
-        loading="{auth.value && auth.value.loading}"
-        error="{auth.value && auth.value.error}"
-      />
+      <Redirect to="/" />
     </Page>
     <Page url="/register">
-      <Redirect to="/" when="{auth.value && auth.value.kind === 'authenticated'}" />
-      <RegisterScreen
-        register="{auth.register}"
-        loading="{auth.value && auth.value.loading}"
-        error="{auth.value && auth.value.error}"
-      />
+      <Redirect to="/" />
     </Page>
     <Page url="/">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <Timesheet view="calendar" />
     </Page>
     <Page url="/list">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <Timesheet view="list" />
     </Page>
     <Page url="/projects">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ProjectsScreen />
     </Page>
     <Page url="/clients">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ClientsScreen />
     </Page>
     <Page url="/tags">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <TagsScreen />
     </Page>
     <Page url="/reports">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
       <ReportsScreen />
     </Page>
     <Page url="/settings">
-      <Redirect to="/login" when="{auth.value && auth.value.kind === 'unauthenticated'}" />
-      <SettingsScreen
-        userName="{auth.value && auth.value.user ? auth.value.user.name : ''}"
-        userEmail="{auth.value && auth.value.user ? auth.value.user.email : ''}"
-      />
+      <SettingsScreen />
     </Page>
   </Pages>
 </App>

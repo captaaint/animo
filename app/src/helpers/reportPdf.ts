@@ -47,7 +47,7 @@ export type ReportEntry = {
 export type ReportPdfOptions = {
   fromDate: string; // "YYYY-MM-DD"
   toDate: string; // "YYYY-MM-DD"
-  user: { name?: string; email?: string };
+  user: { name?: string; username?: string };
   totalSeconds: number;
   entries: ReportEntry[];
 };
@@ -70,7 +70,7 @@ type Client = { id: string; name: string };
 type ExportInput = {
   fromDate: string;
   toDate: string;
-  user?: { name?: string; email?: string } | null;
+  user?: { name?: string; username?: string } | null;
   summary: { totalSeconds?: number; entries?: SummaryEntry[] } | null | undefined;
   projects: Project[] | null | undefined;
   clients: Client[] | null | undefined;
@@ -171,7 +171,7 @@ window.exportTimeReport = function exportTimeReport(
       {
         fromDate: input.fromDate,
         toDate: input.toDate,
-        user: input.user || { name: "User", email: "" },
+        user: input.user || { name: "User", username: "" },
         totalSeconds,
         entries: enriched,
       },
@@ -206,7 +206,7 @@ function buildDocDefinition(opts: ReportPdfOptions) {
     pageMargins: [56, 48, 56, 56], // L, T, R, B — generous margins like the screenshot
     info: {
       title: `Detailed Report ${opts.fromDate}${opts.toDate}`,
-      author: opts.user.name || opts.user.email || "Time Tracker",
+      author: opts.user.name || opts.user.username || "Time Tracker",
       creator: "Time Tracker",
       producer: "Time Tracker (pdfmake)",
     },
@@ -235,7 +235,7 @@ function buildDocDefinition(opts: ReportPdfOptions) {
           },
           {
             width: "auto",
-            text: opts.user.name || opts.user.email || "—",
+            text: opts.user.name || opts.user.username || "—",
             fontSize: 12,
             color: TEXT,
             alignment: "right",
