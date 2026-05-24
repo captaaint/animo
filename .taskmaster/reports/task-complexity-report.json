@@ -1,0 +1,93 @@
+{
+	"meta": {
+		"generatedAt": "2026-05-24T20:32:06.296Z",
+		"tasksAnalyzed": 10,
+		"totalTasks": 10,
+		"analysisCount": 10,
+		"thresholdScore": 5,
+		"projectName": "Task Master",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 1,
+			"taskTitle": "Update User Schema and Create Migration for Local Profile Model",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the user schema migration into subtasks covering: 1) Creating the new users_new table with updated schema, 2) Writing data migration logic to generate usernames from existing email/name data, 3) Handling foreign key constraints and table swap, 4) Updating the Rust User model struct and related queries. Include rollback strategy considerations.",
+			"reasoning": "This task involves database schema migration with data transformation, which requires careful handling of existing data, foreign key relationships, and potential rollback scenarios. The complexity comes from needing to preserve data integrity while transforming the schema, generating usernames from existing data, and ensuring all foreign key references remain intact. SQLite's limited ALTER TABLE support adds complexity."
+		},
+		{
+			"taskId": 2,
+			"taskTitle": "Add User Preferences Table and Foundation",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the user preferences implementation into subtasks covering: 1) Creating the user_preferences table migration with proper schema and constraints, 2) Implementing the Rust UserPreferences model and CRUD operations, 3) Setting up automatic preference creation when a user is created (transaction handling). Include helper functions for getting/setting individual preferences.",
+			"reasoning": "This is a relatively straightforward table creation with a clear schema. The main complexity lies in ensuring preferences are auto-created with users in a transaction and providing flexible getter/setter helpers. The JSON field for extensibility adds minor complexity but follows standard patterns."
+		},
+		{
+			"taskId": 3,
+			"taskTitle": "Remove Backend Authentication Module and Session Handling",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the authentication removal into subtasks covering: 1) Identifying and removing auth routes and session handling code, 2) Dropping sessions table and removing password hashing dependencies, 3) Removing session/auth middleware from the middleware stack, 4) Implementing the LocalUser extractor to replace AuthUser, 5) Updating all existing handlers to use LocalUser and verifying user_id scoping still works. Include verification that no auth code remains.",
+			"reasoning": "This task requires systematic removal of authentication infrastructure across multiple files and modules. The complexity comes from ensuring nothing breaks during removal, properly implementing the LocalUser replacement, and verifying all existing handlers continue to work correctly. Missing any auth-related code could cause runtime errors or security issues."
+		},
+		{
+			"taskId": 4,
+			"taskTitle": "Implement Local User Bootstrap API Endpoints",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the bootstrap API implementation into subtasks covering: 1) Implementing GET /api/user/bootstrap endpoint for status checking, 2) Implementing POST /api/user/bootstrap with validation and transaction handling, 3) Implementing GET and PATCH /api/user/me endpoints, 4) Creating response types and registering routes. Include username validation logic and error handling.",
+			"reasoning": "This task involves creating multiple API endpoints with clear specifications. The complexity is moderate due to the need for proper validation, transaction handling for user+preferences creation, and ensuring the bootstrap flow works correctly. The endpoints are well-defined with clear request/response types."
+		},
+		{
+			"taskId": 5,
+			"taskTitle": "Remove Frontend Authentication Components and Routes",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the frontend auth removal into subtasks covering: 1) Deleting authentication screen files and removing auth routes from Main.xmlui, 2) Removing sign-out functionality from user menu/header and cleaning up auth API client methods, 3) Updating components that display email to show name/username instead and removing idle timeout behavior. Include verification of no auth-related console errors.",
+			"reasoning": "This is primarily a deletion and cleanup task with clear targets. The complexity is lower because it's mostly removing code rather than adding new functionality. The main risk is missing some auth-related code or breaking navigation, but the scope is well-defined."
+		},
+		{
+			"taskId": 6,
+			"taskTitle": "Create LocalUserGate Extension to Replace AuthGate",
+			"complexityScore": 6,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the LocalUserGate implementation into subtasks covering: 1) Creating the extension directory structure and TypeScript interface definitions, 2) Implementing the core state management (bootstrapping, needs-setup, ready states), 3) Implementing createUser and updateUser methods with API integration, 4) Integrating LocalUserGate into Main.xmlui with conditional rendering and removing old AuthGate. Include error handling and refresh functionality.",
+			"reasoning": "This task requires creating a new XMLUI extension with state management, API integration, and conditional rendering logic. The complexity comes from managing multiple states, handling async operations, and ensuring smooth transitions between states. It's a core component that other tasks depend on."
+		},
+		{
+			"taskId": 7,
+			"taskTitle": "Implement First-Run Onboarding Screen Component",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the onboarding screen implementation into subtasks covering: 1) Creating the component structure with form fields and placeholder graphic, 2) Implementing validation logic for display name and username, 3) Implementing form submission with loading states and error handling, 4) Styling the component to match the app design system with responsive layout. Include accessibility considerations.",
+			"reasoning": "This is a self-contained UI component with form validation and submission logic. The complexity is moderate due to the validation requirements, auto-formatting of username, error handling, and styling needs. The component has clear inputs and outputs, making it straightforward to implement."
+		},
+		{
+			"taskId": 8,
+			"taskTitle": "Update Demo Seed Data for Local User Model",
+			"complexityScore": 3,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "This is a straightforward update to existing seed data scripts. The changes are well-defined: update user creation to use name/username instead of email/password, create preferences, and update console output. The existing data relationships should remain intact since only the user creation changes. Low complexity, no expansion needed."
+		},
+		{
+			"taskId": 9,
+			"taskTitle": "Update Settings Page for Local User Profile and Preferences",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down the Settings page update into subtasks covering: 1) Updating the profile section to show name and username fields with validation, 2) Adding/updating the preferences section with theme selector and integration with LocalUserGate, 3) Removing email, password, and sign-out related UI elements. Include theme application to the app UI.",
+			"reasoning": "This task involves modifying an existing component with clear requirements. The complexity is moderate due to the need to integrate with LocalUserGate, handle form updates, and ensure theme preferences actually apply to the app. Most of the work is updating existing UI rather than creating new functionality."
+		},
+		{
+			"taskId": 10,
+			"taskTitle": "End-to-End Testing and Verification",
+			"complexityScore": 7,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the E2E testing into subtasks covering: 1) Setting up the E2E test infrastructure and database reset utilities, 2) Writing onboarding flow tests (fresh database, user creation, navigation), 3) Writing tests for removed auth routes and functionality, 4) Writing CRUD operation tests for all data types (clients, projects, tags, time entries), 5) Creating and executing the manual verification checklist across browsers. Include API verification tests.",
+			"reasoning": "This is a comprehensive testing task that depends on all other tasks being complete. The complexity comes from the breadth of testing required (E2E tests, API tests, manual verification), the need to test across multiple browsers, and ensuring all functionality works correctly after the authentication removal. It requires understanding of the entire system."
+		}
+	]
+}

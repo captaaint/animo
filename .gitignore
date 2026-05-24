@@ -7,8 +7,15 @@ Thumbs.db
 
 # Env / secrets
 .env
+.env.*
+.env copy*
 .env.local
 .env.*.local
+.mcp.json
+.mcp.*.json
+!.env.example
+!.env.*.example
+!.mcp.example.json
 
 # Node
 node_modules/
@@ -45,3 +52,23 @@ website/dist-ssg/
 # Releases by website/scripts/sync-downloads.mjs). Only the manifest.json
 # is committed.
 website/public/downloads/v*/
+
+# Logs
+logs
+yarn-debug.log*
+dev-debug.log
+# Dependency directories
+# Environment variables
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+# OS specific
+
+# Task files
+# tasks.json
+# tasks/ 
