@@ -44,6 +44,14 @@ pub async fn build_state(cfg: Config) -> anyhow::Result<AppState> {
 pub fn build_app(state: AppState) -> Router {
     let cfg = state.config.clone();
     let api = Router::new()
+        .route(
+            "/user/bootstrap",
+            get(users::get_bootstrap_status).post(users::create_first_user),
+        )
+        .route(
+            "/user/me",
+            get(users::get_current_user).patch(users::update_current_user),
+        )
         .route("/clients", get(clients::list).post(clients::create))
         .route(
             "/clients/:id",

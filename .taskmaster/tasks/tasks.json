@@ -61,11 +61,12 @@
           "2",
           "3"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 5,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Break down the bootstrap API implementation into subtasks covering: 1) Implementing GET /api/user/bootstrap endpoint for status checking, 2) Implementing POST /api/user/bootstrap with validation and transaction handling, 3) Implementing GET and PATCH /api/user/me endpoints, 4) Creating response types and registering routes. Include username validation logic and error handling."
+        "expansionPrompt": "Break down the bootstrap API implementation into subtasks covering: 1) Implementing GET /api/user/bootstrap endpoint for status checking, 2) Implementing POST /api/user/bootstrap with validation and transaction handling, 3) Implementing GET and PATCH /api/user/me endpoints, 4) Creating response types and registering routes. Include username validation logic and error handling.",
+        "updatedAt": "2026-05-24T21:25:00.947Z"
       },
       {
         "id": "5",
@@ -176,9 +177,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-24T21:16:57.017Z",
+      "lastModified": "2026-05-24T21:25:00.947Z",
       "taskCount": 10,
-      "completedCount": 4,
+      "completedCount": 5,
       "tags": [
         "master"
       ]
