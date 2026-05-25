@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(api): add CSV export endpoint and import parser infrastructure (eab3284)
 - feat(desktop): add system tray with stopwatch controls (a03c29d)
 - feat(desktop): add Cmd/Ctrl+Shift+T global hotkey for stopwatch toggle (55d3daa)
+- feat(api): add CSV import preview and commit endpoints (b727d73)
 
 ## [0.1.3] - 2026-05-23
 
