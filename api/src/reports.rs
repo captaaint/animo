@@ -199,6 +199,118 @@ pub async fn summary(
     }))
 }
 
+async fn fetch_tag_name_map(
+    state: &AppState,
+    user_id: &str,
+) -> AppResult<std::collections::HashMap<String, String>> {
+    let rows: Vec<(String, String)> = sqlx::query_as("SELECT id, name FROM tags WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_all(&state.db)
+        .await?;
+    Ok(rows.into_iter().collect())
+}
+
+fn compute_amount(billable: bool, hourly_rate: Option<f64>, duration_seconds: i64) -> Option<f64> {
+    match (billable, hourly_rate) {
+        (true, Some(rate)) if rate > 0.0 => {
+            let raw = (duration_seconds as f64 / 3600.0) * rate;
+            Some((raw * 100.0).round() / 100.0)
+        }
+        _ => None,
+    }
+}
+
+pub async fn export_csv(
+    State(state): State<AppState>,
+    user: LocalUser,
+    Query(q): Query<RangeQuery>,
+) -> AppResult<Response> {
+    NaiveDate::parse_from_str(&q.from, "%Y-%m-%d")
+        .map_err(|e| AppError::BadRequest(format!("invalid from date: {e}")))?;
+    NaiveDate::parse_from_str(&q.to, "%Y-%m-%d")
+        .map_err(|e| AppError::BadRequest(format!("invalid to date: {e}")))?;
+
+    let entries = fetch_entries(&state, &user.id, &q.from, &q.to).await?;
+    let tag_names = fetch_tag_name_map(&state, &user.id).await?;
+
+    let mut wtr = csv::Writer::from_writer(Vec::<u8>::new());
+    wtr.write_record([
+        "entry_id",
+        "date",
+        "start_time",
+        "end_time",
+        "duration_seconds",
+        "duration_formatted",
+        "description",
+        "project_name",
+        "client_name",
+        "tags",
+        "billable",
+        "hourly_rate",
+        "currency",
+        "amount",
+    ])
+    .map_err(|e| AppError::Internal(anyhow::anyhow!("csv header: {e}")))?;
+
+    for e in &entries {
+        let date = e.start_time.get(..10).unwrap_or("").to_string();
+        let start_t = e.start_time.get(11..19).unwrap_or("").to_string();
+        let end_t = e.end_time.get(11..19).unwrap_or("").to_string();
+        let duration_fmt = fmt_duration(e.duration_seconds);
+        let tag_csv = e
+            .tag_ids
+            .iter()
+            .filter_map(|id| tag_names.get(id).cloned())
+            .collect::<Vec<_>>()
+            .join(", ");
+        let billable_str = if e.billable { "true" } else { "false" };
+        let hourly_str = e
+            .hourly_rate
+            .map(|v| format!("{v:.2}"))
+            .unwrap_or_default();
+        let currency_str = e.currency.clone().unwrap_or_default();
+        let amount_str = compute_amount(e.billable, e.hourly_rate, e.duration_seconds)
+            .map(|v| format!("{v:.2}"))
+            .unwrap_or_default();
+
+        wtr.write_record([
+            e.id.as_str(),
+            &date,
+            &start_t,
+            &end_t,
+            &e.duration_seconds.to_string(),
+            &duration_fmt,
+            &e.description,
+            e.project_name.as_deref().unwrap_or(""),
+            e.client_name.as_deref().unwrap_or(""),
+            &tag_csv,
+            billable_str,
+            &hourly_str,
+            &currency_str,
+            &amount_str,
+        ])
+        .map_err(|err| AppError::Internal(anyhow::anyhow!("csv row {}: {err}", e.id)))?;
+    }
+
+    let data = wtr
+        .into_inner()
+        .map_err(|e| AppError::Internal(anyhow::anyhow!("csv flush: {e}")))?;
+
+    let filename = format!("animo_export_{}_{}.csv", q.from, q.to);
+    Ok((
+        StatusCode::OK,
+        [
+            (header::CONTENT_TYPE, "text/csv; charset=utf-8".to_string()),
+            (
+                header::CONTENT_DISPOSITION,
+                format!("attachment; filename=\"{filename}\""),
+            ),
+        ],
+        data,
+    )
+        .into_response())
+}
+
 pub async fn export_pdf(
     State(state): State<AppState>,
     user: LocalUser,
@@ -348,4 +460,34 @@ fn render_pdf(
 #[allow(dead_code)]
 fn _utc_marker() -> DateTime<Utc> {
     Utc::now()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn compute_amount_billable_with_rate() {
+        // 1h30m at 60.00/hr → 90.00
+        let amount = compute_amount(true, Some(60.0), 5400);
+        assert_eq!(amount, Some(90.0));
+    }
+
+    #[test]
+    fn compute_amount_rounds_to_two_decimals() {
+        // 1h at 33.333/hr → 33.33
+        let amount = compute_amount(true, Some(33.333), 3600);
+        assert_eq!(amount, Some(33.33));
+    }
+
+    #[test]
+    fn compute_amount_non_billable_returns_none() {
+        assert_eq!(compute_amount(false, Some(60.0), 3600), None);
+    }
+
+    #[test]
+    fn compute_amount_zero_rate_returns_none() {
+        assert_eq!(compute_amount(true, Some(0.0), 3600), None);
+        assert_eq!(compute_amount(true, None, 3600), None);
+    }
 }

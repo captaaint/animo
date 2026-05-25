@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(task-master:*)",
+      "Bash(npx task-master:*)",
+      "mcp__task-master-ai__*",
+      "mcp__xmlui__*",
+      "mcp__chrome__*"
+    ]
+  }
+}

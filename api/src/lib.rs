@@ -2,6 +2,7 @@ pub mod clients;
 pub mod config;
 pub mod entries;
 pub mod error;
+pub mod import;
 pub mod projects;
 pub mod reports;
 pub mod state;
@@ -70,6 +71,7 @@ pub fn build_app(state: AppState) -> Router {
         .route("/tags", get(tags::list).post(tags::create))
         .route("/tags/:id", patch(tags::update).delete(tags::delete))
         .route("/reports/summary", get(reports::summary))
+        .route("/reports/export.csv", get(reports::export_csv))
         .route("/reports/export.pdf", get(reports::export_pdf));
 
     let mut app = Router::new()
