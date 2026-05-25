@@ -74,6 +74,7 @@ pub fn build_app(state: AppState) -> Router {
         .route("/tags/:id", patch(tags::update).delete(tags::delete))
         .route("/reports/summary", get(reports::summary))
         .route("/reports/export.csv", get(reports::export_csv))
+        .route("/reports/export.xlsx", get(reports::export_xlsx))
         .route("/reports/export.pdf", get(reports::export_pdf))
         .route("/import/csv/preview", post(import::preview_csv))
         .route("/import/csv/commit", post(import::commit_import))

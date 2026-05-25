@@ -373,11 +373,12 @@
           "11",
           "12"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 3,
         "recommendedSubtasks": 0,
-        "expansionPrompt": ""
+        "expansionPrompt": "",
+        "updatedAt": "2026-05-25T20:52:58.810Z"
       },
       {
         "id": "18",
@@ -446,9 +447,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T20:32:41.999Z",
+      "lastModified": "2026-05-25T20:52:58.810Z",
       "taskCount": 21,
-      "completedCount": 19,
+      "completedCount": 20,
       "tags": [
         "master"
       ]
