@@ -1,0 +1,250 @@
+<Component name="ImportFlow"
+  var.step="{'select'}"
+  var.file="{null}"
+  var.formatHint="{'auto'}"
+  var.previewData="{null}"
+  var.summaryData="{null}"
+  var.errorMessage="{null}"
+>
+  <!--
+    Multi-step CSV/XLSX import:
+      select   → choose file + (optionally) hint format
+      loading  → spinner while preview/commit runs
+      preview  → totals + entities to create + per-row errors, confirm or cancel
+      summary  → counts of what landed in the DB, "Import another"
+
+    `file` is a real DOM File coming back from FileInput's value array.
+    `previewData` / `summaryData` come straight from importApi.ts —
+    field names already match the backend's camelCase responses.
+  -->
+
+  <VStack gap="$space-3">
+    <Text>
+      Import time entries from CSV or XLSX. Supports Animo exports, Toggl,
+      Clockify, and Harvest. Duplicate rows (same date, time range, and
+      description) are skipped automatically; new clients, projects, and
+      tags are created as needed.
+    </Text>
+
+    <!-- ───────────────── Step: select ───────────────── -->
+    <VStack when="{step === 'select'}" gap="$space-3">
+      <FileInput
+        id="importFile"
+        buttonLabel="Choose file"
+        acceptsFileType="{['.csv', '.xlsx']}"
+        onDidChange="(files) => {
+          file = files && files[0] ? files[0] : null;
+          errorMessage = null;
+        }"
+      />
+      <Text when="{file}" variant="secondary" fontSize="$fontSize-small">
+        Selected: {file.name}
+      </Text>
+
+      <HStack gap="$space-2" verticalAlignment="center">
+        <Text>Format:</Text>
+        <Select
+          width="200px"
+          initialValue="{formatHint}"
+          onDidChange="(v) => formatHint = v"
+        >
+          <Option value="auto" label="Auto-detect" />
+          <Option value="animo" label="Animo" />
+          <Option value="toggl" label="Toggl" />
+          <Option value="clockify" label="Clockify" />
+          <Option value="harvest" label="Harvest" />
+        </Select>
+      </HStack>
+
+      <Text
+        when="{errorMessage}"
+        color="$color-danger-600"
+        fontSize="$fontSize-small"
+      >
+        {errorMessage}
+      </Text>
+
+      <HStack gap="$space-2">
+        <Button
+          label="Preview"
+          themeColor="primary"
+          enabled="{file !== null}"
+          onClick="() => {
+            step = 'loading';
+            errorMessage = null;
+            window.animoImportPreview(
+              file,
+              formatHint,
+              (data) => { previewData = data; step = 'preview'; },
+              (msg) => {
+                errorMessage = msg;
+                step = 'select';
+                toast.error(msg);
+              }
+            );
+          }"
+        />
+      </HStack>
+    </VStack>
+
+    <!-- ───────────────── Step: loading ───────────────── -->
+    <HStack
+      when="{step === 'loading'}"
+      verticalAlignment="center"
+      gap="$space-3"
+    >
+      <Spinner />
+      <Text>Working…</Text>
+    </HStack>
+
+    <!-- ───────────────── Step: preview ───────────────── -->
+    <VStack when="{step === 'preview' && previewData}" gap="$space-3">
+      <HStack gap="$space-2" verticalAlignment="center">
+        <Text fontWeight="600">Preview</Text>
+        <Text variant="secondary" fontSize="$fontSize-small">
+          ({previewData.format})
+        </Text>
+      </HStack>
+
+      <HStack gap="$space-3" wrapContent="true">
+        <Card padding="$space-3" width="140px">
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
+              Total rows
+            </Text>
+            <Text fontWeight="600" fontSize="1.1rem">{previewData.totalRows}</Text>
+          </VStack>
+        </Card>
+        <Card padding="$space-3" width="140px">
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
+              Will import
+            </Text>
+            <Text fontWeight="600" fontSize="1.1rem" color="$color-primary-600">
+              {previewData.validRows}
+            </Text>
+          </VStack>
+        </Card>
+        <Card padding="$space-3" width="140px">
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
+              Duplicates
+            </Text>
+            <Text fontWeight="600" fontSize="1.1rem">
+              {previewData.duplicateWarnings}
+            </Text>
+          </VStack>
+        </Card>
+        <Card padding="$space-3" width="140px">
+          <VStack gap="$space-1">
+            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
+              Errors
+            </Text>
+            <Text
+              fontWeight="600"
+              fontSize="1.1rem"
+              color="{previewData.errorRows.length > 0 ? '$color-danger-600' : '$color-surface-700'}"
+            >
+              {previewData.errorRows.length}
+            </Text>
+          </VStack>
+        </Card>
+      </HStack>
+
+      <!-- New entities preview. Only show the section if any of the three
+           lists has items; otherwise it just adds noise. -->
+      <VStack
+        when="{(previewData.entitiesToCreate.clients.length + previewData.entitiesToCreate.projects.length + previewData.entitiesToCreate.tags.length) > 0}"
+        gap="$space-1"
+      >
+        <Text fontWeight="600">Will create:</Text>
+        <Text
+          when="{previewData.entitiesToCreate.clients.length > 0}"
+          fontSize="$fontSize-small"
+        >
+          Clients ({previewData.entitiesToCreate.clients.length}):
+          {previewData.entitiesToCreate.clients.join(', ')}
+        </Text>
+        <Text
+          when="{previewData.entitiesToCreate.projects.length > 0}"
+          fontSize="$fontSize-small"
+        >
+          Projects ({previewData.entitiesToCreate.projects.length}):
+          {previewData.entitiesToCreate.projects.join(', ')}
+        </Text>
+        <Text
+          when="{previewData.entitiesToCreate.tags.length > 0}"
+          fontSize="$fontSize-small"
+        >
+          Tags ({previewData.entitiesToCreate.tags.length}):
+          {previewData.entitiesToCreate.tags.join(', ')}
+        </Text>
+      </VStack>
+
+      <VStack when="{previewData.errorRows.length > 0}" gap="$space-2">
+        <Text fontWeight="600">Rows with problems:</Text>
+        <Table data="{previewData.errorRows}">
+          <Column bindTo="row" header="Row" width="80px" />
+          <Column bindTo="message" header="Reason" width="*" />
+        </Table>
+      </VStack>
+
+      <HStack gap="$space-2">
+        <Button
+          label="Cancel"
+          variant="ghost"
+          onClick="() => {
+            step = 'select';
+            previewData = null;
+          }"
+        />
+        <Button
+          label="Import {previewData.validRows} entries"
+          themeColor="primary"
+          enabled="{previewData.validRows > 0}"
+          onClick="() => {
+            step = 'loading';
+            errorMessage = null;
+            const isXlsx = file && file.name.toLowerCase().endsWith('.xlsx');
+            window.animoImportCommit(
+              previewData.sessionId,
+              isXlsx,
+              (data) => { summaryData = data; step = 'summary'; toast.success('Import complete'); },
+              (msg) => { errorMessage = msg; step = 'preview'; toast.error(msg); }
+            );
+          }"
+        />
+      </HStack>
+    </VStack>
+
+    <!-- ───────────────── Step: summary ───────────────── -->
+    <VStack when="{step === 'summary' && summaryData}" gap="$space-2">
+      <HStack gap="$space-2" verticalAlignment="center">
+        <Icon name="check" color="$color-primary-600" />
+        <Text fontWeight="600">Import complete</Text>
+      </HStack>
+      <Text>{summaryData.entriesCreated} {summaryData.entriesCreated === 1 ? 'entry' : 'entries'} created.</Text>
+      <Text variant="secondary" fontSize="$fontSize-small">
+        Created {summaryData.clientsCreated} client(s),
+        {summaryData.projectsCreated} project(s),
+        {summaryData.tagsCreated} tag(s). Skipped
+        {summaryData.duplicatesSkipped} duplicate(s).
+      </Text>
+      <HStack gap="$space-2">
+        <Button
+          label="Import another file"
+          themeColor="primary"
+          variant="outlined"
+          onClick="() => {
+            step = 'select';
+            file = null;
+            previewData = null;
+            summaryData = null;
+            errorMessage = null;
+            if (importFile) importFile.setValue([]);
+          }"
+        />
+      </HStack>
+    </VStack>
+  </VStack>
+</Component>

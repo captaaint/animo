@@ -144,6 +144,14 @@
         </HStack>
       </VStack>
 
+      <VStack gap="$space-3">
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Data import
+        </Text>
+        <ContentSeparator />
+        <ImportFlow />
+      </VStack>
+
     </Card>
   </HStack>
 </Component>

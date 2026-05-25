@@ -355,11 +355,12 @@
           "14",
           "15"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 6,
         "recommendedSubtasks": 5,
-        "expansionPrompt": "Break down the frontend import UI into subtasks: 1) Implement file selection component with drag-drop and file type validation, 2) Implement format selection UI (dropdown/radio buttons), 3) Implement preview results display (errors table, duplicate warnings, entities to create), 4) Implement commit confirmation and summary display, 5) Add state management for multi-step flow with cancel/back navigation and loading states."
+        "expansionPrompt": "Break down the frontend import UI into subtasks: 1) Implement file selection component with drag-drop and file type validation, 2) Implement format selection UI (dropdown/radio buttons), 3) Implement preview results display (errors table, duplicate warnings, entities to create), 4) Implement commit confirmation and summary display, 5) Add state management for multi-step flow with cancel/back navigation and loading states.",
+        "updatedAt": "2026-05-25T20:32:41.999Z"
       },
       {
         "id": "17",
@@ -445,9 +446,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T20:25:38.478Z",
+      "lastModified": "2026-05-25T20:32:41.999Z",
       "taskCount": 21,
-      "completedCount": 18,
+      "completedCount": 19,
       "tags": [
         "master"
       ]
