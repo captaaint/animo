@@ -418,11 +418,12 @@
           "18",
           "19"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 8,
         "recommendedSubtasks": 6,
-        "expansionPrompt": "Break down the stopwatch state bridge into subtasks: 1) Design and implement StopwatchState struct with all required fields, 2) Implement Tauri commands (start, stop, get_state, update_description), 3) Implement Tauri event emission for state changes, 4) Implement state persistence to SQLite for app restart recovery, 5) Implement frontend React hook for state subscription and command invocation, 6) Integration testing for bidirectional sync and concurrent access scenarios."
+        "expansionPrompt": "Break down the stopwatch state bridge into subtasks: 1) Design and implement StopwatchState struct with all required fields, 2) Implement Tauri commands (start, stop, get_state, update_description), 3) Implement Tauri event emission for state changes, 4) Implement state persistence to SQLite for app restart recovery, 5) Implement frontend React hook for state subscription and command invocation, 6) Integration testing for bidirectional sync and concurrent access scenarios.",
+        "updatedAt": "2026-05-25T20:02:22.523Z"
       },
       {
         "id": "21",
@@ -443,9 +444,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T19:51:48.303Z",
+      "lastModified": "2026-05-25T20:02:22.524Z",
       "taskCount": 21,
-      "completedCount": 16,
+      "completedCount": 17,
       "tags": [
         "master"
       ]
