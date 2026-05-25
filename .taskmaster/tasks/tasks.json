@@ -287,11 +287,12 @@
         "dependencies": [
           "11"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 6,
         "recommendedSubtasks": 5,
-        "expansionPrompt": "Break down the XLSX export endpoint into subtasks covering: 1) Reusing/refactoring data query logic from CSV export (task 11), 2) Implementing Entries sheet with proper Excel cell formatting (dates, times, currency), 3) Implementing Summary sheet with aggregate queries and pivot-style groupings, 4) Workbook assembly and HTTP response handling, 5) Testing with Excel/LibreOffice compatibility verification."
+        "expansionPrompt": "Break down the XLSX export endpoint into subtasks covering: 1) Reusing/refactoring data query logic from CSV export (task 11), 2) Implementing Entries sheet with proper Excel cell formatting (dates, times, currency), 3) Implementing Summary sheet with aggregate queries and pivot-style groupings, 4) Workbook assembly and HTTP response handling, 5) Testing with Excel/LibreOffice compatibility verification.",
+        "updatedAt": "2026-05-25T19:20:19.347Z"
       },
       {
         "id": "13",
@@ -322,7 +323,8 @@
         "subtasks": [],
         "complexity": 8,
         "recommendedSubtasks": 7,
-        "expansionPrompt": "Break down CSV import endpoints into subtasks: 1) Implement multipart file upload handling for preview endpoint, 2) Integrate parser infrastructure from task 13 with format detection, 3) Implement duplicate detection logic (matching by date, times, description), 4) Implement entity discovery (missing clients, projects, tags), 5) Implement preview session state management (caching/temp storage), 6) Implement commit endpoint with transactional entity creation and entry insertion, 7) Comprehensive integration testing with all edge cases."
+        "expansionPrompt": "Break down CSV import endpoints into subtasks: 1) Implement multipart file upload handling for preview endpoint, 2) Integrate parser infrastructure from task 13 with format detection, 3) Implement duplicate detection logic (matching by date, times, description), 4) Implement entity discovery (missing clients, projects, tags), 5) Implement preview session state management (caching/temp storage), 6) Implement commit endpoint with transactional entity creation and entry insertion, 7) Comprehensive integration testing with all edge cases.",
+        "updatedAt": "2026-05-25T19:20:24.631Z"
       },
       {
         "id": "15",
@@ -383,11 +385,12 @@
         "testStrategy": "Manual testing on macOS, Windows, and Linux. Verify tray icon appears in system tray/menu bar. Verify menu items display correctly. Test each menu action: Start, Stop, Resume, Show Window, Quit. Verify tray menu updates when stopwatch state changes. Test onboarding check: verify behavior when user hasn't completed setup. Test tray icon updates (if implemented). Verify app doesn't crash when tray is interacted with while window is closed.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 6,
         "recommendedSubtasks": 5,
-        "expansionPrompt": "Break down system tray implementation into subtasks: 1) Set up basic Tauri SystemTray with static menu structure, 2) Implement dynamic menu updates based on stopwatch state, 3) Implement tray event handlers for menu item clicks, 4) Implement tray icon state updates (idle vs running), 5) Handle edge cases (onboarding incomplete, window show/hide, app quit). Include cross-platform testing considerations."
+        "expansionPrompt": "Break down system tray implementation into subtasks: 1) Set up basic Tauri SystemTray with static menu structure, 2) Implement dynamic menu updates based on stopwatch state, 3) Implement tray event handlers for menu item clicks, 4) Implement tray icon state updates (idle vs running), 5) Handle edge cases (onboarding incomplete, window show/hide, app quit). Include cross-platform testing considerations.",
+        "updatedAt": "2026-05-25T19:28:51.028Z"
       },
       {
         "id": "19",
@@ -439,9 +442,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T18:53:15.331Z",
+      "lastModified": "2026-05-25T19:28:51.028Z",
       "taskCount": 21,
-      "completedCount": 12,
+      "completedCount": 14,
       "tags": [
         "master"
       ]

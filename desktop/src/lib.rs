@@ -22,11 +22,15 @@
 //   5. The worker thread then calls `bound.serve()` and blocks for the
 //      lifetime of the app, draining requests.
 
-use std::sync::mpsc;
+mod tray;
+
+use std::sync::{mpsc, Mutex};
 use std::thread;
 
 use animo_api::{bind, Config};
 use tauri::{Manager, State};
+
+use crate::tray::{StopwatchSnapshot, StopwatchStateMutex, TrayHandle};
 
 /// Port assigned to the embedded axum server at startup. Exposed to the
 /// webview via the [`api_base`] command so the XMLUI frontend can build its
@@ -155,9 +159,18 @@ pub fn run() {
                 .map_err(|e| anyhow::anyhow!("api bootstrap failed: {e}"))?;
 
             app.manage(ApiPort(port));
+
+            // Tray state must exist before `tray::create` runs, otherwise
+            // the menu-click handler can't reach the snapshot for its
+            // onboarding fallback check.
+            app.manage(StopwatchStateMutex(
+                Mutex::new(StopwatchSnapshot::default()),
+            ));
+            app.manage(TrayHandle::<tauri::Wry>(Mutex::new(None)));
+            tray::create(app.handle())?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![api_base])
+        .invoke_handler(tauri::generate_handler![api_base, tray::update_tray_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
