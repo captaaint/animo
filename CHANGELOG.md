@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(api): add CSV export endpoint and import parser infrastructure (c928dfc)
 - feat(api): add CSV export endpoint and import parser infrastructure (eab3284)
+- feat(desktop): add system tray with stopwatch controls (a03c29d)
 
 ## [0.1.3] - 2026-05-23
 
