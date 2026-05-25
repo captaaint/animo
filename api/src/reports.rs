@@ -264,10 +264,7 @@ pub async fn export_csv(
             .collect::<Vec<_>>()
             .join(", ");
         let billable_str = if e.billable { "true" } else { "false" };
-        let hourly_str = e
-            .hourly_rate
-            .map(|v| format!("{v:.2}"))
-            .unwrap_or_default();
+        let hourly_str = e.hourly_rate.map(|v| format!("{v:.2}")).unwrap_or_default();
         let currency_str = e.currency.clone().unwrap_or_default();
         let amount_str = compute_amount(e.billable, e.hourly_rate, e.duration_seconds)
             .map(|v| format!("{v:.2}"))

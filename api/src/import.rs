@@ -234,11 +234,7 @@ pub fn detect_format(headers: &StringRecord) -> Option<SourceFormat> {
     {
         return Some(SourceFormat::Clockify);
     }
-    if index.has("user")
-        && index.has("email")
-        && index.has("start date")
-        && index.has("duration")
-    {
+    if index.has("user") && index.has("email") && index.has("start date") && index.has("duration") {
         return Some(SourceFormat::Toggl);
     }
     None
@@ -515,11 +511,7 @@ impl ImportParser for HarvestParser {
             start_time: None,
             end_time: None,
             duration_seconds,
-            description: self
-                .headers
-                .get(record, "notes")
-                .unwrap_or("")
-                .to_string(),
+            description: self.headers.get(record, "notes").unwrap_or("").to_string(),
             project_name: self.headers.get(record, "project").map(str::to_string),
             client_name: self.headers.get(record, "client").map(str::to_string),
             tags: Vec::new(),
@@ -533,7 +525,10 @@ impl ImportParser for HarvestParser {
                 .headers
                 .get(record, "billable rate")
                 .and_then(parse_f64_lenient),
-            currency: self.headers.get(record, "currency").map(|s| s.to_uppercase()),
+            currency: self
+                .headers
+                .get(record, "currency")
+                .map(|s| s.to_uppercase()),
         })
     }
 }
@@ -815,13 +810,22 @@ mod tests {
         let out = parser.parse_row(&r).unwrap();
         assert_eq!(out.source_id.as_deref(), Some("e-1"));
         assert_eq!(out.date, NaiveDate::from_ymd_opt(2026, 5, 25).unwrap());
-        assert_eq!(out.start_time, Some(NaiveTime::from_hms_opt(9, 30, 0).unwrap()));
-        assert_eq!(out.end_time, Some(NaiveTime::from_hms_opt(11, 0, 0).unwrap()));
+        assert_eq!(
+            out.start_time,
+            Some(NaiveTime::from_hms_opt(9, 30, 0).unwrap())
+        );
+        assert_eq!(
+            out.end_time,
+            Some(NaiveTime::from_hms_opt(11, 0, 0).unwrap())
+        );
         assert_eq!(out.duration_seconds, Some(5400));
         assert_eq!(out.description, "Worked on tray");
         assert_eq!(out.project_name.as_deref(), Some("Animo"));
         assert_eq!(out.client_name.as_deref(), Some("NSoftware"));
-        assert_eq!(out.tags, vec!["deep work".to_string(), "planning".to_string()]);
+        assert_eq!(
+            out.tags,
+            vec!["deep work".to_string(), "planning".to_string()]
+        );
         assert!(out.billable);
         assert_eq!(out.hourly_rate, Some(60.0));
         assert_eq!(out.currency.as_deref(), Some("EUR"));
@@ -865,8 +869,14 @@ mod tests {
         let parser = TogglParser::new(&h);
         let out = parser.parse_row(&r).unwrap();
         assert_eq!(out.date, NaiveDate::from_ymd_opt(2026, 5, 25).unwrap());
-        assert_eq!(out.start_time, Some(NaiveTime::from_hms_opt(9, 30, 0).unwrap()));
-        assert_eq!(out.end_time, Some(NaiveTime::from_hms_opt(11, 0, 0).unwrap()));
+        assert_eq!(
+            out.start_time,
+            Some(NaiveTime::from_hms_opt(9, 30, 0).unwrap())
+        );
+        assert_eq!(
+            out.end_time,
+            Some(NaiveTime::from_hms_opt(11, 0, 0).unwrap())
+        );
         assert_eq!(out.duration_seconds, Some(5400));
         assert!(out.billable);
         assert_eq!(out.project_name.as_deref(), Some("Animo"));
