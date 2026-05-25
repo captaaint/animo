@@ -3,6 +3,9 @@
     "allow": [
       "Bash(task-master:*)",
       "Bash(npx task-master:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo fmt:*)",
       "mcp__task-master-ai__*",
       "mcp__xmlui__*",
       "mcp__chrome__*",

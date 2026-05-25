@@ -400,11 +400,12 @@
         "testStrategy": "Manual testing on macOS, Windows, and Linux. Verify hotkey registers successfully on app startup. Test hotkey triggers stopwatch toggle when app is in foreground, background, and minimized. Verify hotkey works across different applications. Test conflict handling: manually register same shortcut in OS, verify app handles gracefully. Test platform-specific shortcuts: Cmd+Shift+T on macOS, Ctrl+Shift+T on Windows/Linux. Verify no interference with existing app shortcuts.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down global hotkey implementation into subtasks: 1) Set up tauri-plugin-global-shortcut and register platform-specific shortcuts, 2) Implement toggle logic connecting to stopwatch state, 3) Handle conflict detection and error cases with user feedback. Include cross-platform testing."
+        "expansionPrompt": "Break down global hotkey implementation into subtasks: 1) Set up tauri-plugin-global-shortcut and register platform-specific shortcuts, 2) Implement toggle logic connecting to stopwatch state, 3) Handle conflict detection and error cases with user feedback. Include cross-platform testing.",
+        "updatedAt": "2026-05-25T19:35:33.261Z"
       },
       {
         "id": "20",
@@ -442,9 +443,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T19:28:51.028Z",
+      "lastModified": "2026-05-25T19:35:33.261Z",
       "taskCount": 21,
-      "completedCount": 14,
+      "completedCount": 15,
       "tags": [
         "master"
       ]

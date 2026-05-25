@@ -22,6 +22,7 @@
 //   5. The worker thread then calls `bound.serve()` and blocks for the
 //      lifetime of the app, draining requests.
 
+mod hotkey;
 mod tray;
 
 use std::sync::{mpsc, Mutex};
@@ -100,6 +101,7 @@ pub fn run() {
                 let _ = window.set_focus();
             }
         }))
+        .plugin(hotkey::build_plugin())
         .setup(|app| {
             let data_dir = app
                 .path()
