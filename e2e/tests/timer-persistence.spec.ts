@@ -28,19 +28,19 @@ test('TimerBar keeps running across navigation between sections', async ({ page 
 
   // Reports: under the old behaviour the TimerBar would disappear here.
   await page.getByRole('link', { name: 'Reports' }).click();
-  await expect.poll(() => page.url()).toContain('#/reports');
+  await expect.poll(() => new URL(page.url()).pathname).toBe('/reports');
   await expect(stop).toBeVisible();
 
   // Projects too — also outside the old whitelist.
   await page.getByRole('link', { name: 'Projects' }).click();
-  await expect.poll(() => page.url()).toContain('#/projects');
+  await expect.poll(() => new URL(page.url()).pathname).toBe('/projects');
   await expect(stop).toBeVisible();
 
   await page.waitForTimeout(1500);
 
   // Back to List — the display must have moved past what we captured.
   await page.getByRole('link', { name: 'List' }).click();
-  await expect.poll(() => page.url()).toContain('#/list');
+  await expect.poll(() => new URL(page.url()).pathname).toBe('/list');
   await expect(stop).toBeVisible();
 
   const elapsedAfter = await counter.innerText();

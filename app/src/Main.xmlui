@@ -27,7 +27,7 @@
     credentials="include"
     when="{localUser.value && localUser.value.kind === 'ready'}"
   />
-  <TonePersist />
+  <TonePersist id="tone" />
 
   <Stack
     when="{!localUser.value || localUser.value.kind === 'bootstrapping'}"
@@ -196,8 +196,8 @@
         userName="{localUser.value && localUser.value.user ? localUser.value.user.name : ''}"
         username="{localUser.value && localUser.value.user ? localUser.value.user.username : ''}"
         theme="{localUser.value && localUser.value.user && localUser.value.user.preferences ? localUser.value.user.preferences.theme : 'system'}"
-        onSaveProfile="(name, username) => localUser.updateUser({ name: name, username: username })"
-        onSaveTheme="(theme) => localUser.updateUser({ preferences: { theme: theme } })"
+        onSaveProfile="(p) => localUser.updateUser({ name: p.name, username: p.username })"
+        onSaveTheme="(theme) => { tone.setTone(theme); localUser.updateUser({ preferences: { theme: theme } }); }"
       />
     </Page>
   </Pages>

@@ -55,7 +55,7 @@
           hideButtonRow="true"
           onSubmit="() => {
             if (!canSaveProfile) return;
-            $props.onSaveProfile(nameInput.trim(), usernameInput);
+            emitEvent('saveProfile', { name: nameInput.trim(), username: usernameInput });
             toast.success('Profile updated');
           }"
         >
@@ -120,33 +120,20 @@
         </Text>
         <ContentSeparator />
 
-        <!--
-          Two complementary controls:
-          - ToneSwitch flips the live UI tone (persisted to localStorage by
-            <TonePersist/> in Main.xmlui). Survives reloads on this device.
-          - Select below stores the preference on the user profile so it
-            travels with the local DB (and so a future bootstrap can apply it
-            on a fresh device / after a reseed).
-        -->
         <HStack
           verticalAlignment="center"
           gap="$space-3"
           paddingVertical="$space-3"
         >
           <Icon name="palette" size="18px" />
-          <Text>Theme (this device)</Text>
-          <SpaceFiller />
-          <ToneSwitch />
-        </HStack>
-
-        <HStack verticalAlignment="center" gap="$space-3">
-          <Text>Saved theme preference</Text>
+          <Text>Theme</Text>
           <SpaceFiller />
           <Select
             initialValue="{themeInput}"
+            width="180px"
             onDidChange="(v) => {
               themeInput = v;
-              $props.onSaveTheme(v);
+              emitEvent('saveTheme', v);
               toast.success('Theme preference saved');
             }"
           >
