@@ -337,11 +337,12 @@
           "13",
           "14"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 5,
         "recommendedSubtasks": 4,
-        "expansionPrompt": "Break down XLSX import endpoints into subtasks: 1) Implement XLSX file reading with calamine crate and sheet selection logic, 2) Convert Excel rows to StringRecord format for parser compatibility, 3) Handle Excel date/time serial number conversions, 4) Integrate with existing CSV import validation and commit logic. Include round-trip testing (export then import)."
+        "expansionPrompt": "Break down XLSX import endpoints into subtasks: 1) Implement XLSX file reading with calamine crate and sheet selection logic, 2) Convert Excel rows to StringRecord format for parser compatibility, 3) Handle Excel date/time serial number conversions, 4) Integrate with existing CSV import validation and commit logic. Include round-trip testing (export then import).",
+        "updatedAt": "2026-05-25T20:25:38.478Z"
       },
       {
         "id": "16",
@@ -444,9 +445,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T20:02:22.524Z",
+      "lastModified": "2026-05-25T20:25:38.478Z",
       "taskCount": 21,
-      "completedCount": 17,
+      "completedCount": 18,
       "tags": [
         "master"
       ]

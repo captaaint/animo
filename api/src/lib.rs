@@ -76,7 +76,9 @@ pub fn build_app(state: AppState) -> Router {
         .route("/reports/export.csv", get(reports::export_csv))
         .route("/reports/export.pdf", get(reports::export_pdf))
         .route("/import/csv/preview", post(import::preview_csv))
-        .route("/import/csv/commit", post(import::commit_csv));
+        .route("/import/csv/commit", post(import::commit_import))
+        .route("/import/xlsx/preview", post(import::preview_xlsx))
+        .route("/import/xlsx/commit", post(import::commit_import));
 
     let mut app = Router::new()
         .route("/health", get(health))

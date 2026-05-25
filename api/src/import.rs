@@ -149,6 +149,21 @@ pub fn parse_time(s: &str) -> Result<NaiveTime, ImportError> {
             return Ok(t);
         }
     }
+    // Fallback for ISO datetime strings (`2026-05-25T09:30:00`,
+    // `2026-05-25T09:30:00.000Z`, …). XLSX `DateTime` cells get serialized
+    // this way by the cell-to-string converter, and we want the time
+    // column to find its hours-minutes-seconds inside that envelope.
+    if let Some(t_pos) = trimmed.find('T').or_else(|| trimmed.find(' ')) {
+        let raw = trimmed.get(t_pos + 1..).unwrap_or("");
+        let raw = raw.trim_end_matches('Z');
+        let raw = raw.split('.').next().unwrap_or(raw); // strip fractional seconds
+        if let Ok(t) = NaiveTime::parse_from_str(raw, "%H:%M:%S") {
+            return Ok(t);
+        }
+        if let Ok(t) = NaiveTime::parse_from_str(raw, "%H:%M") {
+            return Ok(t);
+        }
+    }
     Err(ImportError::InvalidValue {
         column: "time".into(),
         message: format!("cannot parse '{s}'"),
@@ -746,6 +761,155 @@ fn prune_expired(sessions: &mut HashMap<String, PreviewSession>) {
     sessions.retain(|_, s| now.duration_since(s.created_at) < SESSION_TTL);
 }
 
+/// Result of feeding a parsed record stream through the preview pipeline.
+/// Shared by [`preview_csv`] and [`preview_xlsx`] so the duplicate/entity
+/// logic only lives in one place.
+struct ProcessedRows {
+    total_rows: usize,
+    valid_rows: Vec<ImportRow>,
+    duplicate_rows: Vec<ImportRow>,
+    error_rows: Vec<RowError>,
+    new_clients: BTreeSet<String>,
+    new_projects: BTreeSet<String>,
+    new_tags: BTreeSet<String>,
+}
+
+/// Input to [`process_records`]. Each item is a `(display_row_number,
+/// per-record-error)` pair — the row number is 1-based and includes the
+/// header row, so the first data row is row 2 (matches how spreadsheet
+/// UIs label things). `Err` strings come from the parser layer (e.g.
+/// CSV reader I/O error) and are reported verbatim.
+type RecordIter = Box<dyn Iterator<Item = (usize, Result<StringRecord, String>)> + Send>;
+
+async fn process_records(
+    state: &AppState,
+    user_id: &str,
+    parser: &dyn ImportParser,
+    records: RecordIter,
+) -> AppResult<ProcessedRows> {
+    let known_clients = fetch_client_names(state, user_id).await?;
+    let known_projects = fetch_project_names(state, user_id).await?;
+    let known_tags = fetch_tag_names(state, user_id).await?;
+
+    let mut out = ProcessedRows {
+        total_rows: 0,
+        valid_rows: Vec::new(),
+        duplicate_rows: Vec::new(),
+        error_rows: Vec::new(),
+        new_clients: BTreeSet::new(),
+        new_projects: BTreeSet::new(),
+        new_tags: BTreeSet::new(),
+    };
+
+    for (display_row, result) in records {
+        out.total_rows += 1;
+        let record = match result {
+            Ok(r) => r,
+            Err(msg) => {
+                out.error_rows.push(RowError {
+                    row: display_row,
+                    message: msg,
+                });
+                continue;
+            }
+        };
+        let parsed = match parser.parse_row(&record) {
+            Ok(r) => r,
+            Err(e) => {
+                out.error_rows.push(RowError {
+                    row: display_row,
+                    message: e.to_string(),
+                });
+                continue;
+            }
+        };
+        if let Err(e) = validate(&parsed) {
+            out.error_rows.push(RowError {
+                row: display_row,
+                message: e.to_string(),
+            });
+            continue;
+        }
+        let Some((start_iso, end_iso, _)) = row_to_iso_range(&parsed) else {
+            out.error_rows.push(RowError {
+                row: display_row,
+                message: "could not derive start/end timestamps".into(),
+            });
+            continue;
+        };
+        if is_duplicate(state, user_id, &start_iso, &end_iso, &parsed.description).await? {
+            out.duplicate_rows.push(parsed);
+            continue;
+        }
+
+        if let Some(name) = parsed.client_name.as_deref() {
+            let normalized = name.trim();
+            if !normalized.is_empty() && !known_clients.contains(&normalized.to_lowercase()) {
+                out.new_clients.insert(normalized.to_string());
+            }
+        }
+        if let Some(name) = parsed.project_name.as_deref() {
+            let normalized = name.trim();
+            if !normalized.is_empty() && !known_projects.contains(&normalized.to_lowercase()) {
+                out.new_projects.insert(normalized.to_string());
+            }
+        }
+        for tag in &parsed.tags {
+            let normalized = tag.trim();
+            if !normalized.is_empty() && !known_tags.contains(&normalized.to_lowercase()) {
+                out.new_tags.insert(normalized.to_string());
+            }
+        }
+        out.valid_rows.push(parsed);
+    }
+    Ok(out)
+}
+
+/// Wraps `processed` into a [`PreviewSession`] + [`PreviewResponse`],
+/// inserts the session into app state, and prunes expired ones along
+/// the way. The two preview endpoints diverge only in *how* they build
+/// the `processed` value; everything after that is the same.
+fn finalize_preview(
+    state: &AppState,
+    user_id: &str,
+    format: SourceFormat,
+    processed: ProcessedRows,
+) -> AppResult<PreviewResponse> {
+    let session_id = Uuid::new_v4().to_string();
+    let valid_count = processed.valid_rows.len();
+    let duplicate_count = processed.duplicate_rows.len();
+
+    let session = PreviewSession {
+        format,
+        created_at: std::time::Instant::now(),
+        user_id: user_id.to_string(),
+        valid_rows: processed.valid_rows,
+        duplicate_rows: processed.duplicate_rows,
+    };
+    {
+        let mut sessions = state
+            .import_sessions
+            .lock()
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("import session mutex poisoned")))?;
+        prune_expired(&mut sessions);
+        sessions.insert(session_id.clone(), session);
+    }
+
+    Ok(PreviewResponse {
+        session_id,
+        format: format.as_str().to_string(),
+        total_rows: processed.total_rows,
+        valid_rows: valid_count,
+        duplicate_warnings: duplicate_count,
+        error_rows: processed.error_rows,
+        entities_to_create: EntitiesToCreate {
+            clients: processed.new_clients.into_iter().collect(),
+            projects: processed.new_projects.into_iter().collect(),
+            tags: processed.new_tags.into_iter().collect(),
+        },
+    })
+}
+
 pub async fn preview_csv(
     State(state): State<AppState>,
     user: LocalUser,
@@ -763,127 +927,156 @@ pub async fn preview_csv(
         .map_err(|e| AppError::BadRequest(format!("read headers: {e}")))?
         .clone();
 
-    let format = match source_format_hint.as_deref().and_then(SourceFormat::parse) {
-        Some(fmt) => fmt,
-        None => detect_format(&headers).ok_or_else(|| {
+    let format = resolve_format(source_format_hint.as_deref(), &headers)?;
+    let parser = parser_for(format, &headers);
+
+    // Collect now so the iterator passed to `process_records` is owned —
+    // `csv::Reader` borrows from `bytes`, and the inner loop is async.
+    let raw_records: Vec<(usize, Result<StringRecord, String>)> = reader
+        .records()
+        .enumerate()
+        .map(|(idx, result)| {
+            // 1-based row number including the header row.
+            let display_row = idx + 2;
+            (
+                display_row,
+                result.map_err(|e| format!("csv parse error: {e}")),
+            )
+        })
+        .collect();
+
+    let processed = process_records(
+        &state,
+        &user.id,
+        parser.as_ref(),
+        Box::new(raw_records.into_iter()),
+    )
+    .await?;
+    let response = finalize_preview(&state, &user.id, format, processed)?;
+    Ok(Json(response))
+}
+
+/// XLSX counterpart of [`preview_csv`]. Reuses `read_upload`,
+/// `process_records`, and `finalize_preview`; the only XLSX-specific
+/// work is picking a worksheet and turning calamine `Data` cells into
+/// the [`StringRecord`] shape the parsers expect.
+pub async fn preview_xlsx(
+    State(state): State<AppState>,
+    user: LocalUser,
+    multipart: Multipart,
+) -> AppResult<Json<PreviewResponse>> {
+    let (bytes, source_format_hint) = read_upload(multipart).await?;
+    let (headers, data_rows) = read_xlsx_rows(bytes)?;
+    let format = resolve_format(source_format_hint.as_deref(), &headers)?;
+    let parser = parser_for(format, &headers);
+
+    let iter: Vec<(usize, Result<StringRecord, String>)> = data_rows
+        .into_iter()
+        .enumerate()
+        .map(|(idx, row)| (idx + 2, Ok(row)))
+        .collect();
+
+    let processed = process_records(
+        &state,
+        &user.id,
+        parser.as_ref(),
+        Box::new(iter.into_iter()),
+    )
+    .await?;
+    let response = finalize_preview(&state, &user.id, format, processed)?;
+    Ok(Json(response))
+}
+
+/// Open the uploaded bytes as an XLSX workbook, pick the worksheet, and
+/// hand back the header row + data rows already in [`StringRecord`] form.
+///
+/// Sheet selection mirrors the PRD: prefer a sheet named `Entries`
+/// (case-insensitive), otherwise fall back to the first sheet.
+fn read_xlsx_rows(bytes: Vec<u8>) -> AppResult<(StringRecord, Vec<StringRecord>)> {
+    use calamine::{Reader, Xlsx};
+    use std::io::Cursor;
+
+    let cursor = Cursor::new(bytes);
+    let mut workbook: Xlsx<_> =
+        Xlsx::new(cursor).map_err(|e| AppError::BadRequest(format!("open xlsx: {e}")))?;
+
+    let sheet_names = workbook.sheet_names();
+    if sheet_names.is_empty() {
+        return Err(AppError::BadRequest("xlsx contains no worksheets".into()));
+    }
+    let preferred = sheet_names
+        .iter()
+        .find(|n| n.eq_ignore_ascii_case("Entries"))
+        .cloned()
+        .unwrap_or_else(|| sheet_names[0].clone());
+
+    let range = workbook
+        .worksheet_range(&preferred)
+        .map_err(|e| AppError::BadRequest(format!("read sheet '{preferred}': {e}")))?;
+
+    let mut rows_iter = range.rows();
+    let header_row = rows_iter
+        .next()
+        .ok_or_else(|| AppError::BadRequest("xlsx sheet is empty".into()))?;
+    let headers = row_to_record(header_row);
+    let data_rows: Vec<StringRecord> = rows_iter
+        .filter(|row| !row.iter().all(|c| matches!(c, calamine::Data::Empty)))
+        .map(row_to_record)
+        .collect();
+    Ok((headers, data_rows))
+}
+
+fn row_to_record(row: &[calamine::Data]) -> StringRecord {
+    let mut rec = StringRecord::new();
+    for cell in row {
+        rec.push_field(&cell_to_string(cell));
+    }
+    rec
+}
+
+/// Convert a single calamine cell into the string form the parsers
+/// expect. Dates and times go through ISO formatting so [`parse_date`]
+/// and the ISO fallback in [`parse_time`] can pick them up uniformly.
+fn cell_to_string(cell: &calamine::Data) -> String {
+    use calamine::Data;
+    match cell {
+        Data::Empty => String::new(),
+        Data::String(s) => s.clone(),
+        Data::Int(n) => n.to_string(),
+        Data::Float(f) => {
+            // Strip trailing `.0` for whole numbers so "5400" beats "5400.0"
+            // when fed to `parse_duration_seconds` (the parser handles both,
+            // but the cleaner form is nicer in error messages).
+            if f.fract() == 0.0 && f.is_finite() {
+                format!("{:.0}", f)
+            } else {
+                f.to_string()
+            }
+        }
+        Data::Bool(b) => if *b { "true" } else { "false" }.to_string(),
+        Data::DateTime(dt) => match dt.as_datetime() {
+            Some(ndt) => ndt.format("%Y-%m-%dT%H:%M:%S").to_string(),
+            None => dt.to_string(),
+        },
+        Data::DateTimeIso(s) => s.clone(),
+        Data::DurationIso(s) => s.clone(),
+        Data::Error(_) => String::new(),
+    }
+}
+
+fn resolve_format(hint: Option<&str>, headers: &StringRecord) -> AppResult<SourceFormat> {
+    match hint.and_then(SourceFormat::parse) {
+        Some(fmt) => Ok(fmt),
+        None => detect_format(headers).ok_or_else(|| {
             AppError::BadRequest(
                 "could not detect source format; pass source_format=animo|toggl|clockify|harvest"
                     .into(),
             )
-        })?,
-    };
-    let parser = parser_for(format, &headers);
-
-    // Snapshot existing entities once; per-row HEAD queries would be O(rows*entities).
-    let known_clients = fetch_client_names(&state, &user.id).await?;
-    let known_projects = fetch_project_names(&state, &user.id).await?;
-    let known_tags = fetch_tag_names(&state, &user.id).await?;
-
-    let mut total_rows = 0usize;
-    let mut valid_rows: Vec<ImportRow> = Vec::new();
-    let mut duplicate_rows: Vec<ImportRow> = Vec::new();
-    let mut error_rows: Vec<RowError> = Vec::new();
-    let mut new_clients: BTreeSet<String> = BTreeSet::new();
-    let mut new_projects: BTreeSet<String> = BTreeSet::new();
-    let mut new_tags: BTreeSet<String> = BTreeSet::new();
-
-    for (idx, result) in reader.records().enumerate() {
-        // CSV rows are 1-indexed for humans; header is row 1, data starts at row 2.
-        let display_row = idx + 2;
-        total_rows += 1;
-        let record = match result {
-            Ok(r) => r,
-            Err(e) => {
-                error_rows.push(RowError {
-                    row: display_row,
-                    message: format!("csv parse error: {e}"),
-                });
-                continue;
-            }
-        };
-        let parsed = match parser.parse_row(&record) {
-            Ok(r) => r,
-            Err(e) => {
-                error_rows.push(RowError {
-                    row: display_row,
-                    message: e.to_string(),
-                });
-                continue;
-            }
-        };
-        if let Err(e) = validate(&parsed) {
-            error_rows.push(RowError {
-                row: display_row,
-                message: e.to_string(),
-            });
-            continue;
-        }
-        let Some((start_iso, end_iso, _)) = row_to_iso_range(&parsed) else {
-            error_rows.push(RowError {
-                row: display_row,
-                message: "could not derive start/end timestamps".into(),
-            });
-            continue;
-        };
-        if is_duplicate(&state, &user.id, &start_iso, &end_iso, &parsed.description).await? {
-            duplicate_rows.push(parsed);
-            continue;
-        }
-
-        if let Some(name) = parsed.client_name.as_deref() {
-            let normalized = name.trim();
-            if !normalized.is_empty() && !known_clients.contains(&normalized.to_lowercase()) {
-                new_clients.insert(normalized.to_string());
-            }
-        }
-        if let Some(name) = parsed.project_name.as_deref() {
-            let normalized = name.trim();
-            if !normalized.is_empty() && !known_projects.contains(&normalized.to_lowercase()) {
-                new_projects.insert(normalized.to_string());
-            }
-        }
-        for tag in &parsed.tags {
-            let normalized = tag.trim();
-            if !normalized.is_empty() && !known_tags.contains(&normalized.to_lowercase()) {
-                new_tags.insert(normalized.to_string());
-            }
-        }
-        valid_rows.push(parsed);
+        }),
     }
-
-    let session_id = Uuid::new_v4().to_string();
-    let session = PreviewSession {
-        format,
-        created_at: std::time::Instant::now(),
-        user_id: user.id.clone(),
-        valid_rows: valid_rows.clone(),
-        duplicate_rows: duplicate_rows.clone(),
-    };
-    {
-        let mut sessions = state
-            .import_sessions
-            .lock()
-            .map_err(|_| AppError::Internal(anyhow::anyhow!("import session mutex poisoned")))?;
-        prune_expired(&mut sessions);
-        sessions.insert(session_id.clone(), session);
-    }
-
-    Ok(Json(PreviewResponse {
-        session_id,
-        format: format.as_str().to_string(),
-        total_rows,
-        valid_rows: valid_rows.len(),
-        duplicate_warnings: duplicate_rows.len(),
-        error_rows,
-        entities_to_create: EntitiesToCreate {
-            clients: new_clients.into_iter().collect(),
-            projects: new_projects.into_iter().collect(),
-            tags: new_tags.into_iter().collect(),
-        },
-    }))
 }
 
-pub async fn commit_csv(
+pub async fn commit_import(
     State(state): State<AppState>,
     user: LocalUser,
     Json(req): Json<CommitRequest>,
