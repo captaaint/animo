@@ -4,11 +4,19 @@
 //! data rows to [`detect_format`] / [`parser_for`], and then call
 //! [`ImportParser::parse_row`] per row followed by [`validate`].
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap, HashSet};
 
+use axum::extract::{Multipart, State};
+use axum::Json;
 use chrono::{NaiveDate, NaiveTime};
 use csv::StringRecord;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
+use uuid::Uuid;
+
+use crate::error::{AppError, AppResult};
+use crate::state::AppState;
+use crate::users::LocalUser;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ImportRow {
@@ -108,7 +116,7 @@ impl HeaderIndex {
     }
 }
 
-pub trait ImportParser {
+pub trait ImportParser: Send + Sync {
     fn parse_row(&self, record: &StringRecord) -> Result<ImportRow, ImportError>;
 }
 
@@ -552,6 +560,580 @@ pub fn validate(row: &ImportRow) -> Result<(), ImportError> {
         }
     }
     Ok(())
+}
+
+// =====================================================================================================================
+// HTTP endpoints
+// =====================================================================================================================
+//
+// Two-phase upload to give the user a confirmation step:
+//
+//   1. POST /api/import/csv/preview  — multipart upload of the file.
+//      We parse the whole thing, classify every row (valid / error /
+//      duplicate), figure out which clients/projects/tags would have to
+//      be created, and stash the parsed rows in an in-memory session.
+//      The response is a summary the UI can show as a confirmation
+//      sheet.
+//
+//   2. POST /api/import/csv/commit   — JSON body referencing the session.
+//      We re-validate the entities (they may have appeared meanwhile —
+//      e.g. the user created a project manually after seeing the preview)
+//      and insert the entries inside a single SQLite transaction. The
+//      session is consumed: re-submitting the same session_id 404s.
+//
+// Session lifetime: in-memory map on [`AppState::import_sessions`]. Two
+// guards keep it from growing unbounded:
+//   - sessions older than `SESSION_TTL` are pruned each time we touch
+//     the map (cheap lazy GC, no background task);
+//   - successful commits remove the session, so the happy path leaves
+//     nothing behind.
+//
+// Upload size: capped at [`MAX_UPLOAD_BYTES`]. axum's `Multipart` will
+// buffer fields in memory; an unconstrained import endpoint is a trivial
+// DoS vector even on a single-user desktop deployment.
+
+const MAX_UPLOAD_BYTES: usize = 20 * 1024 * 1024;
+const SESSION_TTL: std::time::Duration = std::time::Duration::from_secs(30 * 60);
+
+/// Stored between preview and commit. Holds the parsed rows so commit
+/// doesn't need the file again — that would force the UI to keep the
+/// upload in memory across the confirmation step.
+#[derive(Debug, Clone)]
+pub struct PreviewSession {
+    pub format: SourceFormat,
+    pub created_at: std::time::Instant,
+    pub user_id: String,
+    pub valid_rows: Vec<ImportRow>,
+    pub duplicate_rows: Vec<ImportRow>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct RowError {
+    pub row: usize,
+    pub message: String,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct EntitiesToCreate {
+    pub clients: Vec<String>,
+    pub projects: Vec<String>,
+    pub tags: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewResponse {
+    pub session_id: String,
+    pub format: String,
+    pub total_rows: usize,
+    pub valid_rows: usize,
+    pub duplicate_warnings: usize,
+    pub error_rows: Vec<RowError>,
+    pub entities_to_create: EntitiesToCreate,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitRequest {
+    pub session_id: String,
+}
+
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitResponse {
+    pub entries_created: usize,
+    pub clients_created: usize,
+    pub projects_created: usize,
+    pub tags_created: usize,
+    pub duplicates_skipped: usize,
+}
+
+/// Convert a parsed row into the ISO timestamps the database stores.
+/// Mirrors how the manual entry endpoint normalises start/end so the
+/// duplicate check downstream compares apples to apples.
+///
+/// Rules:
+///   - both start and end present → use them on the row's date
+///   - only duration present → start at midnight, end = start + duration
+///   - start present but no end → end = start + duration (if duration
+///     is also present); otherwise validation already rejected the row
+fn row_to_iso_range(row: &ImportRow) -> Option<(String, String, i64)> {
+    let date = row.date;
+    match (row.start_time, row.end_time, row.duration_seconds) {
+        (Some(start), Some(end), _) => {
+            let start_dt = date.and_time(start);
+            let end_dt = date.and_time(end);
+            let duration = (end_dt - start_dt).num_seconds();
+            if duration < 0 {
+                return None;
+            }
+            Some((iso_z(start_dt), iso_z(end_dt), duration))
+        }
+        (Some(start), None, Some(duration)) if duration >= 0 => {
+            let start_dt = date.and_time(start);
+            let end_dt = start_dt + chrono::Duration::seconds(duration);
+            Some((iso_z(start_dt), iso_z(end_dt), duration))
+        }
+        (None, _, Some(duration)) if duration >= 0 => {
+            let start_dt = date.and_hms_opt(0, 0, 0)?;
+            let end_dt = start_dt + chrono::Duration::seconds(duration);
+            Some((iso_z(start_dt), iso_z(end_dt), duration))
+        }
+        _ => None,
+    }
+}
+
+fn iso_z(dt: chrono::NaiveDateTime) -> String {
+    // Match the format used elsewhere in the API (`...Z` with millis).
+    dt.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
+}
+
+/// Pull the single `file` field out of a multipart upload and return its
+/// bytes plus an optional `source_format` field. Other fields are ignored
+/// (forwards-compatible with future flags). Bails if the file is missing,
+/// empty, or larger than [`MAX_UPLOAD_BYTES`].
+async fn read_upload(mut multipart: Multipart) -> AppResult<(Vec<u8>, Option<String>)> {
+    let mut file_bytes: Option<Vec<u8>> = None;
+    let mut source_format: Option<String> = None;
+
+    while let Some(field) = multipart
+        .next_field()
+        .await
+        .map_err(|e| AppError::BadRequest(format!("multipart read: {e}")))?
+    {
+        let name = field.name().unwrap_or("").to_string();
+        match name.as_str() {
+            "file" => {
+                let bytes = field
+                    .bytes()
+                    .await
+                    .map_err(|e| AppError::BadRequest(format!("read upload: {e}")))?;
+                if bytes.len() > MAX_UPLOAD_BYTES {
+                    return Err(AppError::BadRequest(format!(
+                        "file exceeds {MAX_UPLOAD_BYTES} bytes"
+                    )));
+                }
+                file_bytes = Some(bytes.to_vec());
+            }
+            "source_format" | "sourceFormat" => {
+                let text = field
+                    .text()
+                    .await
+                    .map_err(|e| AppError::BadRequest(format!("read source_format: {e}")))?;
+                if !text.trim().is_empty() {
+                    source_format = Some(text);
+                }
+            }
+            _ => {
+                // Drain and discard — leaving the field unread leaks the
+                // underlying body bytes.
+                let _ = field.bytes().await;
+            }
+        }
+    }
+
+    let bytes = file_bytes.ok_or_else(|| AppError::BadRequest("missing 'file' field".into()))?;
+    if bytes.is_empty() {
+        return Err(AppError::BadRequest("uploaded file is empty".into()));
+    }
+    Ok((bytes, source_format))
+}
+
+fn prune_expired(sessions: &mut HashMap<String, PreviewSession>) {
+    let now = std::time::Instant::now();
+    sessions.retain(|_, s| now.duration_since(s.created_at) < SESSION_TTL);
+}
+
+pub async fn preview_csv(
+    State(state): State<AppState>,
+    user: LocalUser,
+    multipart: Multipart,
+) -> AppResult<Json<PreviewResponse>> {
+    let (bytes, source_format_hint) = read_upload(multipart).await?;
+
+    let mut reader = csv::ReaderBuilder::new()
+        .has_headers(true)
+        .flexible(true)
+        .from_reader(bytes.as_slice());
+
+    let headers = reader
+        .headers()
+        .map_err(|e| AppError::BadRequest(format!("read headers: {e}")))?
+        .clone();
+
+    let format = match source_format_hint.as_deref().and_then(SourceFormat::parse) {
+        Some(fmt) => fmt,
+        None => detect_format(&headers).ok_or_else(|| {
+            AppError::BadRequest(
+                "could not detect source format; pass source_format=animo|toggl|clockify|harvest"
+                    .into(),
+            )
+        })?,
+    };
+    let parser = parser_for(format, &headers);
+
+    // Snapshot existing entities once; per-row HEAD queries would be O(rows*entities).
+    let known_clients = fetch_client_names(&state, &user.id).await?;
+    let known_projects = fetch_project_names(&state, &user.id).await?;
+    let known_tags = fetch_tag_names(&state, &user.id).await?;
+
+    let mut total_rows = 0usize;
+    let mut valid_rows: Vec<ImportRow> = Vec::new();
+    let mut duplicate_rows: Vec<ImportRow> = Vec::new();
+    let mut error_rows: Vec<RowError> = Vec::new();
+    let mut new_clients: BTreeSet<String> = BTreeSet::new();
+    let mut new_projects: BTreeSet<String> = BTreeSet::new();
+    let mut new_tags: BTreeSet<String> = BTreeSet::new();
+
+    for (idx, result) in reader.records().enumerate() {
+        // CSV rows are 1-indexed for humans; header is row 1, data starts at row 2.
+        let display_row = idx + 2;
+        total_rows += 1;
+        let record = match result {
+            Ok(r) => r,
+            Err(e) => {
+                error_rows.push(RowError {
+                    row: display_row,
+                    message: format!("csv parse error: {e}"),
+                });
+                continue;
+            }
+        };
+        let parsed = match parser.parse_row(&record) {
+            Ok(r) => r,
+            Err(e) => {
+                error_rows.push(RowError {
+                    row: display_row,
+                    message: e.to_string(),
+                });
+                continue;
+            }
+        };
+        if let Err(e) = validate(&parsed) {
+            error_rows.push(RowError {
+                row: display_row,
+                message: e.to_string(),
+            });
+            continue;
+        }
+        let Some((start_iso, end_iso, _)) = row_to_iso_range(&parsed) else {
+            error_rows.push(RowError {
+                row: display_row,
+                message: "could not derive start/end timestamps".into(),
+            });
+            continue;
+        };
+        if is_duplicate(&state, &user.id, &start_iso, &end_iso, &parsed.description).await? {
+            duplicate_rows.push(parsed);
+            continue;
+        }
+
+        if let Some(name) = parsed.client_name.as_deref() {
+            let normalized = name.trim();
+            if !normalized.is_empty() && !known_clients.contains(&normalized.to_lowercase()) {
+                new_clients.insert(normalized.to_string());
+            }
+        }
+        if let Some(name) = parsed.project_name.as_deref() {
+            let normalized = name.trim();
+            if !normalized.is_empty() && !known_projects.contains(&normalized.to_lowercase()) {
+                new_projects.insert(normalized.to_string());
+            }
+        }
+        for tag in &parsed.tags {
+            let normalized = tag.trim();
+            if !normalized.is_empty() && !known_tags.contains(&normalized.to_lowercase()) {
+                new_tags.insert(normalized.to_string());
+            }
+        }
+        valid_rows.push(parsed);
+    }
+
+    let session_id = Uuid::new_v4().to_string();
+    let session = PreviewSession {
+        format,
+        created_at: std::time::Instant::now(),
+        user_id: user.id.clone(),
+        valid_rows: valid_rows.clone(),
+        duplicate_rows: duplicate_rows.clone(),
+    };
+    {
+        let mut sessions = state
+            .import_sessions
+            .lock()
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("import session mutex poisoned")))?;
+        prune_expired(&mut sessions);
+        sessions.insert(session_id.clone(), session);
+    }
+
+    Ok(Json(PreviewResponse {
+        session_id,
+        format: format.as_str().to_string(),
+        total_rows,
+        valid_rows: valid_rows.len(),
+        duplicate_warnings: duplicate_rows.len(),
+        error_rows,
+        entities_to_create: EntitiesToCreate {
+            clients: new_clients.into_iter().collect(),
+            projects: new_projects.into_iter().collect(),
+            tags: new_tags.into_iter().collect(),
+        },
+    }))
+}
+
+pub async fn commit_csv(
+    State(state): State<AppState>,
+    user: LocalUser,
+    Json(req): Json<CommitRequest>,
+) -> AppResult<Json<CommitResponse>> {
+    let session = {
+        let mut sessions = state
+            .import_sessions
+            .lock()
+            .map_err(|_| AppError::Internal(anyhow::anyhow!("import session mutex poisoned")))?;
+        prune_expired(&mut sessions);
+        sessions
+            .remove(&req.session_id)
+            .ok_or_else(|| AppError::NotFound)?
+    };
+
+    if session.user_id != user.id {
+        return Err(AppError::Forbidden);
+    }
+
+    let mut tx = state.db.begin().await?;
+
+    // Resolve / create the entities first so we have IDs ready when we
+    // start inserting time_entries. All three lookups are case-insensitive
+    // to match how we presented the preview.
+    let mut client_ids: HashMap<String, String> = fetch_client_id_map(&mut tx, &user.id).await?;
+    let mut project_ids: HashMap<String, (String, Option<String>)> =
+        fetch_project_id_map(&mut tx, &user.id).await?;
+    let mut tag_ids: HashMap<String, String> = fetch_tag_id_map(&mut tx, &user.id).await?;
+
+    let mut clients_created = 0usize;
+    let mut projects_created = 0usize;
+    let mut tags_created = 0usize;
+    let mut entries_created = 0usize;
+
+    for row in &session.valid_rows {
+        // Ensure client first so we can link the project to it.
+        let client_id = if let Some(name) = row.client_name.as_deref() {
+            let key = name.trim().to_lowercase();
+            if key.is_empty() {
+                None
+            } else if let Some(existing) = client_ids.get(&key) {
+                Some(existing.clone())
+            } else {
+                let id = Uuid::new_v4().to_string();
+                sqlx::query("INSERT INTO clients (id, user_id, name) VALUES (?, ?, ?)")
+                    .bind(&id)
+                    .bind(&user.id)
+                    .bind(name.trim())
+                    .execute(&mut *tx)
+                    .await?;
+                client_ids.insert(key, id.clone());
+                clients_created += 1;
+                Some(id)
+            }
+        } else {
+            None
+        };
+
+        let project_id = if let Some(name) = row.project_name.as_deref() {
+            let key = name.trim().to_lowercase();
+            if key.is_empty() {
+                None
+            } else if let Some((existing_id, _)) = project_ids.get(&key) {
+                Some(existing_id.clone())
+            } else {
+                let id = Uuid::new_v4().to_string();
+                let hourly_rate = row.hourly_rate.unwrap_or(0.0).max(0.0);
+                let currency = row
+                    .currency
+                    .clone()
+                    .filter(|c| !c.is_empty())
+                    .unwrap_or_else(|| "EUR".to_string());
+                sqlx::query(
+                    "INSERT INTO projects \
+                     (id, user_id, client_id, name, hourly_rate, currency) \
+                     VALUES (?, ?, ?, ?, ?, ?)",
+                )
+                .bind(&id)
+                .bind(&user.id)
+                .bind(client_id.as_deref())
+                .bind(name.trim())
+                .bind(hourly_rate)
+                .bind(&currency)
+                .execute(&mut *tx)
+                .await?;
+                project_ids.insert(key, (id.clone(), client_id));
+                projects_created += 1;
+                Some(id)
+            }
+        } else {
+            None
+        };
+
+        let mut row_tag_ids: Vec<String> = Vec::with_capacity(row.tags.len());
+        for tag in &row.tags {
+            let trimmed = tag.trim();
+            if trimmed.is_empty() {
+                continue;
+            }
+            let key = trimmed.to_lowercase();
+            if let Some(existing) = tag_ids.get(&key) {
+                row_tag_ids.push(existing.clone());
+                continue;
+            }
+            let id = Uuid::new_v4().to_string();
+            sqlx::query("INSERT INTO tags (id, user_id, name) VALUES (?, ?, ?)")
+                .bind(&id)
+                .bind(&user.id)
+                .bind(trimmed)
+                .execute(&mut *tx)
+                .await?;
+            tag_ids.insert(key, id.clone());
+            tags_created += 1;
+            row_tag_ids.push(id);
+        }
+
+        let Some((start_iso, end_iso, duration)) = row_to_iso_range(row) else {
+            // Should never happen — preview already filtered these — but
+            // we re-check defensively rather than panicking.
+            continue;
+        };
+
+        let entry_id = Uuid::new_v4().to_string();
+        sqlx::query(
+            "INSERT INTO time_entries \
+             (id, user_id, project_id, description, start_time, end_time, \
+              duration_seconds, billable) \
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        )
+        .bind(&entry_id)
+        .bind(&user.id)
+        .bind(project_id.as_deref())
+        .bind(&row.description)
+        .bind(&start_iso)
+        .bind(&end_iso)
+        .bind(duration)
+        .bind(row.billable as i64)
+        .execute(&mut *tx)
+        .await?;
+
+        for tag_id in &row_tag_ids {
+            sqlx::query("INSERT INTO entry_tags (entry_id, tag_id) VALUES (?, ?)")
+                .bind(&entry_id)
+                .bind(tag_id)
+                .execute(&mut *tx)
+                .await?;
+        }
+        entries_created += 1;
+    }
+
+    tx.commit().await?;
+
+    Ok(Json(CommitResponse {
+        entries_created,
+        clients_created,
+        projects_created,
+        tags_created,
+        duplicates_skipped: session.duplicate_rows.len(),
+    }))
+}
+
+// ---------------- DB helpers ----------------
+
+async fn fetch_client_names(state: &AppState, user_id: &str) -> AppResult<HashSet<String>> {
+    let rows: Vec<(String,)> = sqlx::query_as("SELECT name FROM clients WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_all(&state.db)
+        .await?;
+    Ok(rows.into_iter().map(|(n,)| n.to_lowercase()).collect())
+}
+
+async fn fetch_project_names(state: &AppState, user_id: &str) -> AppResult<HashSet<String>> {
+    let rows: Vec<(String,)> = sqlx::query_as("SELECT name FROM projects WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_all(&state.db)
+        .await?;
+    Ok(rows.into_iter().map(|(n,)| n.to_lowercase()).collect())
+}
+
+async fn fetch_tag_names(state: &AppState, user_id: &str) -> AppResult<HashSet<String>> {
+    let rows: Vec<(String,)> = sqlx::query_as("SELECT name FROM tags WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_all(&state.db)
+        .await?;
+    Ok(rows.into_iter().map(|(n,)| n.to_lowercase()).collect())
+}
+
+async fn fetch_client_id_map(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    user_id: &str,
+) -> AppResult<HashMap<String, String>> {
+    let rows: Vec<(String, String)> =
+        sqlx::query_as("SELECT id, name FROM clients WHERE user_id = ?")
+            .bind(user_id)
+            .fetch_all(&mut **tx)
+            .await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, name)| (name.to_lowercase(), id))
+        .collect())
+}
+
+async fn fetch_project_id_map(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    user_id: &str,
+) -> AppResult<HashMap<String, (String, Option<String>)>> {
+    let rows: Vec<(String, String, Option<String>)> =
+        sqlx::query_as("SELECT id, name, client_id FROM projects WHERE user_id = ?")
+            .bind(user_id)
+            .fetch_all(&mut **tx)
+            .await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, name, cid)| (name.to_lowercase(), (id, cid)))
+        .collect())
+}
+
+async fn fetch_tag_id_map(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    user_id: &str,
+) -> AppResult<HashMap<String, String>> {
+    let rows: Vec<(String, String)> = sqlx::query_as("SELECT id, name FROM tags WHERE user_id = ?")
+        .bind(user_id)
+        .fetch_all(&mut **tx)
+        .await?;
+    Ok(rows
+        .into_iter()
+        .map(|(id, name)| (name.to_lowercase(), id))
+        .collect())
+}
+
+async fn is_duplicate(
+    state: &AppState,
+    user_id: &str,
+    start_iso: &str,
+    end_iso: &str,
+    description: &str,
+) -> AppResult<bool> {
+    let row: Option<(i64,)> = sqlx::query_as(
+        "SELECT 1 FROM time_entries \
+         WHERE user_id = ? AND start_time = ? AND end_time = ? AND description = ? \
+         LIMIT 1",
+    )
+    .bind(user_id)
+    .bind(start_iso)
+    .bind(end_iso)
+    .bind(description)
+    .fetch_optional(&state.db)
+    .await?;
+    Ok(row.is_some())
 }
 
 #[cfg(test)]

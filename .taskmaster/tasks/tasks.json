@@ -319,12 +319,12 @@
         "dependencies": [
           "13"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 8,
         "recommendedSubtasks": 7,
         "expansionPrompt": "Break down CSV import endpoints into subtasks: 1) Implement multipart file upload handling for preview endpoint, 2) Integrate parser infrastructure from task 13 with format detection, 3) Implement duplicate detection logic (matching by date, times, description), 4) Implement entity discovery (missing clients, projects, tags), 5) Implement preview session state management (caching/temp storage), 6) Implement commit endpoint with transactional entity creation and entry insertion, 7) Comprehensive integration testing with all edge cases.",
-        "updatedAt": "2026-05-25T19:20:24.631Z"
+        "updatedAt": "2026-05-25T19:51:48.303Z"
       },
       {
         "id": "15",
@@ -443,9 +443,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T19:35:33.261Z",
+      "lastModified": "2026-05-25T19:51:48.303Z",
       "taskCount": 21,
-      "completedCount": 15,
+      "completedCount": 16,
       "tags": [
         "master"
       ]

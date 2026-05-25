@@ -11,13 +11,14 @@ pub mod users;
 
 use axum::{
     http::{header, HeaderValue, Method},
-    routing::{get, patch},
+    routing::{get, patch, post},
     Json, Router,
 };
 use serde_json::{json, Value};
 use sqlx::sqlite::SqlitePoolOptions;
+use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
@@ -37,6 +38,7 @@ pub async fn build_state(cfg: Config) -> anyhow::Result<AppState> {
     Ok(AppState {
         db,
         config: Arc::new(cfg),
+        import_sessions: Arc::new(Mutex::new(HashMap::new())),
     })
 }
 
@@ -72,7 +74,9 @@ pub fn build_app(state: AppState) -> Router {
         .route("/tags/:id", patch(tags::update).delete(tags::delete))
         .route("/reports/summary", get(reports::summary))
         .route("/reports/export.csv", get(reports::export_csv))
-        .route("/reports/export.pdf", get(reports::export_pdf));
+        .route("/reports/export.pdf", get(reports::export_pdf))
+        .route("/import/csv/preview", post(import::preview_csv))
+        .route("/import/csv/commit", post(import::commit_csv));
 
     let mut app = Router::new()
         .route("/health", get(health))
