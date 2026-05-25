@@ -58,15 +58,16 @@
     height="*" overflowY="auto">
 
     <!-- Desktop/tablet -->
-    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
-      <HStack verticalAlignment="center">
-        <SpaceFiller />
-        <Button
-          label="New project"
-          icon="plus"
-          onClick="projectModal.open()"
-        />
-      </HStack>
+    <HStack when="{!vp.value || !vp.value.isMobile}" verticalAlignment="center">
+      <SpaceFiller />
+      <Button
+        label="New project"
+        icon="plus"
+        onClick="projectModal.open()"
+      />
+    </HStack>
+
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4" borderRadius="16px">
       <Table
         data="{projectsDs.value || []}"
         when="{(projectsDs.value || []).length > 0}"
@@ -99,16 +100,44 @@
         </Column>
       </Table>
 
-      <NoResult
+      <Stack
         when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
-        label="No projects yet"
-      />
+        horizontalAlignment="center"
+        verticalAlignment="center"
+        minHeight="320px"
+        paddingVertical="$space-8"
+      >
+        <VStack gap="$space-3" horizontalAlignment="center">
+          <Image
+            src="resource:projects-empty-list"
+            alt="No projects yet"
+            width="220px"
+            height="220px"
+            fit="contain"
+          />
+          <VStack gap="$space-1" horizontalAlignment="center">
+            <Text fontSize="1.25rem" fontWeight="700" textAlign="center" color="$textColor-Heading">
+              Your first project is waiting
+            </Text>
+            <Text variant="secondary" fontSize="$fontSize-small" textAlign="center">
+              Create a project to get started and keep everything organized.
+            </Text>
+          </VStack>
+        </VStack>
+      </Stack>
       <Spinner when="{!projectsDs.loaded}" />
     </Card>
 
     <!-- Mobile: flat list rows with two-line content and three-dot menu -->
     <VStack when="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-3">
-      <Card when="{(projectsDs.value || []).length > 0}" padding="$space-2" width="100%">
+      <Button
+        width="100%"
+        label="New project"
+        icon="plus"
+        onClick="projectDrawer.open()"
+      />
+
+      <Card when="{(projectsDs.value || []).length > 0}" padding="$space-2" width="100%" borderRadius="16px">
         <Items data="{projectsDs.value || []}">
           <VStack gap="0">
             <HStack
@@ -150,17 +179,33 @@
       </Card>
 
       <Card when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
-        padding="$space-2" width="100%">
-        <NoResult label="No projects yet" />
+        padding="$space-2" width="100%" borderRadius="16px">
+        <Stack
+          horizontalAlignment="center"
+          verticalAlignment="center"
+          minHeight="260px"
+          paddingVertical="$space-5"
+        >
+          <VStack gap="$space-3" horizontalAlignment="center">
+            <Image
+              src="resource:projects-empty-list"
+              alt="No projects yet"
+              width="200px"
+              height="200px"
+              fit="contain"
+            />
+            <VStack gap="$space-1" horizontalAlignment="center">
+              <Text fontSize="1.125rem" fontWeight="700" textAlign="center" color="$textColor-Heading">
+                Your first project is waiting
+              </Text>
+              <Text variant="secondary" fontSize="$fontSize-xs" textAlign="center">
+                Create a project to get started and keep everything organized.
+              </Text>
+            </VStack>
+          </VStack>
+        </Stack>
       </Card>
       <Spinner when="{!projectsDs.loaded}" />
-
-      <Button
-        width="100%"
-        label="New project"
-        icon="plus"
-        onClick="projectDrawer.open()"
-      />
     </VStack>
 
   </VStack>

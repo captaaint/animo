@@ -281,6 +281,9 @@ export const TrackerTheme: ThemeDefinition = {
     // tokens; these are the exceptions where the *semantic* color
     // should differ per tone.
     light: {
+      resources: {
+        "projects-empty-list": "resources/projects-empty-list-light.svg",
+      },
       themeVars: {
         // Header picker popovers (project + tag) sit on Mist so they
         // read as a soft branded panel instead of a stark white surface.
@@ -290,6 +293,9 @@ export const TrackerTheme: ThemeDefinition = {
       },
     },
     dark: {
+      resources: {
+        "projects-empty-list": "resources/projects-empty-list-dark.svg",
+      },
       themeVars: {
         backgroundColor: "#0A0C0F",
         "backgroundColor-primary": "#0A0C0F",
