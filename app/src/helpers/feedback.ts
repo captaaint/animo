@@ -25,6 +25,24 @@ export type FeedbackResult =
   | { ok: true; issue_url?: string }
   | { ok: false; error: string };
 
+declare global {
+  interface Window {
+    animoFeedbackClearDraft?: () => void;
+    animoFeedbackCollectDiagnostics?: (
+      onSuccess: (diagnosticsJson: string) => void,
+      onError?: (message: string) => void,
+    ) => void;
+    animoFeedbackLoadDraft?: () => FeedbackDraft | null;
+    animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
+    animoFeedbackSubmit?: (
+      draft: FeedbackDraft,
+      turnstileToken: string,
+      onSuccess: (result: FeedbackResult) => void,
+      onError?: (message: string) => void,
+    ) => void;
+  }
+}
+
 const DRAFT_KEY = "animo_feedback_draft";
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 const MAX_TITLE_LENGTH = 120;
@@ -163,4 +181,26 @@ async function parseResponse(response: Response): Promise<{
   } catch {
     return {};
   }
+}
+
+if (typeof window !== "undefined") {
+  window.animoFeedbackClearDraft = clearDraft;
+  window.animoFeedbackLoadDraft = loadDraft;
+  window.animoFeedbackSaveDraft = saveDraft;
+  window.animoFeedbackCollectDiagnostics = (onSuccess, onError) => {
+    collectDiagnostics()
+      .then((diagnostics) => onSuccess(JSON.stringify(diagnostics, null, 2)))
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : "Failed to collect diagnostics.";
+        onError?.(message);
+      });
+  };
+  window.animoFeedbackSubmit = (draft, turnstileToken, onSuccess, onError) => {
+    submitFeedback(draft, turnstileToken)
+      .then(onSuccess)
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : "Failed to submit feedback.";
+        onError?.(message);
+      });
+  };
 }

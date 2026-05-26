@@ -34,5 +34,16 @@
     ],
     "before": "No feedback submission helper exists, feedback endpoint configuration is not exported, and Taskmaster task 23 is pending.",
     "after": "A feedback helper persists drafts, builds validated payloads, submits to the configured endpoint, clears successful drafts, and Taskmaster task 23 is completed after verification."
+  },
+  {
+    "id": "task-24-feedback-modal",
+    "files": [
+      "app/src/components/FeedbackModal.xmlui",
+      "app/src/helpers/feedback.ts",
+      ".taskmaster/tasks/tasks.json",
+      "resources/worklist.json"
+    ],
+    "before": "No feedback modal UI exists, the feedback helper has no XMLUI window bridge, and Taskmaster task 24 is pending.",
+    "after": "A feedback modal can collect and validate feedback, restore drafts, preview diagnostics, submit through the helper bridge, show success/error states, and Taskmaster task 24 is completed after verification."
   }
 ]
