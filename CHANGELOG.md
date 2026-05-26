@@ -11,6 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(app): add diagnostics collection helper (2340bd1)
 - feat(app): add feedback submission helper (3c3fd25)
+- feat(app): add feedback modal (d6efad8)
+- feat(desktop): configure updater plugin (cbad650)
+- feat(app): add Help & feedback section to Settings (cfe0253)
+- feat(desktop): host Tauri update manifest at /updates/latest.json (5309775)
+- feat(app): add Tauri updater check helper with retry (bcfb95a)
+
+### Fixed
+
+- fix(desktop): read updater public key from env (45d2048)
 
 ## [0.2.0] - 2026-05-26
 
