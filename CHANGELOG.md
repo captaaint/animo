@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): add Help & feedback section to Settings (cfe0253)
 - feat(desktop): host Tauri update manifest at /updates/latest.json (5309775)
 - feat(app): add Tauri updater check helper with retry (bcfb95a)
+- feat(app): add Updates section to Settings with auto-check toggle (0f3b4bd)
 
 ### Fixed
 
