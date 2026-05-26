@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix(app): inject app version in dev mode (66b7a19)
 - fix(desktop): grant updater/process capabilities and register process plugin (d636042)
+- fix(desktop): embed actual updater pubkey to unblock release signing (1200412)
 
 ## [0.2.1] - 2026-05-26
 
