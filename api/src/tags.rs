@@ -1,6 +1,6 @@
-use crate::auth::AuthUser;
 use crate::error::{AppError, AppResult};
 use crate::state::AppState;
+use crate::users::LocalUser;
 use axum::extract::{Path, State};
 use axum::Json;
 use serde::{Deserialize, Serialize};
@@ -30,7 +30,7 @@ pub struct UpdateTagReq {
     pub color: Option<String>,
 }
 
-pub async fn list(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Vec<Tag>>> {
+pub async fn list(State(state): State<AppState>, user: LocalUser) -> AppResult<Json<Vec<Tag>>> {
     let rows: Vec<Tag> = sqlx::query_as(
         "SELECT id, user_id, name, color, created_at FROM tags \
          WHERE user_id = ? ORDER BY name",
@@ -43,7 +43,7 @@ pub async fn list(State(state): State<AppState>, user: AuthUser) -> AppResult<Js
 
 pub async fn create(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Json(payload): Json<CreateTagReq>,
 ) -> AppResult<Json<Tag>> {
     payload
@@ -75,7 +75,7 @@ pub async fn create(
 
 pub async fn update(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Path(id): Path<String>,
     Json(payload): Json<UpdateTagReq>,
 ) -> AppResult<Json<Tag>> {
@@ -108,7 +108,7 @@ pub async fn update(
 
 pub async fn delete(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Path(id): Path<String>,
 ) -> AppResult<Json<serde_json::Value>> {
     let res = sqlx::query("DELETE FROM tags WHERE id = ? AND user_id = ?")

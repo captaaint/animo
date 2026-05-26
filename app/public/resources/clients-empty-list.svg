@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220" fill="none">
+  <rect x="40" y="34" width="240" height="152" rx="18" fill="#14181C" fill-opacity="0.74"/>
+  <rect x="41" y="35" width="238" height="150" rx="17" stroke="#3F8F8C" stroke-opacity="0.90" stroke-width="2"/>
+
+  <!-- plus badge intentionally inside the card bounds -->
+  <circle cx="248" cy="62" r="15" fill="#3F8F8C"/>
+  <path d="M248 56V68" stroke="#FAF8F6" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M242 62H254" stroke="#FAF8F6" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- shared header placeholders -->
+  <rect x="68" y="62" width="92" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+  <rect x="168" y="62" width="34" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.72"/>
+  <circle cx="84" cy="95" r="8" stroke="#A7D0C9" stroke-opacity="0.88" stroke-width="2.2"/>
+  <path d="M72 110C75.3 104.2 80.8 101 84 101C87.2 101 92.7 104.2 96 110" stroke="#A7D0C9" stroke-opacity="0.88" stroke-width="2.2" stroke-linecap="round"/>
+
+  <rect x="106" y="90" width="88" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.88"/>
+  <rect x="106" y="103" width="112" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+  <rect x="226" y="92" width="20" height="11" rx="5.5" fill="#3F8F8C" fill-opacity="0.48"/>
+
+  <circle cx="84" cy="124" r="8" stroke="#F2A82F" stroke-opacity="0.94" stroke-width="2.2"/>
+  <path d="M72 139C75.3 133.2 80.8 130 84 130C87.2 130 92.7 133.2 96 139" stroke="#F2A82F" stroke-opacity="0.94" stroke-width="2.2" stroke-linecap="round"/>
+
+  <rect x="106" y="119" width="98" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.88"/>
+  <rect x="106" y="132" width="70" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+
+  <circle cx="84" cy="153" r="8" stroke="#A7D0C9" stroke-opacity="0.70" stroke-width="2.2"/>
+  <path d="M72 168C75.3 162.2 80.8 159 84 159C87.2 159 92.7 162.2 96 168" stroke="#A7D0C9" stroke-opacity="0.70" stroke-width="2.2" stroke-linecap="round"/>
+
+  <rect x="106" y="148" width="76" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.88"/>
+  <rect x="106" y="161" width="50" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+</svg>

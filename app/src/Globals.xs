@@ -1,36 +1,9 @@
-function readToken() {
-  try { return window.localStorage.getItem('tt_token') || null; } catch (e) { return null; }
-}
-
-function writeToken(token) {
-  try {
-    if (token) window.localStorage.setItem('tt_token', token);
-    else window.localStorage.removeItem('tt_token');
-  } catch (e) {}
-}
-
-function readSession() {
-  try {
-    const raw = window.localStorage.getItem('tt_session');
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) { return null; }
-}
-
-function writeSession(session) {
-  try {
-    if (session) window.localStorage.setItem('tt_session', JSON.stringify(session));
-    else window.localStorage.removeItem('tt_session');
-  } catch (e) {}
-}
-
 function pageTitleFromPath(path) {
   const to = path || '/';
   if (to === '/projects') return 'Projects';
   if (to === '/clients') return 'Clients';
   if (to === '/tags') return 'Tags';
   if (to === '/reports') return 'Reports';
-  if (to === '/login') return 'Sign in';
-  if (to === '/register') return 'Create account';
   if (to === '/list') return 'List';
   if (to === '/settings') return 'Settings';
   return 'Calendar';
@@ -44,10 +17,6 @@ function userInitials(name) {
   if (parts.length === 0) return '';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
-function authHeaders(token) {
-  return token ? { Authorization: 'Bearer ' + token } : {};
 }
 
 function genId() {

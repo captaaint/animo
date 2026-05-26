@@ -1,6 +1,6 @@
-use crate::auth::AuthUser;
 use crate::error::{AppError, AppResult};
 use crate::state::AppState;
+use crate::users::LocalUser;
 use axum::extract::{Path, State};
 use axum::Json;
 use serde::{Deserialize, Serialize};
@@ -43,7 +43,7 @@ pub struct UpdateProjectReq {
     pub currency: Option<String>,
 }
 
-pub async fn list(State(state): State<AppState>, user: AuthUser) -> AppResult<Json<Vec<Project>>> {
+pub async fn list(State(state): State<AppState>, user: LocalUser) -> AppResult<Json<Vec<Project>>> {
     let rows: Vec<Project> = sqlx::query_as(
         "SELECT id, user_id, client_id, name, color, archived, created_at, hourly_rate, currency \
          FROM projects WHERE user_id = ? ORDER BY name",
@@ -56,7 +56,7 @@ pub async fn list(State(state): State<AppState>, user: AuthUser) -> AppResult<Js
 
 pub async fn create(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Json(payload): Json<CreateProjectReq>,
 ) -> AppResult<Json<Project>> {
     payload
@@ -107,7 +107,7 @@ pub async fn create(
 
 pub async fn update(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Path(id): Path<String>,
     Json(payload): Json<UpdateProjectReq>,
 ) -> AppResult<Json<Project>> {
@@ -172,7 +172,7 @@ pub async fn update(
 
 pub async fn delete(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Path(id): Path<String>,
 ) -> AppResult<Json<serde_json::Value>> {
     let res = sqlx::query("DELETE FROM projects WHERE id = ? AND user_id = ?")

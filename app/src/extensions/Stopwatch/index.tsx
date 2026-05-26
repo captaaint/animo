@@ -7,8 +7,16 @@ const metadata = createMetadata({
     "Headless second-resolution stopwatch. Exposes `value.{running, startedAt, " +
     "elapsedSec, display}` for binding, and `start()`, `stop()`, `reset()` " +
     "APIs. Fires `stop` with `{ startTime, endTime, elapsedSec }` whenever " +
-    "the user calls `stop()`.",
-  props: {},
+    "the user calls `stop()`. In the Tauri desktop shell, subscribes to " +
+    "tray/hotkey events and pushes state snapshots to the system tray menu.",
+  props: {
+    label: {
+      description:
+        "Short text included in tray snapshots (e.g. the current description). " +
+        "Tauri desktop only — ignored in the browser.",
+      type: "string",
+    },
+  },
   events: {
     stop: {
       description:
@@ -41,9 +49,10 @@ const metadata = createMetadata({
 export const stopwatchRenderer = createComponentRenderer(
   "Stopwatch",
   metadata,
-  ({ updateState, registerComponentApi, lookupEventHandler }) => {
+  ({ node, extractValue, updateState, registerComponentApi, lookupEventHandler }) => {
     return (
       <Stopwatch
+        label={extractValue.asOptionalString(node.props.label)}
         onStop={lookupEventHandler("stop")}
         onResume={lookupEventHandler("resume")}
         updateState={updateState}

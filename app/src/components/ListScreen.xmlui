@@ -105,9 +105,10 @@
       </HStack>
     </Card>
     <Card height="*" when-xs="false" when-sm="true">
-      <NoResult
+      <TimeEntriesEmptyState
         when="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []).length === 0}"
-        label="{searchText ? 'No entries match your search' : 'No entries this week'}"
+        title="{searchText ? 'No entries match your search' : 'No entries this week'}"
+        subtitle="{searchText ? 'Try another search term or clear the search field.' : 'Add your first time entry to start tracking this week.'}"
       />
       <VStack
         when-xs="false"
@@ -260,8 +261,15 @@
         />
       </Card>
       <Card when="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []).length === 0}">
-        <NoResult
-          label="{searchText ? 'No entries match your search' : 'No entries this week'}"
+        <TimeEntriesEmptyState
+          title="{searchText ? 'No entries match your search' : 'No entries this week'}"
+          subtitle="{searchText ? 'Try another search term or clear the search field.' : 'Add your first time entry to start tracking this week.'}"
+          minHeight="260px"
+          paddingVertical="$space-5"
+          imageWidth="200px"
+          imageHeight="138px"
+          titleSize="1.125rem"
+          subtitleSize="$fontSize-xs"
         />
       </Card>
       <VStack

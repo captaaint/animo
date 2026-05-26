@@ -1,0 +1,101 @@
+{
+	"meta": {
+		"generatedAt": "2026-05-25T18:35:16.065Z",
+		"tasksAnalyzed": 11,
+		"totalTasks": 21,
+		"analysisCount": 11,
+		"thresholdScore": 5,
+		"projectName": "Task Master",
+		"usedResearch": true
+	},
+	"complexityAnalysis": [
+		{
+			"taskId": 11,
+			"taskTitle": "Implement CSV Export Backend Endpoint",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down the CSV export endpoint implementation into subtasks covering: 1) Database query implementation with joins for time entries, projects, clients, and tags, 2) CSV serialization using the csv crate with proper column mapping, 3) HTTP response handling with correct headers and content disposition, 4) Edge case handling and timezone conversions. Include unit and integration test subtasks.",
+			"reasoning": "This is a moderately complex task involving database queries with multiple joins, CSV serialization, and proper HTTP response handling. The pseudo-code is well-defined, and the csv crate is straightforward. Main complexity comes from handling joins across multiple tables, timezone conversions, and ensuring column stability for import compatibility. No dependencies simplifies implementation."
+		},
+		{
+			"taskId": 12,
+			"taskTitle": "Implement XLSX Export Backend Endpoint",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the XLSX export endpoint into subtasks covering: 1) Reusing/refactoring data query logic from CSV export (task 11), 2) Implementing Entries sheet with proper Excel cell formatting (dates, times, currency), 3) Implementing Summary sheet with aggregate queries and pivot-style groupings, 4) Workbook assembly and HTTP response handling, 5) Testing with Excel/LibreOffice compatibility verification.",
+			"reasoning": "More complex than CSV export due to Excel-specific formatting requirements (date cells, currency formatting, time formatting), creating multiple sheets, and implementing summary aggregations. The rust_xlsxwriter crate has a learning curve. Dependency on task 11 allows code reuse for data queries, but adds coordination overhead. Summary sheet with pivot-style totals adds significant complexity."
+		},
+		{
+			"taskId": 13,
+			"taskTitle": "Implement Import Data Mapping and Parser Infrastructure",
+			"complexityScore": 7,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the import parser infrastructure into subtasks: 1) Define ImportRow struct and SourceFormat enum with all required fields, 2) Implement ImportParser trait and AnimoParser, 3) Implement TogglParser with Toggl CSV column mapping, 4) Implement ClockifyParser and HarvestParser, 5) Implement auto-detection logic based on header patterns, 6) Implement ImportValidator for required field validation and date/time parsing with multiple formats.",
+			"reasoning": "High complexity due to supporting four different import formats, each with unique column mappings and date/time formats. Auto-detection logic requires pattern matching across different header structures. Date/time parsing must handle ISO, US, and EU formats. The trait-based architecture is well-designed but requires careful implementation for each parser. This is foundational infrastructure that other tasks depend on."
+		},
+		{
+			"taskId": 14,
+			"taskTitle": "Implement CSV Import Preview and Commit Endpoints",
+			"complexityScore": 8,
+			"recommendedSubtasks": 7,
+			"expansionPrompt": "Break down CSV import endpoints into subtasks: 1) Implement multipart file upload handling for preview endpoint, 2) Integrate parser infrastructure from task 13 with format detection, 3) Implement duplicate detection logic (matching by date, times, description), 4) Implement entity discovery (missing clients, projects, tags), 5) Implement preview session state management (caching/temp storage), 6) Implement commit endpoint with transactional entity creation and entry insertion, 7) Comprehensive integration testing with all edge cases.",
+			"reasoning": "High complexity due to multiple concerns: file upload handling, parser integration, duplicate detection, entity discovery, session state management, and transactional database operations. The preview/commit two-phase approach requires state persistence between requests. Transaction handling for creating multiple entity types (clients, projects, tags, entries) with proper linking is complex. Depends on task 13 for parser infrastructure."
+		},
+		{
+			"taskId": 15,
+			"taskTitle": "Implement XLSX Import Preview and Commit Endpoints",
+			"complexityScore": 5,
+			"recommendedSubtasks": 4,
+			"expansionPrompt": "Break down XLSX import endpoints into subtasks: 1) Implement XLSX file reading with calamine crate and sheet selection logic, 2) Convert Excel rows to StringRecord format for parser compatibility, 3) Handle Excel date/time serial number conversions, 4) Integrate with existing CSV import validation and commit logic. Include round-trip testing (export then import).",
+			"reasoning": "Moderate complexity as it primarily reuses the CSV import pipeline from task 14. Main new work is XLSX file reading with calamine, sheet selection logic, and Excel date/time format handling. The architecture is designed for code reuse, reducing implementation effort. Dependencies on tasks 13 and 14 mean most infrastructure is already built."
+		},
+		{
+			"taskId": 16,
+			"taskTitle": "Implement Frontend Import UI Flow",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down the frontend import UI into subtasks: 1) Implement file selection component with drag-drop and file type validation, 2) Implement format selection UI (dropdown/radio buttons), 3) Implement preview results display (errors table, duplicate warnings, entities to create), 4) Implement commit confirmation and summary display, 5) Add state management for multi-step flow with cancel/back navigation and loading states.",
+			"reasoning": "Moderate-high complexity due to multi-step wizard flow, file upload handling, displaying complex preview data (errors, warnings, entity lists), and managing state across steps. Must work in both Tauri desktop and browser contexts. UI/UX considerations for error display and user feedback add complexity. Dependencies on backend tasks 14 and 15 are straightforward API integrations."
+		},
+		{
+			"taskId": 17,
+			"taskTitle": "Add Export Format Selection to Reports UI",
+			"complexityScore": 3,
+			"recommendedSubtasks": 0,
+			"expansionPrompt": "",
+			"reasoning": "Low complexity task that extends existing UI with format selection dropdown and triggers appropriate download endpoints. The pseudo-code is straightforward, and it primarily involves adding UI controls and handling blob downloads. LocalStorage preference persistence is simple. Dependencies on tasks 11 and 12 are just API endpoint availability. This task is well-scoped and doesn't need subtask expansion."
+		},
+		{
+			"taskId": 18,
+			"taskTitle": "Implement Tauri System Tray with Stopwatch Controls",
+			"complexityScore": 6,
+			"recommendedSubtasks": 5,
+			"expansionPrompt": "Break down system tray implementation into subtasks: 1) Set up basic Tauri SystemTray with static menu structure, 2) Implement dynamic menu updates based on stopwatch state, 3) Implement tray event handlers for menu item clicks, 4) Implement tray icon state updates (idle vs running), 5) Handle edge cases (onboarding incomplete, window show/hide, app quit). Include cross-platform testing considerations.",
+			"reasoning": "Moderate-high complexity due to Tauri system tray API specifics, dynamic menu updates, cross-platform considerations (macOS, Windows, Linux), and state management. Tray icon updates and conditional menu items (Resume when paused) add complexity. No dependencies allows independent development, but requires careful design for later integration with task 20."
+		},
+		{
+			"taskId": 19,
+			"taskTitle": "Implement Global Hotkey for Stopwatch Toggle",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down global hotkey implementation into subtasks: 1) Set up tauri-plugin-global-shortcut and register platform-specific shortcuts, 2) Implement toggle logic connecting to stopwatch state, 3) Handle conflict detection and error cases with user feedback. Include cross-platform testing.",
+			"reasoning": "Moderate complexity primarily due to cross-platform differences in key codes and potential conflicts with OS/other app shortcuts. The Tauri global shortcut plugin simplifies implementation. Main challenges are platform-specific handling and graceful conflict resolution. No dependencies allows independent development."
+		},
+		{
+			"taskId": 20,
+			"taskTitle": "Implement Stopwatch State Bridge Between Tauri and Frontend",
+			"complexityScore": 8,
+			"recommendedSubtasks": 6,
+			"expansionPrompt": "Break down the stopwatch state bridge into subtasks: 1) Design and implement StopwatchState struct with all required fields, 2) Implement Tauri commands (start, stop, get_state, update_description), 3) Implement Tauri event emission for state changes, 4) Implement state persistence to SQLite for app restart recovery, 5) Implement frontend React hook for state subscription and command invocation, 6) Integration testing for bidirectional sync and concurrent access scenarios.",
+			"reasoning": "High complexity as this is the critical integration point between Tauri backend and frontend. Requires careful state management architecture, bidirectional event communication, state persistence for crash recovery, and handling concurrent access from multiple sources (tray, hotkey, frontend). Dependencies on tasks 18 and 19 mean this integrates multiple input sources. Race conditions and state consistency are key challenges."
+		},
+		{
+			"taskId": 21,
+			"taskTitle": "Implement Desktop Notifications and Feedback for Tray/Hotkey Actions",
+			"complexityScore": 4,
+			"recommendedSubtasks": 3,
+			"expansionPrompt": "Break down notifications implementation into subtasks: 1) Set up tauri-plugin-notification and implement basic notification display, 2) Implement contextual notifications for start/stop with dynamic content, 3) Handle notification permissions and implement fallback for missing required information (open main window). Include cross-platform testing.",
+			"reasoning": "Moderate complexity due to cross-platform notification differences and permission handling. The Tauri notification plugin simplifies implementation. Main complexity is in contextual notification content and handling the edge case where required information is missing. Dependency on task 20 provides the state infrastructure needed."
+		}
+	]
+}

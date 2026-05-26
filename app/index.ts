@@ -2,14 +2,24 @@ import { startApp } from "xmlui";
 import xmluiPdf from "xmlui-pdf";
 import animoBlocks from "animo-blocks";
 import weekCalendarExt from "./src/extensions/WeekCalendar";
-import authGateExt from "./src/extensions/AuthGate";
+import localUserGateExt from "./src/extensions/LocalUserGate";
 import barChartExt from "./src/extensions/BarChart";
 import pieChartExt from "./src/extensions/PieChart";
 import stopwatchExt from "./src/extensions/Stopwatch";
 import pickerExt from "./src/extensions/Picker";
 import colorPickerExt from "./src/extensions/ColorPicker";
 
-const extensions = [xmluiPdf, animoBlocks, weekCalendarExt, authGateExt, barChartExt, pieChartExt, stopwatchExt, pickerExt, colorPickerExt];
+const extensions = [
+  xmluiPdf,
+  animoBlocks,
+  weekCalendarExt,
+  localUserGateExt,
+  barChartExt,
+  pieChartExt,
+  stopwatchExt,
+  pickerExt,
+  colorPickerExt,
+];
 
 export const runtime = import.meta.glob(`/src/**`, { eager: true });
 
@@ -36,9 +46,6 @@ async function resolveApiBase(): Promise<string> {
 
 async function boot() {
   // Demo build: install the in-browser /api/* fetch handler BEFORE startApp.
-  // Doing it synchronously up front guarantees AuthGate's immediate
-  // /auth/me request sees our handler — XMLUI's own MSW integration races
-  // the first fetch (waitForApiInterceptor isn't exposed via startApp).
   if (import.meta.env.VITE_ANIMO_DEMO === "true") {
     const { installDemoApi } = await import("./src/demoApi");
     installDemoApi();
@@ -51,7 +58,7 @@ async function boot() {
 void boot();
 
 if (import.meta.hot) {
-    import.meta.hot.accept((newModule) => {
-        startApp(newModule?.runtime, extensions);
-    });
+  import.meta.hot.accept((newModule) => {
+    startApp(newModule?.runtime, extensions);
+  });
 }
