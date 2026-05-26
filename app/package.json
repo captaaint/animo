@@ -1,6 +1,6 @@
 {
   "name": "animo-app",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "start": "cross-env VITE_USED_COMPONENTS_ColorPicker=false VITE_USED_COMPONENTS_DatePicker=false xmlui start",

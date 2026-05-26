@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.2.0] - 2026-05-26
+
 ### Added
 
 - feat(api): add CSV export endpoint and import parser infrastructure (c928dfc)
@@ -147,7 +151,8 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - No code signing yet; macOS install requires manual Gatekeeper approval.
 - Single-user only at this stage; multi-tenant work deferred to a later release.
 
-[Unreleased]: https://github.com/captaaint/animo/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/captaaint/animo/compare/v0.1.3...v0.2.0
 [0.1.3]: https://github.com/captaaint/animo/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/captaaint/animo/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/captaaint/animo/compare/v0.1.0...v0.1.1
