@@ -28,6 +28,7 @@
   },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": [
       "dmg",
       "app",
@@ -46,5 +47,13 @@
     "category": "Productivity",
     "shortDescription": "Animo — time tracker (XMLUI + axum + Tauri)",
     "longDescription": "Animo is a self-hosted time tracker with projects, clients, tags, and detailed PDF reports. Runs entirely on the local machine."
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQ4NEZDRDlGMTM1RTBEN0MKUldSOERWNFRuODFQMkpXT2hNakwwWXRxMmVSSkVSMDNQN3lVbzRLeDNvUDBIQ2k4N0hFWWFKdTQK",
+      "endpoints": [
+        "https://getanimo.app/updates/latest.json"
+      ]
+    }
   }
 }

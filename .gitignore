@@ -11,6 +11,7 @@ Thumbs.db
 .env copy*
 .env.local
 .env.*.local
+*.key
 .mcp.json
 .mcp.*.json
 !.env.example

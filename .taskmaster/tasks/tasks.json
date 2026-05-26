@@ -74,8 +74,9 @@
         "testStrategy": "Manual test: Verify plugin builds without errors. Test keypair generation and backup restore. Verify public key is correctly added to tauri.conf.json. Test that GitHub Actions secrets are accessible in workflow. Security review: Verify private key is not in git history or accessible in logs.",
         "priority": "medium",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-26T16:09:41.249Z"
       },
       {
         "id": "28",
@@ -146,9 +147,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-26T15:52:08.759Z",
+      "lastModified": "2026-05-26T16:09:41.249Z",
       "taskCount": 11,
-      "completedCount": 4,
+      "completedCount": 5,
       "tags": [
         "master"
       ]

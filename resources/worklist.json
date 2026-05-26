@@ -45,5 +45,19 @@
     ],
     "before": "No feedback modal UI exists, the feedback helper has no XMLUI window bridge, and Taskmaster task 24 is pending.",
     "after": "A feedback modal can collect and validate feedback, restore drafts, preview diagnostics, submit through the helper bridge, show success/error states, and Taskmaster task 24 is completed after verification."
+  },
+  {
+    "id": "task-27-tauri-updater-plugin",
+    "files": [
+      "desktop/Cargo.toml",
+      "desktop/src/lib.rs",
+      "desktop/tauri.conf.json",
+      ".gitignore",
+      ".taskmaster/tasks/tasks.json",
+      "Cargo.lock",
+      "resources/worklist.json"
+    ],
+    "before": "The Tauri desktop shell does not register the updater plugin, does not create updater artifacts, and Taskmaster task 27 is pending.",
+    "after": "The Tauri desktop shell registers the updater plugin, creates updater artifacts with the provided public key and update endpoint, ignores local signing key files, and Taskmaster task 27 is completed after verification."
   }
 ]
