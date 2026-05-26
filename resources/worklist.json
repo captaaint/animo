@@ -13,5 +13,15 @@
     ],
     "before": "No diagnostics helper exists for feedback submissions, and Taskmaster task 22 is pending.",
     "after": "A browser-safe diagnostics helper exists for future feedback payloads, and Taskmaster task 22 can be moved through in-progress to done after verification."
+  },
+  {
+    "id": "task-26-netlify-feedback-function",
+    "files": [
+      "website/netlify/functions/feedback.ts",
+      ".taskmaster/tasks/tasks.json",
+      "resources/worklist.json"
+    ],
+    "before": "No Netlify feedback function exists, and Taskmaster task 26 is pending.",
+    "after": "A Netlify feedback function validates feedback, verifies Turnstile, rate-limits submissions, creates GitHub issues, and Taskmaster task 26 is completed after verification."
   }
 ]

@@ -60,8 +60,9 @@
         "testStrategy": "Unit test: Mock Octokit and Turnstile APIs. Test validation logic for all edge cases. Test rate limiting with multiple IPs. Integration test: Deploy to Netlify staging and test with real Turnstile tokens. Verify GitHub issues are created with correct labels and formatting. Test CORS with allowed and disallowed origins. Load test: Verify rate limiting works correctly.",
         "priority": "high",
         "dependencies": [],
-        "status": "pending",
-        "subtasks": []
+        "status": "done",
+        "subtasks": [],
+        "updatedAt": "2026-05-26T15:44:58.445Z"
       },
       {
         "id": "27",
@@ -143,9 +144,9 @@
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-26T15:39:35.509Z",
+      "lastModified": "2026-05-26T15:44:58.445Z",
       "taskCount": 11,
-      "completedCount": 1,
+      "completedCount": 2,
       "tags": [
         "master"
       ]
