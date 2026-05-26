@@ -567,11 +567,14 @@
     </Card>
 
     <Card height="*" when-xs="false" when-sm="true">
-      <NoResult
+      <TimeEntriesEmptyState
         when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
-        label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+        title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
           ? 'No entries match your filters'
           : 'No entries in this date range'}"
+        subtitle="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+          ? 'Try adjusting search, project, tag, or date filters.'
+          : 'Choose another date range or add time entries to see them here.'}"
       />
       <VStack
         when-xs="false"
@@ -721,10 +724,18 @@
         />
       </Card>
       <Card when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
-        <NoResult
-          label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+        <TimeEntriesEmptyState
+          title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
             ? 'No entries match your filters'
             : 'No entries in this date range'}"
+          subtitle="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+            ? 'Try adjusting search, project, tag, or date filters.'
+            : 'Choose another date range or add time entries to see them here.'}"
+          minHeight="260px"
+          paddingVertical="$space-5"
+          imageSize="180px"
+          titleSize="1.125rem"
+          subtitleSize="$fontSize-xs"
         />
       </Card>
       <VStack

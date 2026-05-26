@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 320" fill="none">
+  <defs>
+    <linearGradient id="cardBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.015"/>
+    </linearGradient>
+    <radialGradient id="plusGlow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0%" stop-color="#2f9d8c" stop-opacity="0.35"/>
+      <stop offset="70%" stop-color="#2f9d8c" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#2f9d8c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Ambient dots -->
+  <circle cx="60" cy="170" r="4" fill="#2f9d8c" opacity="0.3"/>
+  <circle cx="430" cy="180" r="4" fill="#2f9d8c" opacity="0.25"/>
+  <circle cx="405" cy="245" r="3" fill="#2f9d8c" opacity="0.32"/>
+  <circle cx="85" cy="245" r="3" fill="#2f9d8c" opacity="0.28"/>
+
+  <!-- Card -->
+  <rect x="80" y="55" width="320" height="215" rx="16" fill="url(#cardBg)" stroke="#2f9d8c" stroke-opacity="0.35" stroke-width="1.2"/>
+
+  <!-- Header lines -->
+  <rect x="110" y="90" width="150" height="10" rx="3" fill="#0f172a" opacity="0.18"/>
+  <rect x="270" y="90" width="55" height="10" rx="3" fill="#0f172a" opacity="0.1"/>
+
+  <!-- Row 1 -->
+  <rect x="110" y="135" width="14" height="14" rx="3" fill="#2f9d8c" opacity="0.9"/>
+  <rect x="140" y="138" width="155" height="8" rx="3" fill="#0f172a" opacity="0.16"/>
+  <rect x="305" y="138" width="65" height="8" rx="3" fill="#0f172a" opacity="0.1"/>
+
+  <!-- Row 2 -->
+  <circle cx="117" cy="178" r="7" fill="#e0a458"/>
+  <rect x="140" y="174" width="140" height="8" rx="3" fill="#0f172a" opacity="0.16"/>
+  <rect x="290" y="174" width="60" height="8" rx="3" fill="#0f172a" opacity="0.1"/>
+
+  <!-- Row 3 (add) -->
+  <path d="M117 207 v14 M110 214 h14" stroke="#2f9d8c" stroke-width="2" stroke-linecap="round" opacity="0.9"/>
+  <rect x="140" y="210" width="150" height="8" rx="3" fill="#0f172a" opacity="0.16"/>
+  <rect x="300" y="210" width="65" height="8" rx="3" fill="#0f172a" opacity="0.1"/>
+
+  <!-- Plus button glow -->
+  <circle cx="385" cy="75" r="48" fill="url(#plusGlow)"/>
+  <circle cx="385" cy="75" r="22" fill="#2f9d8c"/>
+  <path d="M385 64 v22 M374 75 h22" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round"/>
+</svg>

@@ -58,16 +58,16 @@
   >
 
     <!-- Desktop/tablet: table with combined Client column + Color hex column -->
-    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
-      <!-- Desktop/tablet: New client button top-right -->
-      <HStack verticalAlignment="center">
-        <SpaceFiller />
-        <Button
-          label="New client"
-          icon="plus"
-          onClick="clientModal.open()"
-        />
-      </HStack>
+    <HStack when="{!vp.value || !vp.value.isMobile}" verticalAlignment="center">
+      <SpaceFiller />
+      <Button
+        label="New client"
+        icon="plus"
+        onClick="clientModal.open()"
+      />
+    </HStack>
+
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4" borderRadius="16px">
       <Table
         data="{clientsDs.value || []}"
         when="{(clientsDs.value || []).length > 0}"
@@ -114,19 +114,48 @@
         </Column>
       </Table>
 
-      <NoResult
+      <Stack
         when="{clientsDs.loaded && (clientsDs.value || []).length === 0}"
-        label="No clients yet"
-      />
+        horizontalAlignment="center"
+        verticalAlignment="center"
+        minHeight="320px"
+        paddingVertical="$space-8"
+      >
+        <VStack gap="$space-3" horizontalAlignment="center">
+          <Image
+            src="resource:clients-empty-list"
+            alt="No clients yet"
+            width="292px"
+            height="147px"
+            fit="contain"
+          />
+          <VStack gap="$space-1" horizontalAlignment="center">
+            <Text fontSize="1.25rem" fontWeight="700" textAlign="center" color="$textColor-Heading">
+              Your first client is waiting
+            </Text>
+            <Text variant="secondary" fontSize="$fontSize-small" textAlign="center">
+              Create a client to group projects and keep reports organized.
+            </Text>
+          </VStack>
+        </VStack>
+      </Stack>
       <Spinner when="{!clientsDs.loaded}" />
     </Card>
 
     <!-- Mobile: flat list rows with three-dot context menu -->
     <VStack when="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-3">
+      <Button
+        width="100%"
+        label="New client"
+        icon="plus"
+        onClick="clientDrawer.open()"
+      />
+
       <Card
         when="{(clientsDs.value || []).length > 0}"
         padding="$space-2"
         width="100%"
+        borderRadius="16px"
       >
         <Items data="{clientsDs.value || []}">
           <VStack gap="0">
@@ -173,18 +202,34 @@
         when="{clientsDs.loaded && (clientsDs.value || []).length === 0}"
         padding="$space-2"
         width="100%"
+        borderRadius="16px"
       >
-        <NoResult label="No clients yet" />
+        <Stack
+          horizontalAlignment="center"
+          verticalAlignment="center"
+          minHeight="260px"
+          paddingVertical="$space-5"
+        >
+          <VStack gap="$space-3" horizontalAlignment="center">
+            <Image
+              src="resource:clients-empty-list"
+              alt="No clients yet"
+              width="265px"
+              height="133px"
+              fit="contain"
+            />
+            <VStack gap="$space-1" horizontalAlignment="center">
+              <Text fontSize="1.125rem" fontWeight="700" textAlign="center" color="$textColor-Heading">
+                Your first client is waiting
+              </Text>
+              <Text variant="secondary" fontSize="$fontSize-xs" textAlign="center">
+                Create a client to group projects and keep reports organized.
+              </Text>
+            </VStack>
+          </VStack>
+        </Stack>
       </Card>
       <Spinner when="{!clientsDs.loaded}" />
-
-      <!-- Mobile: full-width New client button at bottom -->
-      <Button
-        width="100%"
-        label="New client"
-        icon="plus"
-        onClick="clientDrawer.open()"
-      />
     </VStack>
 
   </VStack>

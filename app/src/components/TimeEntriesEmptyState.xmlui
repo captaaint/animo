@@ -1,0 +1,26 @@
+<Component name="TimeEntriesEmptyState">
+  <Stack
+    horizontalAlignment="center"
+    verticalAlignment="center"
+    minHeight="{$props.minHeight || '320px'}"
+    paddingVertical="{$props.paddingVertical || '$space-8'}"
+  >
+    <VStack gap="$space-3" horizontalAlignment="center" maxWidth="520px">
+      <Image
+        src="resource:time-entries-empty-list"
+        alt="No time entries"
+        width="{$props.imageSize || '200px'}"
+        height="{$props.imageSize || '200px'}"
+        fit="contain"
+      />
+      <VStack gap="$space-1" horizontalAlignment="center">
+        <Text fontSize="{$props.titleSize || '1.25rem'}" fontWeight="700" textAlign="center" color="$textColor-Heading">
+          {$props.title || 'No time entries yet'}
+        </Text>
+        <Text variant="secondary" fontSize="{$props.subtitleSize || '$fontSize-small'}" textAlign="center">
+          {$props.subtitle || 'Add your first time entry to start tracking your work.'}
+        </Text>
+      </VStack>
+    </VStack>
+  </Stack>
+</Component>

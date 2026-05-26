@@ -111,8 +111,8 @@
           <Image
             src="resource:projects-empty-list"
             alt="No projects yet"
-            width="220px"
-            height="220px"
+            width="147px"
+            height="147px"
             fit="contain"
           />
           <VStack gap="$space-1" horizontalAlignment="center">
@@ -190,8 +190,8 @@
             <Image
               src="resource:projects-empty-list"
               alt="No projects yet"
-              width="200px"
-              height="200px"
+              width="133px"
+              height="133px"
               fit="contain"
             />
             <VStack gap="$space-1" horizontalAlignment="center">

@@ -51,16 +51,16 @@
     height="*" overflowY="auto">
 
     <!-- Desktop/tablet: table with combined Tag column + Color hex column -->
-    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
-      <!-- Desktop/tablet: New tag button top-right -->
-      <HStack verticalAlignment="center">
-        <SpaceFiller />
-        <Button
-          label="New tag"
-          icon="plus"
-          onClick="tagModal.open()"
-        />
-      </HStack>
+    <HStack when="{!vp.value || !vp.value.isMobile}" verticalAlignment="center">
+      <SpaceFiller />
+      <Button
+        label="New tag"
+        icon="plus"
+        onClick="tagModal.open()"
+      />
+    </HStack>
+
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4" borderRadius="16px">
       <Table
         data="{tagsDs.value || []}"
         when="{(tagsDs.value || []).length > 0}"
@@ -91,16 +91,44 @@
         </Column>
       </Table>
 
-      <NoResult
+      <Stack
         when="{tagsDs.loaded && (tagsDs.value || []).length === 0}"
-        label="No tags yet"
-      />
+        horizontalAlignment="center"
+        verticalAlignment="center"
+        minHeight="320px"
+        paddingVertical="$space-8"
+      >
+        <VStack gap="$space-3" horizontalAlignment="center">
+          <Image
+            src="resource:tags-empty-list"
+            alt="No tags yet"
+            width="292px"
+            height="147px"
+            fit="contain"
+          />
+          <VStack gap="$space-1" horizontalAlignment="center">
+            <Text fontSize="1.25rem" fontWeight="700" textAlign="center" color="$textColor-Heading">
+              Your first tag is waiting
+            </Text>
+            <Text variant="secondary" fontSize="$fontSize-small" textAlign="center">
+              Create a tag to organize and filter your time entries.
+            </Text>
+          </VStack>
+        </VStack>
+      </Stack>
       <Spinner when="{!tagsDs.loaded}" />
     </Card>
 
     <!-- Mobile: flat list rows with three-dot context menu -->
     <VStack when="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-3">
-      <Card when="{(tagsDs.value || []).length > 0}" padding="$space-2" width="100%">
+      <Button
+        width="100%"
+        label="New tag"
+        icon="plus"
+        onClick="tagDrawer.open()"
+      />
+
+      <Card when="{(tagsDs.value || []).length > 0}" padding="$space-2" width="100%" borderRadius="16px">
         <Items data="{tagsDs.value || []}">
           <VStack gap="0">
             <HStack
@@ -126,18 +154,33 @@
       </Card>
 
       <Card when="{tagsDs.loaded && (tagsDs.value || []).length === 0}"
-        padding="$space-2" width="100%">
-        <NoResult label="No tags yet" />
+        padding="$space-2" width="100%" borderRadius="16px">
+        <Stack
+          horizontalAlignment="center"
+          verticalAlignment="center"
+          minHeight="260px"
+          paddingVertical="$space-5"
+        >
+          <VStack gap="$space-3" horizontalAlignment="center">
+            <Image
+              src="resource:tags-empty-list"
+              alt="No tags yet"
+              width="265px"
+              height="133px"
+              fit="contain"
+            />
+            <VStack gap="$space-1" horizontalAlignment="center">
+              <Text fontSize="1.125rem" fontWeight="700" textAlign="center" color="$textColor-Heading">
+                Your first tag is waiting
+              </Text>
+              <Text variant="secondary" fontSize="$fontSize-xs" textAlign="center">
+                Create a tag to organize and filter your time entries.
+              </Text>
+            </VStack>
+          </VStack>
+        </Stack>
       </Card>
       <Spinner when="{!tagsDs.loaded}" />
-
-      <!-- Mobile: full-width New tag button at bottom -->
-      <Button
-        width="100%"
-        label="New tag"
-        icon="plus"
-        onClick="tagDrawer.open()"
-      />
     </VStack>
 
   </VStack>
