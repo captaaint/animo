@@ -4,6 +4,9 @@ import { TrackerTheme } from "./themes/tracker-theme";
 export const FEEDBACK_ENDPOINT =
   import.meta.env.VITE_FEEDBACK_ENDPOINT || "https://getanimo.app/api/feedback";
 
+export const UPDATE_MANIFEST_URL =
+  import.meta.env.VITE_ANIMO_UPDATES_URL || "https://getanimo.app/updates/latest.json";
+
 const App: StandaloneAppDescription = {
   name: "Animo",
   version: "0.1.0",

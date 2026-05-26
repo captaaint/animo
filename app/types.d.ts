@@ -28,4 +28,15 @@ interface ImportMetaEnv {
    *  .github/workflows/release.yml; falls back to a literal in
    *  index.ts so local dev builds still render something sensible. */
   readonly VITE_ANIMO_VERSION?: string;
+  /** Optional override for the Tauri update manifest URL. Defaults to
+   *  https://getanimo.app/updates/latest.json — point at a local
+   *  /updates/test.json during development to exercise the updater UI
+   *  without shipping a release. */
+  readonly VITE_ANIMO_UPDATES_URL?: string;
+  /** Optional override for the feedback submission endpoint. Defaults
+   *  to https://getanimo.app/api/feedback. */
+  readonly VITE_FEEDBACK_ENDPOINT?: string;
+  /** Optional flag to switch the app to hash-based routing (useful for
+   *  static hosting that can't handle SPA fallbacks). */
+  readonly VITE_ANIMO_HASH_ROUTING?: string;
 }
