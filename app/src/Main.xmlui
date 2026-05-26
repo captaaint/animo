@@ -189,7 +189,9 @@
       <TagsScreen />
     </Page>
     <Page url="/reports">
-      <ReportsScreen />
+      <ReportsScreen
+        userName="{localUser.value && localUser.value.user ? localUser.value.user.name : ''}"
+      />
     </Page>
     <Page url="/settings">
       <SettingsScreen

@@ -175,7 +175,7 @@
         {
           fromDate: fromDate,
           toDate: toDate,
-          user: { name: 'Local User' },
+          user: { name: $props.userName || 'Local User' },
           totalSeconds: sumDurationSeconds(filtered),
           entries: enriched
         },

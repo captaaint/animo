@@ -17,7 +17,7 @@
 //     localStorage on every mutation.
 //   * To reset the demo, clear site data in the browser dev tools.
 
-const STORAGE_KEY = "animo-demo-state-v1";
+const STORAGE_KEY = "animo-demo-state-v2";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Types — mirror the Rust API JSON shapes the frontend already consumes.
@@ -173,7 +173,7 @@ function buildSeedState(): DemoState {
   const projectIds = projects.map((p) => p.id);
   const timeEntries: TimeEntry[] = [];
   let nextId = 1;
-  const HORIZON_DAYS = 28; // ~4 weeks back, then current-week days as the clock advances
+  const HORIZON_DAYS = 60; // ~2 months back through today; weekends are skipped below
 
   // Walk from the furthest day forward to today so IDs come out in
   // chronological order and Reports lists them naturally.

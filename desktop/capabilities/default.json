@@ -9,6 +9,13 @@
     "core:webview:default",
     "core:app:default",
     "core:path:default",
-    "notification:default"
+    "notification:default",
+    "dialog:default",
+    "fs:default",
+    "fs:allow-write-file",
+    "fs:scope-home-recursive",
+    "fs:scope-desktop-recursive",
+    "fs:scope-document-recursive",
+    "fs:scope-download-recursive"
   ]
 }
