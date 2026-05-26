@@ -1,0 +1,17 @@
+[
+  {
+    "id": "replace-taskmaster-prd-feedback-updater",
+    "file": ".taskmaster/docs/prd.md",
+    "before": "Existing Taskmaster PRD describes replacing authentication with first-run local user onboarding.",
+    "after": "Taskmaster PRD is replaced with a new feedback and Tauri auto-update PRD based on docs/feedback-and-update-plan.md."
+  },
+  {
+    "id": "task-22-diagnostics-helper",
+    "files": [
+      "app/src/helpers/diagnostics.ts",
+      ".taskmaster/tasks/tasks.json"
+    ],
+    "before": "No diagnostics helper exists for feedback submissions, and Taskmaster task 22 is pending.",
+    "after": "A browser-safe diagnostics helper exists for future feedback payloads, and Taskmaster task 22 can be moved through in-progress to done after verification."
+  }
+]
