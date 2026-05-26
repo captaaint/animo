@@ -24,6 +24,7 @@
     "chart.js": "^4.5.1",
     "pdfmake": "^0.2.10",
     "react-chartjs-2": "^5.3.1",
+    "write-excel-file": "^4.0.7",
     "xmlui": "0.12.27",
     "xmlui-pdf": "^0.1.13"
   },

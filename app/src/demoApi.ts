@@ -329,6 +329,227 @@ function enrichEntry(entry: TimeEntry, projects: Project[], clients: Client[]) {
 }
 
 // ---------------------------------------------------------------------------------------------------------------------
+// Export helpers (CSV + XLSX)
+// ---------------------------------------------------------------------------------------------------------------------
+
+function fmtDuration(totalSec: number): string {
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  return `${h}h ${m}m`;
+}
+
+function csvEscape(value: string): string {
+  if (value == null) return "";
+  const s = String(value);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+type ExportRow = {
+  id: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  durationSeconds: number;
+  durationFormatted: string;
+  description: string;
+  projectName: string;
+  clientName: string;
+  tags: string;
+  billable: boolean;
+  hourlyRate: number | null;
+  currency: string;
+  amount: number | null;
+};
+
+function buildExportRows(s: DemoState, query: URLSearchParams): ExportRow[] {
+  const from = query.get("from");
+  const to = query.get("to");
+  const tagNameById = new Map(s.tags.map((t) => [t.id, t.name]));
+  return s.timeEntries
+    .filter((e) => withinRange(e.startTime, from, to))
+    .slice()
+    .sort((a, b) => (a.startTime < b.startTime ? -1 : 1))
+    .map((e) => {
+      const project = s.projects.find((p) => p.id === e.projectId) || null;
+      const client = project
+        ? s.clients.find((c) => c.id === project.clientId) || null
+        : null;
+      const amount =
+        e.billable && project && project.hourlyRate
+          ? Math.round((e.durationSeconds / 3600) * project.hourlyRate * 100) / 100
+          : null;
+      return {
+        id: e.id,
+        date: (e.startTime || "").slice(0, 10),
+        startTime: (e.startTime || "").slice(11, 19),
+        endTime: (e.endTime || "").slice(11, 19),
+        durationSeconds: e.durationSeconds || 0,
+        durationFormatted: fmtDuration(e.durationSeconds || 0),
+        description: e.description || "",
+        projectName: project ? project.name : "",
+        clientName: client ? client.name : "",
+        tags: (e.tagIds || [])
+          .map((id) => tagNameById.get(id) || "")
+          .filter(Boolean)
+          .join(", "),
+        billable: !!e.billable,
+        hourlyRate: project ? project.hourlyRate : null,
+        currency: project && project.currency ? project.currency : "",
+        amount,
+      };
+    });
+}
+
+function buildCsvExport(s: DemoState, query: URLSearchParams): Response {
+  const from = query.get("from") || "";
+  const to = query.get("to") || "";
+  const rows = buildExportRows(s, query);
+  const header = [
+    "entry_id",
+    "date",
+    "start_time",
+    "end_time",
+    "duration_seconds",
+    "duration_formatted",
+    "description",
+    "project_name",
+    "client_name",
+    "tags",
+    "billable",
+    "hourly_rate",
+    "currency",
+    "amount",
+  ];
+  const lines: string[] = [header.join(",")];
+  for (const r of rows) {
+    lines.push(
+      [
+        csvEscape(r.id),
+        csvEscape(r.date),
+        csvEscape(r.startTime),
+        csvEscape(r.endTime),
+        String(r.durationSeconds),
+        csvEscape(r.durationFormatted),
+        csvEscape(r.description),
+        csvEscape(r.projectName),
+        csvEscape(r.clientName),
+        csvEscape(r.tags),
+        r.billable ? "true" : "false",
+        r.hourlyRate != null ? r.hourlyRate.toFixed(2) : "",
+        csvEscape(r.currency),
+        r.amount != null ? r.amount.toFixed(2) : "",
+      ].join(","),
+    );
+  }
+  const body = lines.join("\n");
+  return new Response(body, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="animo_export_${from}_${to}.csv"`,
+    },
+  });
+}
+
+async function buildXlsxExport(s: DemoState, query: URLSearchParams): Promise<Response> {
+  // Dynamic import so the XLSX writer only ships in the demo bundle when
+  // an XLSX download is actually requested.
+  const { default: writeXlsxFile, getSheetData } = await import("write-excel-file/browser");
+  type WriteXlsxFile = typeof writeXlsxFile;
+  type SheetArg = Parameters<WriteXlsxFile>[0];
+  type SheetData = ReturnType<typeof getSheetData>;
+  type Cell = SheetData[number][number];
+
+  const from = query.get("from") || "";
+  const to = query.get("to") || "";
+  const rows = buildExportRows(s, query);
+
+  // Columns mirror the CSV export so the demo round-trips through the
+  // import pipeline the same way the desktop output does.
+  const entriesData: SheetData = getSheetData(rows, [
+    { header: "entry_id", cell: (r) => r.id },
+    { header: "date", cell: (r) => r.date },
+    { header: "start_time", cell: (r) => r.startTime },
+    { header: "end_time", cell: (r) => r.endTime },
+    { header: "duration_seconds", cell: (r) => ({ value: r.durationSeconds, type: Number }) },
+    { header: "duration_formatted", cell: (r) => r.durationFormatted },
+    { header: "description", cell: (r) => r.description },
+    { header: "project_name", cell: (r) => r.projectName },
+    { header: "client_name", cell: (r) => r.clientName },
+    { header: "tags", cell: (r) => r.tags },
+    { header: "billable", cell: (r) => ({ value: r.billable, type: Boolean }) },
+    {
+      header: "hourly_rate",
+      cell: (r) =>
+        r.hourlyRate != null
+          ? ({ value: r.hourlyRate, type: Number, format: "0.00" } as Cell)
+          : null,
+    },
+    { header: "currency", cell: (r) => r.currency },
+    {
+      header: "amount",
+      cell: (r) =>
+        r.amount != null
+          ? ({ value: r.amount, type: Number, format: "0.00" } as Cell)
+          : null,
+    },
+  ]);
+
+  // Summary sheet — small pivot to match the desktop XLSX layout.
+  const totalSeconds = rows.reduce((acc, r) => acc + r.durationSeconds, 0);
+  const billableSeconds = rows
+    .filter((r) => r.billable)
+    .reduce((acc, r) => acc + r.durationSeconds, 0);
+  const projectTotals = new Map<string, number>();
+  for (const r of rows) {
+    const key = r.projectName || "(no project)";
+    projectTotals.set(key, (projectTotals.get(key) || 0) + r.durationSeconds);
+  }
+  const currencyTotals = new Map<string, number>();
+  for (const r of rows) {
+    if (!r.billable || r.amount == null || !r.currency) continue;
+    currencyTotals.set(r.currency, (currencyTotals.get(r.currency) || 0) + r.amount);
+  }
+
+  const bold = (value: string): Cell => ({ value, type: String, fontWeight: "bold" });
+  const summaryData: SheetData = [
+    [bold("Range"), `${from} → ${to}`],
+    [bold("Total hours"), fmtDuration(totalSeconds)],
+    [bold("Billable hours"), fmtDuration(billableSeconds)],
+    [],
+    [bold("Project"), bold("Hours")],
+  ];
+  for (const [name, secs] of Array.from(projectTotals.entries()).sort()) {
+    summaryData.push([name, fmtDuration(secs)]);
+  }
+  if (currencyTotals.size > 0) {
+    summaryData.push([]);
+    summaryData.push([bold("Currency"), bold("Amount")]);
+    for (const [cur, amount] of Array.from(currencyTotals.entries()).sort()) {
+      summaryData.push([
+        cur,
+        { value: Math.round(amount * 100) / 100, type: Number, format: "0.00" } as Cell,
+      ]);
+    }
+  }
+
+  const sheets = [
+    { data: entriesData, sheet: "Entries" },
+    { data: summaryData, sheet: "Summary" },
+  ] as unknown as SheetArg;
+  const blob = await writeXlsxFile(sheets).toBlob();
+
+  return new Response(blob, {
+    status: 200,
+    headers: {
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="animo_export_${from}_${to}.xlsx"`,
+    },
+  });
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
 // Route table
 // ---------------------------------------------------------------------------------------------------------------------
 
@@ -521,6 +742,16 @@ async function handle(method: string, path: string, query: URLSearchParams, init
         return json({ ok: true });
       }
     }
+  }
+
+  // ----- reports / export -----
+  // Mirror the Rust backend's CSV/XLSX shape so a demo download is
+  // indistinguishable from the desktop one.
+  if (path === "/reports/export.csv" && method === "GET") {
+    return buildCsvExport(s, query);
+  }
+  if (path === "/reports/export.xlsx" && method === "GET") {
+    return await buildXlsxExport(s, query);
   }
 
   // ----- reports -----
