@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - feat(app): add diagnostics collection helper (2340bd1)
+- feat(app): add feedback submission helper (3c3fd25)
 
 ## [0.2.0] - 2026-05-26
 
