@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): add themed empty project state (adc825e)
 - feat(desktop): native notifications on stopwatch transitions (dbef25f)
 - feat(app): illustrated empty state for time-entry lists (2a9d71a)
+- feat(app): illustrated empty state for time-entry lists (9f24568)
 
 ## [0.1.3] - 2026-05-23
 
