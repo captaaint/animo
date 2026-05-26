@@ -59,5 +59,15 @@
     ],
     "before": "The Tauri desktop shell does not register the updater plugin, does not create updater artifacts, and Taskmaster task 27 is pending.",
     "after": "The Tauri desktop shell registers the updater plugin, creates updater artifacts with the provided public key and update endpoint, ignores local signing key files, and Taskmaster task 27 is completed after verification."
+  },
+  {
+    "id": "task-27-env-updater-pubkey",
+    "files": [
+      "desktop/src/lib.rs",
+      "desktop/tauri.conf.json",
+      "resources/worklist.json"
+    ],
+    "before": "The updater public key is committed directly in desktop/tauri.conf.json.",
+    "after": "The updater public key is read from TAURI_UPDATER_PUBKEY by the desktop plugin builder, while tauri.conf.json keeps only a non-secret placeholder."
   }
 ]
