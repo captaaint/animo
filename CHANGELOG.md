@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): add diagnostics collection helper (2340bd1)
 
 ## [0.2.0] - 2026-05-26
 
