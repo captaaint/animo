@@ -23,5 +23,16 @@
     ],
     "before": "No Netlify feedback function exists, and Taskmaster task 26 is pending.",
     "after": "A Netlify feedback function validates feedback, verifies Turnstile, rate-limits submissions, creates GitHub issues, and Taskmaster task 26 is completed after verification."
+  },
+  {
+    "id": "task-23-feedback-helper",
+    "files": [
+      "app/src/helpers/feedback.ts",
+      "app/src/config.ts",
+      ".taskmaster/tasks/tasks.json",
+      "resources/worklist.json"
+    ],
+    "before": "No feedback submission helper exists, feedback endpoint configuration is not exported, and Taskmaster task 23 is pending.",
+    "after": "A feedback helper persists drafts, builds validated payloads, submits to the configured endpoint, clears successful drafts, and Taskmaster task 23 is completed after verification."
   }
 ]

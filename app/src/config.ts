@@ -1,6 +1,9 @@
 import type { StandaloneAppDescription } from "xmlui";
 import { TrackerTheme } from "./themes/tracker-theme";
 
+export const FEEDBACK_ENDPOINT =
+  import.meta.env.VITE_FEEDBACK_ENDPOINT || "https://getanimo.app/api/feedback";
+
 const App: StandaloneAppDescription = {
   name: "Animo",
   version: "0.1.0",
