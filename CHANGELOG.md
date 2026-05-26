@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(app): redesign settings, integrate invisible Turnstile, extract import page (5d1ca2c)
 
+### Fixed
+
+- fix(app): inject app version in dev mode (66b7a19)
+- fix(desktop): grant updater/process capabilities and register process plugin (d636042)
+
 ## [0.2.1] - 2026-05-26
 
 ### Added
