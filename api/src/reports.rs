@@ -431,19 +431,19 @@ pub async fn export_xlsx(
         .write_string_with_format(0, 0, "Range", &header_format)
         .ok();
     summary_sheet
-        .write_string(0, 1, &format!("{} → {}", q.from, q.to))
+        .write_string(0, 1, format!("{} → {}", q.from, q.to))
         .ok();
     summary_sheet
         .write_string_with_format(1, 0, "Total hours", &header_format)
         .ok();
     summary_sheet
-        .write_string(1, 1, &fmt_duration(total_seconds))
+        .write_string(1, 1, fmt_duration(total_seconds))
         .ok();
     summary_sheet
         .write_string_with_format(2, 0, "Billable hours", &header_format)
         .ok();
     summary_sheet
-        .write_string(2, 1, &fmt_duration(billable_seconds))
+        .write_string(2, 1, fmt_duration(billable_seconds))
         .ok();
 
     // Per-project rollup.
@@ -466,7 +466,7 @@ pub async fn export_xlsx(
         let r = (5 + i) as u32;
         summary_sheet.write_string(r, 0, name).ok();
         summary_sheet
-            .write_string(r, 1, &fmt_duration(*seconds))
+            .write_string(r, 1, fmt_duration(*seconds))
             .ok();
     }
 
