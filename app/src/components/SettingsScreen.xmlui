@@ -2,6 +2,21 @@
   var.nameInput="{$props.userName || ''}"
   var.usernameInput="{$props.username || ''}"
   var.themeInput="{$props.theme || 'system'}"
+  var.feedbackEnabled="{window.animoFeedbackIsEnabled ? window.animoFeedbackIsEnabled() : true}"
+  var.isDemoMode="{window.__ANIMO_DEMO__ === true}"
+  var.isTauri="{window.__TAURI_INTERNALS__ ? true : false}"
+  var.currentAppVersion="{window.__ANIMO_VERSION__ || 'unknown'}"
+  var.autoUpdateEnabled="{window.animoUpdateAutoCheckEnabled ? window.animoUpdateAutoCheckEnabled() : true}"
+  var.lastChecked="{window.animoUpdateLastChecked ? window.animoUpdateLastChecked() : null}"
+  var.checkingForUpdates="{false}"
+  var.updateStatusMessage="{''}"
+  var.updateStatusIsError="{false}"
+  var.updateAvailable="{false}"
+  var.updateLatestVersion="{''}"
+  var.updateReleaseNotes="{''}"
+  var.updateDownloading="{false}"
+  var.updateProgress="{0}"
+  var.updateReadyToInstall="{false}"
   var.savingProfile="{false}"
   var.normalizeUsername="{(v) => (v || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30)}"
   var.nameError="{
@@ -152,6 +167,203 @@
         <ImportFlow />
       </VStack>
 
+      <VStack when="{isTauri && !isDemoMode}" gap="$space-3">
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Updates
+        </Text>
+        <ContentSeparator />
+
+        <HStack verticalAlignment="center" gap="$space-3" paddingVertical="$space-2">
+          <Icon name="info" size="sm" />
+          <VStack width="*" gap="$space-0">
+            <Text>Current version: v{currentAppVersion}</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">
+              Last checked: {lastChecked ? new Date(lastChecked).toLocaleString() : 'Never'}
+            </Text>
+          </VStack>
+          <Button
+            label="{checkingForUpdates ? 'Checking…' : 'Check for updates'}"
+            themeColor="primary"
+            enabled="{!checkingForUpdates && !updateDownloading}"
+            onClick="() => {
+              if (!window.animoUpdateCheck) {
+                updateStatusMessage = 'Updater is only available in the desktop app.';
+                updateStatusIsError = true;
+                return;
+              }
+              checkingForUpdates = true;
+              updateStatusMessage = '';
+              updateStatusIsError = false;
+              updateAvailable = false;
+              updateReadyToInstall = false;
+              window.animoUpdateCheck(
+                (info) => {
+                  checkingForUpdates = false;
+                  lastChecked = window.animoUpdateLastChecked ? window.animoUpdateLastChecked() : new Date().toISOString();
+                  if (info && info.available) {
+                    updateAvailable = true;
+                    updateLatestVersion = info.latestVersion || '';
+                    updateReleaseNotes = info.releaseNotes || '';
+                    updateStatusMessage = '';
+                  } else if (info && info.error) {
+                    updateStatusMessage = info.error;
+                    updateStatusIsError = true;
+                  } else {
+                    updateStatusMessage = 'Animo is up to date.';
+                    updateStatusIsError = false;
+                  }
+                },
+                (message) => {
+                  checkingForUpdates = false;
+                  updateStatusMessage = message || 'Update check failed.';
+                  updateStatusIsError = true;
+                }
+              );
+            }"
+          />
+        </HStack>
+
+        <Text
+          when="{updateStatusMessage}"
+          color="{updateStatusIsError ? '$color-danger-700' : '$color-success-700'}"
+          fontSize="$fontSize-small"
+        >
+          {updateStatusMessage}
+        </Text>
+
+        <Card
+          when="{updateAvailable}"
+          padding="$space-3"
+          backgroundColor="$color-primary-50"
+          borderRadius="8px"
+        >
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="600">Update available: v{updateLatestVersion}</Text>
+            <Text when="{updateReleaseNotes}" variant="secondary" fontSize="$fontSize-small">
+              {updateReleaseNotes}
+            </Text>
+
+            <Text when="{updateDownloading}" fontWeight="600">
+              Downloading… {Math.round(updateProgress)}%
+            </Text>
+
+            <Text when="{updateReadyToInstall}" fontWeight="600" color="$color-success-700">
+              Update ready. Restart Animo to finish.
+            </Text>
+
+            <HStack gap="$space-2" verticalAlignment="center">
+              <Button
+                when="{!updateDownloading && !updateReadyToInstall}"
+                label="Download and install"
+                themeColor="primary"
+                onClick="() => {
+                  if (!window.animoUpdateDownload) {
+                    updateStatusMessage = 'Updater is only available in the desktop app.';
+                    updateStatusIsError = true;
+                    return;
+                  }
+                  updateDownloading = true;
+                  updateProgress = 0;
+                  updateStatusMessage = '';
+                  window.animoUpdateDownload(
+                    (p) => { updateProgress = p && typeof p.percentage === 'number' ? p.percentage : 0; },
+                    (result) => {
+                      updateDownloading = false;
+                      if (result && result.success) {
+                        updateReadyToInstall = true;
+                      } else {
+                        updateStatusMessage = result && result.error ? result.error : 'Download failed';
+                        updateStatusIsError = true;
+                      }
+                    }
+                  );
+                }"
+              />
+              <Button
+                when="{updateReadyToInstall}"
+                label="Restart now"
+                themeColor="primary"
+                onClick="() => { if (window.animoUpdateRestart) window.animoUpdateRestart(); }"
+              />
+              <Button
+                when="{!updateDownloading}"
+                label="{updateReadyToInstall ? 'Later' : 'Dismiss'}"
+                variant="ghost"
+                themeColor="secondary"
+                onClick="() => {
+                  updateAvailable = false;
+                  updateReadyToInstall = false;
+                  updateProgress = 0;
+                }"
+              />
+            </HStack>
+          </VStack>
+        </Card>
+
+        <HStack verticalAlignment="center" gap="$space-3" paddingVertical="$space-2">
+          <Icon name="refresh" size="sm" />
+          <VStack width="*" gap="$space-0">
+            <Text>Check for updates automatically</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">
+              Animo checks for new versions in the background once a day.
+            </Text>
+          </VStack>
+          <Switch
+            initialValue="{autoUpdateEnabled}"
+            onDidChange="(v) => {
+              autoUpdateEnabled = !!v;
+              if (window.animoUpdateSetAutoCheck) window.animoUpdateSetAutoCheck(autoUpdateEnabled);
+            }"
+          />
+        </HStack>
+      </VStack>
+
+      <VStack when="{!isDemoMode}" gap="$space-3">
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Help & feedback
+        </Text>
+        <ContentSeparator />
+
+        <HStack
+          verticalAlignment="center"
+          gap="$space-3"
+          paddingVertical="$space-3"
+        >
+          <Icon name="mail" size="18px" />
+          <VStack width="*" gap="$space-1">
+            <Text>Allow sending feedback to getanimo.app</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">
+              Feedback is only sent when you submit the form.
+            </Text>
+          </VStack>
+          <Switch
+            initialValue="{feedbackEnabled}"
+            onDidChange="(v) => {
+              feedbackEnabled = !!v;
+              if (window.animoFeedbackSetEnabled) window.animoFeedbackSetEnabled(feedbackEnabled);
+            }"
+          />
+        </HStack>
+
+        <HStack gap="$space-2" verticalAlignment="center">
+          <Button
+            label="Send feedback"
+            icon="mail"
+            themeColor="primary"
+            enabled="{feedbackEnabled}"
+            onClick="feedbackModal.open()"
+          />
+          <Text
+            when="{!feedbackEnabled}"
+            variant="secondary"
+            fontSize="$fontSize-small"
+          >
+            Enable feedback sending to open the form.
+          </Text>
+        </HStack>
+      </VStack>
+
     </Card>
   </HStack>
+  <FeedbackModal id="feedbackModal" when="{!isDemoMode}" />
 </Component>

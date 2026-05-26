@@ -213,12 +213,24 @@ jobs:
         if: steps.gate.outputs.skip != 'true'
         run: npm install -g @tauri-apps/cli@^2
 
+      # Tauri picks up the signing credentials from these env vars at
+      # build time and emits a `.sig` (base64 ed25519 signature) next to
+      # each updater bundle (`*.app.tar.gz` on macOS, `*.AppImage.tar.gz`
+      # on Linux, `*.msi.zip` / `*.nsis.zip` on Windows). When the secret
+      # is unset (initial-key-rotation window, fork build) we leave the
+      # env unset so `tauri build` runs without signing and the release
+      # still produces installers — just no updater channel for that
+      # platform. The publish-manifest job below skips any platform
+      # missing a `.sig`, so the installer-only flow is non-fatal.
       - name: Build desktop bundle
         if: steps.gate.outputs.skip != 'true'
         working-directory: desktop
         run: tauri build --target ${{ matrix.target }}
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          TAURI_UPDATER_PUBKEY: ${{ secrets.TAURI_UPDATER_PUBKEY }}
 
       - name: Stage artifacts (Linux)
         if: steps.gate.outputs.skip != 'true' && matrix.os == 'ubuntu-22.04'
@@ -234,6 +246,16 @@ jobs:
             "staging/Animo_${version}_amd64.deb" 2>/dev/null || \
             cp target/release/bundle/deb/*.deb \
               "staging/Animo_${version}_amd64.deb"
+          # Updater bundle + signature (only when signing is enabled).
+          # Tauri 2 writes the updater archive next to the AppImage.
+          sig=$(ls target/${{ matrix.target }}/release/bundle/appimage/*.AppImage.tar.gz.sig 2>/dev/null \
+                | head -n1 || true)
+          tgz=$(ls target/${{ matrix.target }}/release/bundle/appimage/*.AppImage.tar.gz 2>/dev/null \
+                | head -n1 || true)
+          if [ -n "$tgz" ] && [ -n "$sig" ]; then
+            cp "$tgz" "staging/Animo_${version}_amd64.AppImage.tar.gz"
+            cp "$sig" "staging/Animo_${version}_amd64.AppImage.tar.gz.sig"
+          fi
           ls -la staging
 
       - name: Stage artifacts (macOS)
@@ -248,6 +270,16 @@ jobs:
           esac
           src=$(ls target/${{ matrix.target }}/release/bundle/dmg/*.dmg | head -n1)
           cp "$src" "staging/Animo_${version}_${arch}.dmg"
+          # Updater bundle + signature (only when signing is enabled).
+          # Tauri 2 writes a `.app.tar.gz` next to the macOS app bundle.
+          sig=$(ls target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz.sig 2>/dev/null \
+                | head -n1 || true)
+          tgz=$(ls target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz 2>/dev/null \
+                | head -n1 || true)
+          if [ -n "$tgz" ] && [ -n "$sig" ]; then
+            cp "$tgz" "staging/Animo_${version}_${arch}.app.tar.gz"
+            cp "$sig" "staging/Animo_${version}_${arch}.app.tar.gz.sig"
+          fi
           ls -la staging
 
       - name: Stage artifacts (Windows)
@@ -258,6 +290,14 @@ jobs:
           $version = "${{ needs.verify.outputs.version }}"
           $src = Get-ChildItem "target/${{ matrix.target }}/release/bundle/msi/*.msi" | Select-Object -First 1
           Copy-Item $src.FullName "staging/Animo_${version}_x64.msi"
+          # Updater bundle + signature (only when signing is enabled).
+          # Tauri 2 produces `*.msi.zip` + `*.msi.zip.sig` for the MSI updater.
+          $zip = Get-ChildItem "target/${{ matrix.target }}/release/bundle/msi/*.msi.zip" -ErrorAction SilentlyContinue | Select-Object -First 1
+          $sig = Get-ChildItem "target/${{ matrix.target }}/release/bundle/msi/*.msi.zip.sig" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($zip -and $sig) {
+            Copy-Item $zip.FullName "staging/Animo_${version}_x64.msi.zip"
+            Copy-Item $sig.FullName "staging/Animo_${version}_x64.msi.zip.sig"
+          }
           Get-ChildItem staging
 
       - name: Upload artifacts to release
@@ -410,3 +450,127 @@ jobs:
             dist/SHA256SUMS.txt
             dist/install.sh
             dist/install.ps1
+
+  publish-manifest:
+    name: Publish Tauri update manifest
+    needs: [verify, build-desktop]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Secrets cannot gate the whole job (GitHub evaluates `secrets.*` only
+    # at step level), so the first step probes for the Netlify credentials
+    # and short-circuits the rest of the job when they are absent. Forks
+    # and the initial-key-rotation window therefore still produce a clean
+    # release — the updater channel just stays on the previous manifest.
+    steps:
+      - name: Check Netlify deploy credentials
+        id: gate
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        run: |
+          if [ -z "$NETLIFY_SITE_ID" ] || [ -z "$NETLIFY_AUTH_TOKEN" ]; then
+            echo "::notice::NETLIFY_SITE_ID/NETLIFY_AUTH_TOKEN unset; skipping manifest publish"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-node@v4
+        if: steps.gate.outputs.skip != 'true'
+        with:
+          node-version: '20'
+
+      - name: Download signed updater assets
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p assets
+          # Pull only the updater bundles + signatures. Installer DMGs/MSIs
+          # are not used by the updater channel, so we keep the download
+          # surface small.
+          gh release download "${TAG}" \
+            --dir assets \
+            --pattern '*.app.tar.gz' \
+            --pattern '*.app.tar.gz.sig' \
+            --pattern '*.AppImage.tar.gz' \
+            --pattern '*.AppImage.tar.gz.sig' \
+            --pattern '*.msi.zip' \
+            --pattern '*.msi.zip.sig' \
+            --skip-existing
+          ls -la assets
+
+      - name: Build manifest from release assets
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          VERSION: ${{ needs.verify.outputs.version }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ env.TAG }}
+        run: |
+          base="https://github.com/${REPO}/releases/download/${TAG}"
+          args=("--version" "$VERSION" "--notes" "See CHANGELOG.md" "--out" "website/public/updates/latest.json")
+
+          # Helper: emit a --platform flag when both the archive and its
+          # .sig are present in the downloaded set.
+          add_platform() {
+            local target="$1" archive="$2"
+            local sig_path="assets/${archive}.sig"
+            local archive_path="assets/${archive}"
+            if [ -f "$archive_path" ] && [ -f "$sig_path" ]; then
+              local sig
+              sig=$(cat "$sig_path")
+              args+=("--platform" "${target}=${base}/${archive},${sig}")
+            else
+              echo "::warning::missing updater assets for ${target} (expected ${archive} + .sig); skipping"
+            fi
+          }
+
+          add_platform "darwin-aarch64" "Animo_${VERSION}_aarch64.app.tar.gz"
+          add_platform "darwin-x86_64"  "Animo_${VERSION}_x64.app.tar.gz"
+          add_platform "linux-x86_64"   "Animo_${VERSION}_amd64.AppImage.tar.gz"
+          add_platform "windows-x86_64" "Animo_${VERSION}_x64.msi.zip"
+
+          node scripts/generate-update-manifest.mjs "${args[@]}"
+          echo "--- generated manifest ---"
+          cat website/public/updates/latest.json
+
+      - name: Validate manifest shape
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          node -e '
+            const fs = require("fs");
+            const m = JSON.parse(fs.readFileSync("website/public/updates/latest.json", "utf8"));
+            if (!m.version || !m.pub_date || typeof m.platforms !== "object") {
+              console.error("invalid manifest:", m);
+              process.exit(1);
+            }
+            const count = Object.keys(m.platforms).length;
+            if (count === 0) {
+              console.error("manifest has no signed platforms; refusing to publish.");
+              process.exit(1);
+            }
+            console.log("manifest ok:", count, "platform(s)");
+          '
+
+      - name: Publish manifest to Netlify
+        if: steps.gate.outputs.skip != 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          npm install --no-audit --no-fund --silent --global netlify-cli@17
+          # Deploy only the /updates directory as a production deploy.
+          # The XMLUI site itself is rebuilt by release-published.yml on
+          # tag publish — this is a focused, secrets-only deploy.
+          mkdir -p deploy/updates
+          cp website/public/updates/latest.json deploy/updates/latest.json
+          netlify deploy --prod \
+            --dir=deploy \
+            --site="$NETLIFY_SITE_ID" \
+            --auth="$NETLIFY_AUTH_TOKEN" \
+            --message="updater manifest for ${TAG}"

@@ -1,0 +1,254 @@
+<Component name="FeedbackModal"
+  var.category="{'bug'}"
+  var.titleInput="{''}"
+  var.bodyInput="{''}"
+  var.emailInput="{''}"
+  var.diagnosticsOptIn="{false}"
+  var.diagnosticsPreview="{''}"
+  var.turnstileToken="{''}"
+  var.submitting="{false}"
+  var.successIssueUrl="{''}"
+  var.errorMessage="{''}"
+  var.modalOpen="{false}"
+  var.titleError="{!titleInput.trim() ? 'Title is required' : (titleInput.length > 120 ? 'Title must be 120 characters or less' : '')}"
+  var.bodyError="{!bodyInput.trim() ? 'Description is required' : (bodyInput.length > 8000 ? 'Description must be 8000 characters or less' : '')}"
+  var.canSubmit="{!submitting && !successIssueUrl && !titleError && !bodyError && !!turnstileToken.trim()}"
+  method.saveDraft="() => {
+    if (!window.animoFeedbackSaveDraft) return;
+    window.animoFeedbackSaveDraft({
+      category: category,
+      title: titleInput,
+      body: bodyInput,
+      contact_email: emailInput,
+      diagnostics_opt_in: diagnosticsOptIn
+    });
+  }"
+  method.refreshDiagnostics="() => {
+    diagnosticsPreview = '';
+    if (!diagnosticsOptIn) return;
+    if (!window.animoFeedbackCollectDiagnostics) {
+      diagnosticsPreview = '{\n  &quot;error&quot;: &quot;Diagnostics unavailable&quot;\n}';
+      return;
+    }
+    window.animoFeedbackCollectDiagnostics(
+      (json) => diagnosticsPreview = json,
+      (message) => diagnosticsPreview = JSON.stringify({ error: message }, null, 2)
+    );
+  }"
+  method.open="() => {
+    const draft = window.animoFeedbackLoadDraft ? window.animoFeedbackLoadDraft() : null;
+    category = draft && draft.category ? draft.category : 'bug';
+    titleInput = draft && draft.title ? draft.title : '';
+    bodyInput = draft && draft.body ? draft.body : '';
+    emailInput = draft && draft.contact_email ? draft.contact_email : '';
+    diagnosticsOptIn = !!(draft && draft.diagnostics_opt_in);
+    turnstileToken = '';
+    submitting = false;
+    successIssueUrl = '';
+    errorMessage = '';
+    modalOpen = true;
+    refreshDiagnostics();
+    modal.open();
+  }"
+>
+  <ModalDialog id="modal"
+    title="Send feedback"
+    maxWidth="720px"
+    padding="$space-4"
+    borderRadius="16px"
+    closeButtonVisible="true"
+    onClose="() => { modalOpen = false; emitEvent('closed'); }">
+    <VStack gap="$space-4" width="100%">
+
+      <VStack when="{!successIssueUrl}" gap="$space-3" width="100%">
+        <VStack gap="$space-2" width="100%">
+          <Text fontWeight="500" color="$color-surface-900">Category</Text>
+          <Select
+            width="100%"
+            initialValue="{category}"
+            onDidChange="(v) => { category = v || 'bug'; saveDraft(); }"
+          >
+            <Option value="bug" label="Bug" />
+            <Option value="feature" label="Feature request" />
+            <Option value="question" label="Question" />
+          </Select>
+        </VStack>
+
+        <VStack gap="$space-2" width="100%">
+          <TextBox
+            label="Title"
+            required="true"
+            maxLength="120"
+            initialValue="{titleInput}"
+            onDidChange="(v) => { titleInput = v || ''; saveDraft(); }"
+          />
+          <HStack width="100%">
+            <Text
+              when="{titleError && titleInput.length > 0}"
+              color="$color-danger-600"
+              fontSize="$fontSize-small"
+            >
+              {titleError}
+            </Text>
+            <SpaceFiller />
+            <Text fontSize="$fontSize-xs" variant="secondary">{titleInput.length} / 120</Text>
+          </HStack>
+        </VStack>
+
+        <VStack gap="$space-2" width="100%">
+          <Text fontWeight="500" color="$color-surface-900">Description</Text>
+          <TextArea
+            width="100%"
+            rows="8"
+            maxLength="8000"
+            resize="vertical"
+            initialValue="{bodyInput}"
+            onDidChange="(v) => { bodyInput = v || ''; saveDraft(); }"
+            placeholder="What happened, what did you expect, or what would you like to see?"
+          />
+          <HStack width="100%">
+            <Text
+              when="{bodyError && bodyInput.length > 0}"
+              color="$color-danger-600"
+              fontSize="$fontSize-small"
+            >
+              {bodyError}
+            </Text>
+            <SpaceFiller />
+            <Text fontSize="$fontSize-xs" variant="secondary">{bodyInput.length} / 8000</Text>
+          </HStack>
+        </VStack>
+
+        <TextBox
+          label="Contact email (optional)"
+          initialValue="{emailInput}"
+          onDidChange="(v) => { emailInput = v || ''; saveDraft(); }"
+          placeholder="Only if you want a reply"
+        />
+
+        <HStack gap="$space-3" verticalAlignment="center" width="100%">
+          <VStack width="*" gap="$space-1">
+            <Text fontWeight="500" color="$color-surface-900">Attach diagnostics</Text>
+            <Text fontSize="$fontSize-xs" variant="secondary">
+              Preview exactly what will be attached before sending.
+            </Text>
+          </VStack>
+          <Switch
+            initialValue="{diagnosticsOptIn}"
+            onDidChange="(v) => {
+              diagnosticsOptIn = !!v;
+              saveDraft();
+              refreshDiagnostics();
+            }"
+          />
+        </HStack>
+
+        <Card
+          when="{diagnosticsOptIn}"
+          padding="$space-3"
+          borderRadius="8px"
+          backgroundColor="$color-surface-50"
+        >
+          <VStack gap="$space-2" width="100%">
+            <HStack width="100%" verticalAlignment="center">
+              <Text fontWeight="600" fontSize="$fontSize-small">Diagnostics preview</Text>
+              <SpaceFiller />
+              <Button
+                label="Refresh"
+                variant="ghost"
+                themeColor="secondary"
+                onClick="refreshDiagnostics()"
+              />
+            </HStack>
+            <Text
+              fontFamily="monospace"
+              fontSize="$fontSize-xs"
+              whiteSpace="pre-wrap"
+            >
+              {diagnosticsPreview || 'Collecting diagnostics...'}
+            </Text>
+          </VStack>
+        </Card>
+
+        <TextBox
+          label="Verification token"
+          required="true"
+          initialValue="{turnstileToken}"
+          onDidChange="(v) => turnstileToken = v || ''"
+          placeholder="Turnstile token"
+        />
+
+        <Text
+          when="{errorMessage}"
+          color="$color-danger-600"
+          fontSize="$fontSize-small"
+        >
+          {errorMessage}
+        </Text>
+      </VStack>
+
+      <VStack when="{successIssueUrl}" gap="$space-3" width="100%">
+        <Text fontWeight="600" color="$color-success-700">Feedback sent</Text>
+        <Text variant="secondary">
+          Thanks. The issue was created successfully.
+        </Text>
+        <Text when="{successIssueUrl}" fontSize="$fontSize-small">
+          {successIssueUrl}
+        </Text>
+      </VStack>
+
+      <HStack width="100%" verticalAlignment="center" gap="$space-3">
+        <Button
+          when="{!successIssueUrl}"
+          label="Cancel"
+          variant="outlined"
+          themeColor="secondary"
+          enabled="{!submitting}"
+          onClick="modal.close()"
+        />
+        <SpaceFiller />
+        <Button
+          when="{successIssueUrl}"
+          label="Close"
+          themeColor="primary"
+          onClick="modal.close()"
+        />
+        <Button
+          when="{!successIssueUrl}"
+          label="{submitting ? 'Sending...' : 'Send feedback'}"
+          themeColor="primary"
+          enabled="{canSubmit}"
+          onClick="() => {
+            if (!canSubmit || !window.animoFeedbackSubmit) return;
+            submitting = true;
+            errorMessage = '';
+            window.animoFeedbackSubmit(
+              {
+                category: category,
+                title: titleInput,
+                body: bodyInput,
+                contact_email: emailInput,
+                diagnostics_opt_in: diagnosticsOptIn
+              },
+              turnstileToken,
+              (result) => {
+                submitting = false;
+                if (result && result.ok) {
+                  successIssueUrl = result.issue_url || '';
+                  if (window.animoFeedbackClearDraft) window.animoFeedbackClearDraft();
+                  toast.success('Feedback sent');
+                  return;
+                }
+                errorMessage = result && result.error ? result.error : 'Failed to send feedback';
+              },
+              (message) => {
+                submitting = false;
+                errorMessage = message || 'Failed to send feedback';
+              }
+            );
+          }"
+        />
+      </HStack>
+    </VStack>
+  </ModalDialog>
+</Component>

@@ -33,6 +33,8 @@ use tauri::{Manager, State};
 
 use crate::tray::{StopwatchSnapshot, StopwatchStateMutex, TrayHandle};
 
+const UPDATER_PUBKEY_ENV: &str = "TAURI_UPDATER_PUBKEY";
+
 /// Port assigned to the embedded axum server at startup. Exposed to the
 /// webview via the [`api_base`] command so the XMLUI frontend can build its
 /// `apiBase` global without hard-coding a port at compile time.
@@ -106,6 +108,17 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .setup(|app| {
+            #[cfg(desktop)]
+            {
+                let mut updater = tauri_plugin_updater::Builder::new();
+                if let Some(pubkey) = updater_pubkey() {
+                    updater = updater.pubkey(pubkey);
+                } else {
+                    tracing::warn!("{UPDATER_PUBKEY_ENV} is not set; updater signature verification will use the placeholder config key");
+                }
+                app.handle().plugin(updater.build())?;
+            }
+
             let data_dir = app
                 .path()
                 .app_data_dir()
@@ -178,4 +191,11 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![api_base, tray::update_tray_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+fn updater_pubkey() -> Option<String> {
+    std::env::var(UPDATER_PUBKEY_ENV)
+        .ok()
+        .map(|value| value.trim().trim_end_matches('%').to_string())
+        .filter(|value| !value.is_empty())
 }

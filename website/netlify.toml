@@ -45,6 +45,15 @@ NODE_VERSION = "20"
 [context.production.build]
   ignore = "exit 0"
 
+# Tauri updater manifest. Cache for 5 minutes so a fresh release reaches
+# desktop clients within one polling window without hammering the CDN.
+# `must-revalidate` keeps stale manifests from being served after expiry.
+[[headers]]
+for = "/updates/*.json"
+  [headers.values]
+  Cache-Control = "public, max-age=300, must-revalidate"
+  Content-Type = "application/json; charset=utf-8"
+
 # SPA fallback for website routes.
 [[redirects]]
 from = "/*"
