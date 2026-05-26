@@ -299,3 +299,21 @@ date,start_time,end_time,description,project_name,client_name
     assert_eq!(body["format"], "animo");
     assert_eq!(body["validRows"], 1);
 }
+
+#[tokio::test]
+async fn preview_rejects_toggl_summary_with_helpful_error() {
+    let state = build_test_state().await;
+    // Summary report shape: project + description + duration but no
+    // start date. We deliberately don't import these — aggregated
+    // totals carry no per-entry timestamps and would force us to
+    // invent dates. The error should name "Summary report" and point
+    // at the Detailed export so the user knows exactly what to fix.
+    let csv =
+        "\"Project\",\"Description\",\"Duration\",\"Duration %\",\"Amount (USD)\",\"Currency\"\n\
+         \"XMLUI\",\"task\",\"1:30:00\",1.21,\"-\",\"-\"\n";
+    let (status, body) = post_preview(&state, csv, Some("toggl")).await;
+    assert_eq!(status, StatusCode::BAD_REQUEST, "body={body}");
+    let err = body["error"].as_str().unwrap();
+    assert!(err.contains("Summary report"), "got {err}");
+    assert!(err.contains("Detailed"), "got {err}");
+}

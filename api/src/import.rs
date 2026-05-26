@@ -37,6 +37,11 @@ pub struct ImportRow {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SourceFormat {
     Animo,
+    /// Toggl Detailed report. The Summary report is intentionally
+    /// unsupported — aggregated totals carry no per-entry timestamps
+    /// and Animo's calendar grid is meaningless without them. Summary
+    /// uploads are rejected up-front in [`validate_headers_for_format`]
+    /// with a message pointing the user at the Detailed export.
     Toggl,
     Clockify,
     Harvest,
@@ -713,30 +718,37 @@ async fn read_upload(mut multipart: Multipart) -> AppResult<(Vec<u8>, Option<Str
     let mut file_bytes: Option<Vec<u8>> = None;
     let mut source_format: Option<String> = None;
 
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e| AppError::BadRequest(format!("multipart read: {e}")))?
-    {
+    while let Some(field) = multipart.next_field().await.map_err(|_| {
+        AppError::BadRequest("Couldn't read the upload. Try selecting the file again.".into())
+    })? {
         let name = field.name().unwrap_or("").to_string();
         match name.as_str() {
             "file" => {
-                let bytes = field
-                    .bytes()
-                    .await
-                    .map_err(|e| AppError::BadRequest(format!("read upload: {e}")))?;
+                let bytes = field.bytes().await.map_err(|_| {
+                    AppError::BadRequest(
+                        "Couldn't read the file's contents. The upload may \
+                         have been interrupted — try again."
+                            .into(),
+                    )
+                })?;
                 if bytes.len() > MAX_UPLOAD_BYTES {
                     return Err(AppError::BadRequest(format!(
-                        "file exceeds {MAX_UPLOAD_BYTES} bytes"
+                        "File is too large ({:.1} MB). Maximum is {} MB — try \
+                         exporting a shorter date range.",
+                        bytes.len() as f64 / 1_048_576.0,
+                        MAX_UPLOAD_BYTES / 1_048_576,
                     )));
                 }
                 file_bytes = Some(bytes.to_vec());
             }
             "source_format" | "sourceFormat" => {
-                let text = field
-                    .text()
-                    .await
-                    .map_err(|e| AppError::BadRequest(format!("read source_format: {e}")))?;
+                let text = field.text().await.map_err(|_| {
+                    AppError::BadRequest(
+                        "Couldn't read the chosen format. Pick a format again \
+                         and retry."
+                            .into(),
+                    )
+                })?;
                 if !text.trim().is_empty() {
                     source_format = Some(text);
                 }
@@ -749,9 +761,14 @@ async fn read_upload(mut multipart: Multipart) -> AppResult<(Vec<u8>, Option<Str
         }
     }
 
-    let bytes = file_bytes.ok_or_else(|| AppError::BadRequest("missing 'file' field".into()))?;
+    let bytes = file_bytes
+        .ok_or_else(|| AppError::BadRequest("No file was attached to the upload.".into()))?;
     if bytes.is_empty() {
-        return Err(AppError::BadRequest("uploaded file is empty".into()));
+        return Err(AppError::BadRequest(
+            "The selected file is empty — export your time entries first, \
+             then try again."
+                .into(),
+        ));
     }
     Ok((bytes, source_format))
 }
@@ -910,12 +927,106 @@ fn finalize_preview(
     })
 }
 
+/// Validate that the parsed header row contains the columns the chosen
+/// format actually needs, and return a fail-fast `BadRequest` otherwise.
+///
+/// Each branch produces a user-facing message that names the format,
+/// explains what's wrong, and tells the user exactly where to go in the
+/// source tool to get the right export. The goal is that nobody ever
+/// sees a generic "missing required field" message — they either get a
+/// row-level error in the preview table (with line number) or a clear
+/// "this isn't the right file" message here.
+fn validate_headers_for_format(format: SourceFormat, headers: &StringRecord) -> AppResult<()> {
+    let index = HeaderIndex::from_record(headers);
+    match format {
+        SourceFormat::Animo => {
+            require_header(&index, "date", format)?;
+        }
+        SourceFormat::Toggl => {
+            if index.has("project")
+                && index.has("description")
+                && index.has("duration")
+                && !index.has("start date")
+            {
+                return Err(AppError::BadRequest(
+                    "This looks like a Toggl Summary report — it only has \
+                     project + description + duration, no per-entry start \
+                     or end times. Animo can only import the Detailed \
+                     report. In Toggl: Reports → Detailed → Export → CSV."
+                        .into(),
+                ));
+            }
+            require_header(&index, "start date", format)?;
+        }
+        SourceFormat::Clockify => {
+            require_header(&index, "start date", format)?;
+        }
+        SourceFormat::Harvest => {
+            require_header(&index, "date", format)?;
+            require_header(&index, "hours", format)?;
+        }
+    }
+    Ok(())
+}
+
+/// User-facing label for a format, used in error messages.
+fn format_display_name(format: SourceFormat) -> &'static str {
+    match format {
+        SourceFormat::Animo => "Animo",
+        SourceFormat::Toggl => "Toggl Detailed",
+        SourceFormat::Clockify => "Clockify Detailed",
+        SourceFormat::Harvest => "Harvest Time Report",
+    }
+}
+
+/// One-sentence "how to get the right export" hint for each format,
+/// stitched into the structural error messages so the user doesn't have
+/// to go digging through the source tool's UI.
+fn format_export_hint(format: SourceFormat) -> &'static str {
+    match format {
+        SourceFormat::Animo => "an Animo export from Reports → Export → CSV/XLSX",
+        SourceFormat::Toggl => "a Toggl Detailed report from Reports → Detailed → Export → CSV",
+        SourceFormat::Clockify => {
+            "a Clockify Detailed report from Reports → Detailed → Export → CSV"
+        }
+        SourceFormat::Harvest => "a Harvest Time Report from Reports → Time → Export → CSV",
+    }
+}
+
+fn require_header(index: &HeaderIndex, name: &str, format: SourceFormat) -> AppResult<()> {
+    if !index.has(name) {
+        return Err(AppError::BadRequest(format!(
+            "This doesn't look like {hint} — the required '{column}' column is \
+             missing. Either pick a different format from the dropdown above, \
+             or re-export {hint}.",
+            hint = format_export_hint(format),
+            column = name,
+        )));
+    }
+    Ok(())
+}
+
+/// Strip a leading UTF-8 BOM (`EF BB BF`) if present. Many spreadsheet
+/// apps prepend one — Excel and Toggl's CSV exports certainly do —
+/// and the `csv` crate doesn't strip it, so the first header would
+/// end up as `\u{feff}Project` instead of `Project` and break header
+/// lookup via [`HeaderIndex`].
+fn strip_utf8_bom(bytes: Vec<u8>) -> Vec<u8> {
+    const BOM: [u8; 3] = [0xEF, 0xBB, 0xBF];
+    if bytes.len() >= 3 && bytes[..3] == BOM {
+        bytes[3..].to_vec()
+    } else {
+        bytes
+    }
+}
+
 pub async fn preview_csv(
     State(state): State<AppState>,
     user: LocalUser,
     multipart: Multipart,
 ) -> AppResult<Json<PreviewResponse>> {
     let (bytes, source_format_hint) = read_upload(multipart).await?;
+    let bytes = strip_utf8_bom(bytes);
 
     let mut reader = csv::ReaderBuilder::new()
         .has_headers(true)
@@ -924,10 +1035,18 @@ pub async fn preview_csv(
 
     let headers = reader
         .headers()
-        .map_err(|e| AppError::BadRequest(format!("read headers: {e}")))?
+        .map_err(|_| {
+            AppError::BadRequest(
+                "Couldn't read this file as CSV. If it's an Excel workbook, \
+                 save it as .xlsx; if it's a PDF or image, export your time \
+                 entries as CSV first."
+                    .into(),
+            )
+        })?
         .clone();
 
     let format = resolve_format(source_format_hint.as_deref(), &headers)?;
+    validate_headers_for_format(format, &headers)?;
     let parser = parser_for(format, &headers);
 
     // Collect now so the iterator passed to `process_records` is owned —
@@ -940,7 +1059,7 @@ pub async fn preview_csv(
             let display_row = idx + 2;
             (
                 display_row,
-                result.map_err(|e| format!("csv parse error: {e}")),
+                result.map_err(|e| format!("This row couldn't be parsed as CSV: {e}")),
             )
         })
         .collect();
@@ -968,6 +1087,7 @@ pub async fn preview_xlsx(
     let (bytes, source_format_hint) = read_upload(multipart).await?;
     let (headers, data_rows) = read_xlsx_rows(bytes)?;
     let format = resolve_format(source_format_hint.as_deref(), &headers)?;
+    validate_headers_for_format(format, &headers)?;
     let parser = parser_for(format, &headers);
 
     let iter: Vec<(usize, Result<StringRecord, String>)> = data_rows
@@ -997,12 +1117,21 @@ fn read_xlsx_rows(bytes: Vec<u8>) -> AppResult<(StringRecord, Vec<StringRecord>)
     use std::io::Cursor;
 
     let cursor = Cursor::new(bytes);
-    let mut workbook: Xlsx<_> =
-        Xlsx::new(cursor).map_err(|e| AppError::BadRequest(format!("open xlsx: {e}")))?;
+    let mut workbook: Xlsx<_> = Xlsx::new(cursor).map_err(|_| {
+        AppError::BadRequest(
+            "Couldn't open this file as an Excel workbook. If it's a CSV, \
+             change the file's extension to .csv before uploading."
+                .into(),
+        )
+    })?;
 
     let sheet_names = workbook.sheet_names();
     if sheet_names.is_empty() {
-        return Err(AppError::BadRequest("xlsx contains no worksheets".into()));
+        return Err(AppError::BadRequest(
+            "This Excel workbook has no sheets. Make sure the export contains \
+             your time entries."
+                .into(),
+        ));
     }
     let preferred = sheet_names
         .iter()
@@ -1010,14 +1139,18 @@ fn read_xlsx_rows(bytes: Vec<u8>) -> AppResult<(StringRecord, Vec<StringRecord>)
         .cloned()
         .unwrap_or_else(|| sheet_names[0].clone());
 
-    let range = workbook
-        .worksheet_range(&preferred)
-        .map_err(|e| AppError::BadRequest(format!("read sheet '{preferred}': {e}")))?;
+    let range = workbook.worksheet_range(&preferred).map_err(|_| {
+        AppError::BadRequest(format!(
+            "Couldn't read sheet '{preferred}' in this workbook. Try exporting again."
+        ))
+    })?;
 
     let mut rows_iter = range.rows();
-    let header_row = rows_iter
-        .next()
-        .ok_or_else(|| AppError::BadRequest("xlsx sheet is empty".into()))?;
+    let header_row = rows_iter.next().ok_or_else(|| {
+        AppError::BadRequest(format!(
+            "Sheet '{preferred}' has no rows — nothing to import."
+        ))
+    })?;
     let headers = row_to_record(header_row);
     let data_rows: Vec<StringRecord> = rows_iter
         .filter(|row| !row.iter().all(|c| matches!(c, calamine::Data::Empty)))
@@ -1069,7 +1202,12 @@ fn resolve_format(hint: Option<&str>, headers: &StringRecord) -> AppResult<Sourc
         Some(fmt) => Ok(fmt),
         None => detect_format(headers).ok_or_else(|| {
             AppError::BadRequest(
-                "could not detect source format; pass source_format=animo|toggl|clockify|harvest"
+                "Couldn't recognize this file as a supported time-tracker \
+                 export. Animo accepts CSV or XLSX exports from Animo, Toggl \
+                 Detailed, Clockify Detailed, or Harvest. Either pick the \
+                 format manually from the dropdown above, or check that the \
+                 file still has its original column headers (renaming or \
+                 removing columns breaks auto-detect)."
                     .into(),
             )
         }),

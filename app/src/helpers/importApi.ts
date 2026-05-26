@@ -93,6 +93,17 @@ window.animoImportPreview = function animoImportPreview(
     onError("No file selected");
     return;
   }
+  // XMLUI's XS layer can quietly strip DOM-only properties off objects
+  // it round-trips through vars, leaving `file.name` undefined and the
+  // downstream `endsWith` call to crash with a confusing
+  // "undefined is not an object" message. Surface a clearer error here
+  // so the cause is obvious if it ever happens again.
+  if (typeof file.name !== "string" || !file.name) {
+    onError(
+      "Selected file lost its name reference — re-pick the file in the chooser",
+    );
+    return;
+  }
   const fd = new FormData();
   fd.append("file", file);
   if (formatHint && formatHint !== "auto") {

@@ -1,6 +1,7 @@
 <Component name="ImportFlow"
   var.step="{'select'}"
-  var.file="{null}"
+  var.fileName="{''}"
+  var.isXlsx="{false}"
   var.formatHint="{'auto'}"
   var.previewData="{null}"
   var.summaryData="{null}"
@@ -13,17 +14,25 @@
       preview  → totals + entities to create + per-row errors, confirm or cancel
       summary  → counts of what landed in the DB, "Import another"
 
-    `file` is a real DOM File coming back from FileInput's value array.
+    Important: we never store the raw `File` object in a var. XMLUI's XS
+    layer doesn't reliably round-trip DOM `File` instances through `var.*`
+    state — by the time you read it back, the `name` property is gone and
+    `file.name.toLowerCase()` blows up. Instead we keep just the metadata
+    we need (`fileName`, `isXlsx`) and re-read `importFile.value[0]` at
+    the click moment when the actual File reference is required.
+
     `previewData` / `summaryData` come straight from importApi.ts —
     field names already match the backend's camelCase responses.
   -->
 
   <VStack gap="$space-3">
     <Text>
-      Import time entries from CSV or XLSX. Supports Animo exports, Toggl,
-      Clockify, and Harvest. Duplicate rows (same date, time range, and
-      description) are skipped automatically; new clients, projects, and
-      tags are created as needed.
+      Import time entries from CSV or XLSX. Supports Animo exports plus
+      Toggl, Clockify, and Harvest Detailed reports (per-entry
+      timestamps required — Summary reports are not supported).
+      Duplicate rows (same date, time range, and description) are
+      skipped automatically; new clients, projects, and tags are
+      created as needed.
     </Text>
 
     <!-- ───────────────── Step: select ───────────────── -->
@@ -33,12 +42,14 @@
         buttonLabel="Choose file"
         acceptsFileType="{['.csv', '.xlsx']}"
         onDidChange="(files) => {
-          file = files && files[0] ? files[0] : null;
+          const f = files && files[0] ? files[0] : null;
+          fileName = f && f.name ? f.name : '';
+          isXlsx = fileName ? fileName.toLowerCase().endsWith('.xlsx') : false;
           errorMessage = null;
         }"
       />
-      <Text when="{file}" variant="secondary" fontSize="$fontSize-small">
-        Selected: {file.name}
+      <Text when="{fileName}" variant="secondary" fontSize="$fontSize-small">
+        Selected: {fileName}
       </Text>
 
       <HStack gap="$space-2" verticalAlignment="center">
@@ -68,18 +79,24 @@
         <Button
           label="Preview"
           themeColor="primary"
-          enabled="{file !== null}"
+          enabled="{fileName.length > 0}"
           onClick="() => {
+            // Read the real File object out of the input at click time —
+            // never from a cached var (see header comment).
+            const liveFile = importFile.value && importFile.value[0];
+            if (!liveFile || !liveFile.name) {
+              errorMessage = 'No file selected';
+              return;
+            }
             step = 'loading';
             errorMessage = null;
             window.animoImportPreview(
-              file,
+              liveFile,
               formatHint,
               (data) => { previewData = data; step = 'preview'; },
               (msg) => {
                 errorMessage = msg;
                 step = 'select';
-                toast.error(msg);
               }
             );
           }"
@@ -189,6 +206,17 @@
         </Table>
       </VStack>
 
+      <!-- Commit-time error surface. The select step has its own block;
+           this one only renders when the commit call bounced us back to
+           preview with an errorMessage set. -->
+      <Text
+        when="{errorMessage}"
+        color="$color-danger-600"
+        fontSize="$fontSize-small"
+      >
+        {errorMessage}
+      </Text>
+
       <HStack gap="$space-2">
         <Button
           label="Cancel"
@@ -196,6 +224,7 @@
           onClick="() => {
             step = 'select';
             previewData = null;
+            errorMessage = null;
           }"
         />
         <Button
@@ -205,12 +234,11 @@
           onClick="() => {
             step = 'loading';
             errorMessage = null;
-            const isXlsx = file && file.name.toLowerCase().endsWith('.xlsx');
             window.animoImportCommit(
               previewData.sessionId,
               isXlsx,
-              (data) => { summaryData = data; step = 'summary'; toast.success('Import complete'); },
-              (msg) => { errorMessage = msg; step = 'preview'; toast.error(msg); }
+              (data) => { summaryData = data; step = 'summary'; },
+              (msg) => { errorMessage = msg; step = 'preview'; }
             );
           }"
         />
@@ -237,7 +265,8 @@
           variant="outlined"
           onClick="() => {
             step = 'select';
-            file = null;
+            fileName = '';
+            isXlsx = false;
             previewData = null;
             summaryData = null;
             errorMessage = null;
