@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): redesign settings, integrate invisible Turnstile, extract import page (5d1ca2c)
 
 ## [0.2.1] - 2026-05-26
 
