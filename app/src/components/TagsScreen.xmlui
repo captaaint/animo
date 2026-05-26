@@ -102,8 +102,8 @@
           <Image
             src="resource:tags-empty-list"
             alt="No tags yet"
-            width="292px"
-            height="147px"
+            width="220px"
+            height="151px"
             fit="contain"
           />
           <VStack gap="$space-1" horizontalAlignment="center">
@@ -165,8 +165,8 @@
             <Image
               src="resource:tags-empty-list"
               alt="No tags yet"
-              width="265px"
-              height="133px"
+              width="200px"
+              height="138px"
               fit="contain"
             />
             <VStack gap="$space-1" horizontalAlignment="center">

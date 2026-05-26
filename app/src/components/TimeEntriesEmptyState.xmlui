@@ -9,8 +9,8 @@
       <Image
         src="resource:time-entries-empty-list"
         alt="No time entries"
-        width="{$props.imageSize || '200px'}"
-        height="{$props.imageSize || '200px'}"
+        width="{$props.imageWidth || '220px'}"
+        height="{$props.imageHeight || '151px'}"
         fit="contain"
       />
       <VStack gap="$space-1" horizontalAlignment="center">

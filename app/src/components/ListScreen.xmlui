@@ -266,7 +266,8 @@
           subtitle="{searchText ? 'Try another search term or clear the search field.' : 'Add your first time entry to start tracking this week.'}"
           minHeight="260px"
           paddingVertical="$space-5"
-          imageSize="180px"
+          imageWidth="200px"
+          imageHeight="138px"
           titleSize="1.125rem"
           subtitleSize="$fontSize-xs"
         />

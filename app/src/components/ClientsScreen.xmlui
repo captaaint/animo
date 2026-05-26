@@ -125,8 +125,8 @@
           <Image
             src="resource:clients-empty-list"
             alt="No clients yet"
-            width="292px"
-            height="147px"
+            width="220px"
+            height="151px"
             fit="contain"
           />
           <VStack gap="$space-1" horizontalAlignment="center">
@@ -214,8 +214,8 @@
             <Image
               src="resource:clients-empty-list"
               alt="No clients yet"
-              width="265px"
-              height="133px"
+              width="200px"
+              height="138px"
               fit="contain"
             />
             <VStack gap="$space-1" horizontalAlignment="center">

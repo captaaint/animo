@@ -282,7 +282,7 @@ export const TrackerTheme: ThemeDefinition = {
     // should differ per tone.
     light: {
       resources: {
-        "clients-empty-list": "resources/clients-empty-list.svg",
+        "clients-empty-list": "resources/clients-empty-list-light.svg",
         "projects-empty-list": "resources/projects-empty-list-light.svg",
         "tags-empty-list": "resources/tags-empty-list-light.svg",
         "time-entries-empty-list": "resources/time-entries-empty-list-light.svg",
