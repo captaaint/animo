@@ -1,4 +1,4 @@
-import { FEEDBACK_ENDPOINT } from "../config";
+import { FEEDBACK_ENDPOINT, TURNSTILE_SITE_KEY } from "../config";
 import { collectDiagnostics, type Diagnostics } from "./diagnostics";
 
 export type FeedbackCategory = "bug" | "feature" | "question";
@@ -25,31 +25,48 @@ export type FeedbackResult =
   | { ok: true; issue_url?: string }
   | { ok: false; error: string };
 
+type TurnstileRenderOptions = {
+  sitekey: string;
+  size?: "normal" | "compact" | "flexible" | "invisible";
+  appearance?: "always" | "execute" | "interaction-only";
+  execution?: "render" | "execute";
+  callback?: (token: string) => void;
+  "error-callback"?: (errorCode: string) => void;
+  "expired-callback"?: () => void;
+  "timeout-callback"?: () => void;
+};
+
+type TurnstileApi = {
+  render: (
+    container: HTMLElement | string,
+    options: TurnstileRenderOptions,
+  ) => string | undefined;
+  remove: (widgetId: string) => void;
+  reset: (widgetId?: string) => void;
+  execute: (widgetId?: string) => void;
+};
+
 declare global {
   interface Window {
     animoFeedbackClearDraft?: () => void;
-    animoFeedbackCollectDiagnostics?: (
-      onSuccess: (diagnosticsJson: string) => void,
-      onError?: (message: string) => void,
-    ) => void;
-    animoFeedbackIsEnabled?: () => boolean;
     animoFeedbackLoadDraft?: () => FeedbackDraft | null;
     animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
-    animoFeedbackSetEnabled?: (enabled: boolean) => void;
     animoFeedbackSubmit?: (
       draft: FeedbackDraft,
-      turnstileToken: string,
       onSuccess: (result: FeedbackResult) => void,
       onError?: (message: string) => void,
     ) => void;
+    turnstile?: TurnstileApi;
   }
 }
 
 const DRAFT_KEY = "animo_feedback_draft";
-const ENABLED_KEY = "animo_feedback_enabled";
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 8000;
+const TURNSTILE_SCRIPT_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+const TURNSTILE_TOKEN_TIMEOUT_MS = 30_000;
 
 export const EMPTY_FEEDBACK_DRAFT: FeedbackDraft = {
   category: "bug",
@@ -88,24 +105,6 @@ export function clearDraft(): void {
   }
 }
 
-export function isFeedbackEnabled(): boolean {
-  if (!hasStorage()) return true;
-  try {
-    return window.localStorage.getItem(ENABLED_KEY) !== "false";
-  } catch {
-    return true;
-  }
-}
-
-export function setFeedbackEnabled(enabled: boolean): void {
-  if (!hasStorage()) return;
-  try {
-    window.localStorage.setItem(ENABLED_KEY, String(enabled));
-  } catch {
-    // Best effort only. The current UI state still reflects the user's click.
-  }
-}
-
 export async function buildFeedbackPayload(
   draft: FeedbackDraft,
   turnstileToken: string,
@@ -130,19 +129,22 @@ export async function buildFeedbackPayload(
   return payload;
 }
 
-export async function submitFeedback(
-  draft: FeedbackDraft,
-  turnstileToken: string,
-): Promise<FeedbackResult> {
-  if (!turnstileToken.trim()) {
-    return { ok: false, error: "Feedback verification is required." };
-  }
-
-  const payload = await buildFeedbackPayload(draft, turnstileToken.trim());
-
-  if (!payload.title.trim() || !payload.body.trim()) {
+export async function submitFeedback(draft: FeedbackDraft): Promise<FeedbackResult> {
+  const normalized = normalizeDraft(draft);
+  if (!normalized.title.trim() || !normalized.body.trim()) {
     return { ok: false, error: "Title and description are required." };
   }
+
+  let turnstileToken: string;
+  try {
+    turnstileToken = await getTurnstileToken();
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Could not verify the request.";
+    return { ok: false, error: message };
+  }
+
+  const payload = await buildFeedbackPayload(normalized, turnstileToken);
 
   if (byteLength(JSON.stringify(payload)) > MAX_PAYLOAD_BYTES) {
     return { ok: false, error: "Feedback payload is too large." };
@@ -168,6 +170,125 @@ export async function submitFeedback(
   } catch {
     return { ok: false, error: "Network error while sending feedback." };
   }
+}
+
+let turnstileScriptPromise: Promise<TurnstileApi> | null = null;
+
+function loadTurnstileScript(): Promise<TurnstileApi> {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return Promise.reject(new Error("Turnstile is only available in the browser."));
+  }
+  if (window.turnstile) return Promise.resolve(window.turnstile);
+  if (turnstileScriptPromise) return turnstileScriptPromise;
+
+  turnstileScriptPromise = new Promise<TurnstileApi>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src^="${TURNSTILE_SCRIPT_URL.split("?")[0]}"]`,
+    );
+    const onReady = () => {
+      if (window.turnstile) resolve(window.turnstile);
+      else reject(new Error("Turnstile script loaded but global is missing."));
+    };
+    if (existing) {
+      if (window.turnstile) {
+        onReady();
+        return;
+      }
+      existing.addEventListener("load", onReady, { once: true });
+      existing.addEventListener(
+        "error",
+        () => reject(new Error("Failed to load Turnstile script.")),
+        { once: true },
+      );
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SCRIPT_URL;
+    script.async = true;
+    script.defer = true;
+    script.addEventListener("load", onReady, { once: true });
+    script.addEventListener(
+      "error",
+      () => {
+        turnstileScriptPromise = null;
+        reject(new Error("Failed to load Turnstile script."));
+      },
+      { once: true },
+    );
+    document.head.appendChild(script);
+  });
+
+  return turnstileScriptPromise;
+}
+
+async function getTurnstileToken(): Promise<string> {
+  if (!TURNSTILE_SITE_KEY) {
+    throw new Error(
+      "Feedback verification is not configured. Set VITE_TURNSTILE_SITE_KEY at build time.",
+    );
+  }
+
+  const turnstile = await loadTurnstileScript();
+
+  return new Promise<string>((resolve, reject) => {
+    const container = document.createElement("div");
+    container.style.position = "fixed";
+    container.style.left = "-10000px";
+    container.style.top = "-10000px";
+    container.style.width = "1px";
+    container.style.height = "1px";
+    container.style.overflow = "hidden";
+    container.setAttribute("aria-hidden", "true");
+    document.body.appendChild(container);
+
+    let widgetId: string | undefined;
+    let settled = false;
+
+    const cleanup = () => {
+      if (widgetId !== undefined) {
+        try {
+          turnstile.remove(widgetId);
+        } catch {
+          // Widget may already be removed; ignore.
+        }
+      }
+      if (container.parentNode) container.parentNode.removeChild(container);
+    };
+
+    const timeoutId = window.setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error("Verification timed out. Please try again."));
+    }, TURNSTILE_TOKEN_TIMEOUT_MS);
+
+    const settle = (resolution: { ok: true; token: string } | { ok: false; error: string }) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      cleanup();
+      if (resolution.ok) resolve(resolution.token);
+      else reject(new Error(resolution.error));
+    };
+
+    try {
+      widgetId = turnstile.render(container, {
+        sitekey: TURNSTILE_SITE_KEY,
+        size: "invisible",
+        callback: (token: string) => settle({ ok: true, token }),
+        "error-callback": (errorCode: string) =>
+          settle({ ok: false, error: `Verification failed (${errorCode}).` }),
+        "expired-callback": () =>
+          settle({ ok: false, error: "Verification expired. Please try again." }),
+        "timeout-callback": () =>
+          settle({ ok: false, error: "Verification timed out. Please try again." }),
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to render verification.";
+      settle({ ok: false, error: message });
+    }
+  });
 }
 
 function normalizeDraft(draft: Partial<FeedbackDraft>): FeedbackDraft {
@@ -206,20 +327,10 @@ async function parseResponse(response: Response): Promise<{
 
 if (typeof window !== "undefined") {
   window.animoFeedbackClearDraft = clearDraft;
-  window.animoFeedbackIsEnabled = isFeedbackEnabled;
   window.animoFeedbackLoadDraft = loadDraft;
   window.animoFeedbackSaveDraft = saveDraft;
-  window.animoFeedbackSetEnabled = setFeedbackEnabled;
-  window.animoFeedbackCollectDiagnostics = (onSuccess, onError) => {
-    collectDiagnostics()
-      .then((diagnostics) => onSuccess(JSON.stringify(diagnostics, null, 2)))
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : "Failed to collect diagnostics.";
-        onError?.(message);
-      });
-  };
-  window.animoFeedbackSubmit = (draft, turnstileToken, onSuccess, onError) => {
-    submitFeedback(draft, turnstileToken)
+  window.animoFeedbackSubmit = (draft, onSuccess, onError) => {
+    submitFeedback(draft)
       .then(onSuccess)
       .catch((error: unknown) => {
         const message = error instanceof Error ? error.message : "Failed to submit feedback.";

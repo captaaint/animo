@@ -163,6 +163,7 @@
       <NavLink to="/projects" label="Projects" icon="folder" />
       <NavLink to="/clients" label="Clients" icon="users" />
       <NavLink to="/tags" label="Tags" icon="hash" />
+      <NavLink to="/import" label="Import" icon="upload" />
     </NavGroup>
   </NavPanel>
 
@@ -187,6 +188,9 @@
     </Page>
     <Page url="/tags">
       <TagsScreen />
+    </Page>
+    <Page url="/import">
+      <ImportScreen />
     </Page>
     <Page url="/reports">
       <ReportsScreen

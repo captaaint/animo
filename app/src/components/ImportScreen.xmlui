@@ -1,0 +1,22 @@
+<Component name="ImportScreen">
+  <VStack
+    width="*"
+    maxWidth="900px"
+    marginHorizontal="auto"
+    gap="$space-4"
+    padding="$space-4"
+  >
+    <Card padding="$space-4">
+      <VStack gap="$space-3">
+        <HStack verticalAlignment="center" gap="$space-2">
+          <Icon name="upload" size="18px" />
+          <Text variant="secondary" fontSize="$fontSize-small">
+            Data import
+          </Text>
+        </HStack>
+        <ContentSeparator />
+        <ImportFlow />
+      </VStack>
+    </Card>
+  </VStack>
+</Component>

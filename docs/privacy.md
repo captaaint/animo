@@ -42,17 +42,17 @@ content from your tracked work.
 
 - Submitted feedback becomes a public GitHub issue. Anyone with a GitHub
   account can read it.
-- Unsent drafts and your feedback enable/disable preference are stored in
-  the browser's `localStorage`. They never leave your device unless you
-  press **Send feedback**.
-- Spam protection is handled by Cloudflare Turnstile. Turnstile receives
-  the verification token only — none of the feedback content.
+- Unsent drafts are stored in the browser's `localStorage` so you don't
+  lose what you typed. They never leave your device unless you press
+  **Send feedback**.
+- Spam protection is handled by Cloudflare Turnstile. When you press
+  **Send feedback** the app loads Cloudflare's verification script in
+  the background and exchanges a one-time token with Turnstile — no
+  feedback content is sent to Cloudflare and you don't have to solve a
+  CAPTCHA.
 
-### Disabling and deletion
+### Deletion
 
-- Settings → Help & feedback exposes an **Allow sending feedback to
-  getanimo.app** toggle. When off, the Send button is disabled and no
-  feedback can leave the app.
 - To delete a submitted issue or remove personal data, email
   [privacy@getanimo.app](mailto:privacy@getanimo.app) with the issue URL
   or a description of what to remove.
