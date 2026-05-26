@@ -187,13 +187,88 @@ declare global {
       onDone: (result: DownloadResult) => void,
     ) => void;
     animoUpdateRestart?: () => void;
+    animoUpdateAutoCheckEnabled?: () => boolean;
+    animoUpdateSetAutoCheck?: (enabled: boolean) => void;
+    animoUpdateLastChecked?: () => string | null;
+    animoUpdateStartAutoCheck?: () => void;
   }
+}
+
+const AUTO_CHECK_KEY = "animo_auto_check_updates";
+const LAST_CHECKED_KEY = "animo_update_last_checked";
+const INITIAL_DELAY_MS = 3_000;
+const POLL_INTERVAL_MS = 24 * 60 * 60 * 1000;
+
+export function isAutoCheckEnabled(): boolean {
+  if (typeof window === "undefined" || !window.localStorage) return true;
+  try {
+    return window.localStorage.getItem(AUTO_CHECK_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+export function setAutoCheckEnabled(enabled: boolean): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(AUTO_CHECK_KEY, String(enabled));
+  } catch {
+    // best effort — UI still reflects the user's intent in-memory.
+  }
+}
+
+export function lastCheckedAt(): string | null {
+  if (typeof window === "undefined" || !window.localStorage) return null;
+  try {
+    return window.localStorage.getItem(LAST_CHECKED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function recordLastChecked(): void {
+  if (typeof window === "undefined" || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(LAST_CHECKED_KEY, new Date().toISOString());
+  } catch {
+    // ignore — purely diagnostic
+  }
+}
+
+let autoCheckStarted = false;
+
+function dispatchUpdateAvailable(info: UpdateInfo) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new CustomEvent("animo:update-available", { detail: info }));
+}
+
+async function runAutoCheck() {
+  if (!isAutoCheckEnabled()) return;
+  const info = await checkForUpdates();
+  recordLastChecked();
+  if (info.available) {
+    dispatchUpdateAvailable(info);
+  }
+}
+
+export function startAutoCheck(): void {
+  if (autoCheckStarted || !isTauri()) return;
+  autoCheckStarted = true;
+  setTimeout(() => {
+    void runAutoCheck();
+  }, INITIAL_DELAY_MS);
+  setInterval(() => {
+    void runAutoCheck();
+  }, POLL_INTERVAL_MS);
 }
 
 if (typeof window !== "undefined") {
   window.animoUpdateCheck = (onResult, onError) => {
     checkForUpdates()
-      .then(onResult)
+      .then((info) => {
+        recordLastChecked();
+        onResult(info);
+      })
       .catch((error: unknown) => {
         onError?.(errorMessage(error, "Update check failed."));
       });
@@ -210,4 +285,10 @@ if (typeof window !== "undefined") {
       console.warn("restartApp failed:", error);
     });
   };
+  window.animoUpdateAutoCheckEnabled = isAutoCheckEnabled;
+  window.animoUpdateSetAutoCheck = setAutoCheckEnabled;
+  window.animoUpdateLastChecked = lastCheckedAt;
+  window.animoUpdateStartAutoCheck = startAutoCheck;
+  // Kick the auto-check timer once the script loads — only runs in Tauri.
+  startAutoCheck();
 }
