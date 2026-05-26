@@ -102,6 +102,7 @@ pub fn run() {
             }
         }))
         .plugin(hotkey::build_plugin())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             let data_dir = app
                 .path()

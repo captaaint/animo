@@ -438,18 +438,19 @@
         "dependencies": [
           "20"
         ],
-        "status": "pending",
+        "status": "done",
         "subtasks": [],
         "complexity": 4,
         "recommendedSubtasks": 3,
-        "expansionPrompt": "Break down notifications implementation into subtasks: 1) Set up tauri-plugin-notification and implement basic notification display, 2) Implement contextual notifications for start/stop with dynamic content, 3) Handle notification permissions and implement fallback for missing required information (open main window). Include cross-platform testing."
+        "expansionPrompt": "Break down notifications implementation into subtasks: 1) Set up tauri-plugin-notification and implement basic notification display, 2) Implement contextual notifications for start/stop with dynamic content, 3) Handle notification permissions and implement fallback for missing required information (open main window). Include cross-platform testing.",
+        "updatedAt": "2026-05-26T05:01:23.474Z"
       }
     ],
     "metadata": {
       "version": "1.0.0",
-      "lastModified": "2026-05-25T20:52:58.810Z",
+      "lastModified": "2026-05-26T05:01:23.474Z",
       "taskCount": 21,
-      "completedCount": 20,
+      "completedCount": 21,
       "tags": [
         "master"
       ]

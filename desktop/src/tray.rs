@@ -34,6 +34,7 @@ use tauri::{
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     AppHandle, Emitter, Manager, Runtime,
 };
+use tauri_plugin_notification::NotificationExt;
 
 /// Snapshot of the stopwatch as the frontend sees it. Pushed into Rust via
 /// `update_tray_state`; consumed when rebuilding the tray menu.
@@ -235,6 +236,12 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
 
 /// Tauri command: push a new stopwatch snapshot into the tray. Called
 /// frequently (≈1 Hz while running) — keep it allocation-light.
+///
+/// Also fires a native desktop notification when the running flag
+/// transitions (idle→running or running→idle). The user gets the same
+/// confirmation whether they started/stopped from the tray menu, the
+/// hotkey, or the in-window button — the snapshot push is downstream
+/// of all three.
 #[tauri::command]
 pub fn update_tray_state<R: Runtime>(
     app: AppHandle<R>,
@@ -242,6 +249,13 @@ pub fn update_tray_state<R: Runtime>(
     tray: tauri::State<'_, TrayHandle<R>>,
     snapshot: StopwatchSnapshot,
 ) -> Result<(), String> {
+    // Grab a copy of the previous snapshot before overwriting so we can
+    // diff against it and only notify on actual state transitions.
+    let previous = {
+        let current = state.0.lock().map_err(|e| e.to_string())?;
+        current.clone()
+    };
+
     {
         let mut current = state.0.lock().map_err(|e| e.to_string())?;
         *current = snapshot.clone();
@@ -255,7 +269,88 @@ pub fn update_tray_state<R: Runtime>(
             .set_tooltip(Some(&tooltip))
             .map_err(|e| e.to_string())?;
     }
+    drop(guard);
+
+    match diff_for_notification(&previous, &snapshot) {
+        Some(NotifyKind::Started) => notify_started(&app, snapshot.label.as_deref()),
+        Some(NotifyKind::Stopped) => {
+            // Use the *previous* elapsed value — by the time we see the
+            // stop snapshot the frontend has reset it back to 0.
+            notify_stopped(&app, previous.elapsed_seconds, previous.label.as_deref());
+        }
+        None => {}
+    }
     Ok(())
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum NotifyKind {
+    Started,
+    Stopped,
+}
+
+/// Decide whether a snapshot transition should produce a desktop
+/// notification. Pure function so it's unit-testable without spinning
+/// up Tauri.
+///
+/// Rule: notify only when both snapshots represent a "real" user
+/// session (onboarding complete in both) *and* the running flag
+/// actually flipped. Filters out:
+///   - app startup (previous is the default, onboarding=false)
+///   - bootstrap pushes from a webview reload (same effect)
+///   - the onboarding completion itself (the running flag is false in both)
+fn diff_for_notification(prev: &StopwatchSnapshot, next: &StopwatchSnapshot) -> Option<NotifyKind> {
+    if !prev.onboarding_complete || !next.onboarding_complete {
+        return None;
+    }
+    if prev.is_running == next.is_running {
+        return None;
+    }
+    Some(if next.is_running {
+        NotifyKind::Started
+    } else {
+        NotifyKind::Stopped
+    })
+}
+
+/// Fire a "Timer started" notification. Best-effort: a missing
+/// permission or a non-fatal IPC error from the plugin just logs and
+/// moves on — the tray menu and toast UI are the primary feedback
+/// channels, the notification is a bonus.
+fn notify_started<R: Runtime>(app: &AppHandle<R>, label: Option<&str>) {
+    let body = label
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| "Tracking time…".to_string());
+    if let Err(err) = app
+        .notification()
+        .builder()
+        .title("Animo — Timer started")
+        .body(body)
+        .show()
+    {
+        tracing::warn!("notification (started) failed: {err}");
+    }
+}
+
+/// Fire a "Timer stopped" notification with the duration captured at
+/// stop time (from the previous snapshot, before the frontend reset
+/// elapsed_seconds to zero). When the label is set we append it so the
+/// user knows *what* they stopped tracking.
+fn notify_stopped<R: Runtime>(app: &AppHandle<R>, elapsed_seconds: u64, label: Option<&str>) {
+    let duration = format_duration(elapsed_seconds);
+    let body = match label {
+        Some(l) if !l.is_empty() => format!("{l} — {duration}"),
+        _ => duration,
+    };
+    if let Err(err) = app
+        .notification()
+        .builder()
+        .title("Animo — Timer stopped")
+        .body(body)
+        .show()
+    {
+        tracing::warn!("notification (stopped) failed: {err}");
+    }
 }
 
 #[cfg(test)]
@@ -312,5 +407,58 @@ mod tests {
             ..Default::default()
         };
         assert_eq!(status_label(&snap), "Paused — 00:00:10");
+    }
+
+    fn snap(onboarding: bool, running: bool, elapsed: u64) -> StopwatchSnapshot {
+        StopwatchSnapshot {
+            onboarding_complete: onboarding,
+            is_running: running,
+            elapsed_seconds: elapsed,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn diff_notifies_on_idle_to_running() {
+        let prev = snap(true, false, 0);
+        let next = snap(true, true, 0);
+        assert_eq!(
+            diff_for_notification(&prev, &next),
+            Some(NotifyKind::Started)
+        );
+    }
+
+    #[test]
+    fn diff_notifies_on_running_to_idle() {
+        let prev = snap(true, true, 125);
+        let next = snap(true, false, 0);
+        assert_eq!(
+            diff_for_notification(&prev, &next),
+            Some(NotifyKind::Stopped)
+        );
+    }
+
+    #[test]
+    fn diff_skips_when_running_flag_unchanged() {
+        let prev = snap(true, true, 10);
+        let next = snap(true, true, 11); // tick, same running flag
+        assert_eq!(diff_for_notification(&prev, &next), None);
+    }
+
+    #[test]
+    fn diff_skips_during_app_startup() {
+        // Default state (onboarding_complete=false) → first real snapshot
+        // from the frontend. Could be the persisted-running case, but we
+        // don't want to spam a "Timer started" toast on every reload.
+        let prev = StopwatchSnapshot::default();
+        let next = snap(true, true, 0);
+        assert_eq!(diff_for_notification(&prev, &next), None);
+    }
+
+    #[test]
+    fn diff_skips_when_onboarding_pending() {
+        let prev = snap(false, false, 0);
+        let next = snap(true, false, 0);
+        assert_eq!(diff_for_notification(&prev, &next), None);
     }
 }

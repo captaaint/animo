@@ -969,16 +969,6 @@ fn validate_headers_for_format(format: SourceFormat, headers: &StringRecord) -> 
     Ok(())
 }
 
-/// User-facing label for a format, used in error messages.
-fn format_display_name(format: SourceFormat) -> &'static str {
-    match format {
-        SourceFormat::Animo => "Animo",
-        SourceFormat::Toggl => "Toggl Detailed",
-        SourceFormat::Clockify => "Clockify Detailed",
-        SourceFormat::Harvest => "Harvest Time Report",
-    }
-}
-
 /// One-sentence "how to get the right export" hint for each format,
 /// stitched into the structural error messages so the user doesn't have
 /// to go digging through the source tool's UI.
