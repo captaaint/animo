@@ -7,6 +7,9 @@ export const FEEDBACK_ENDPOINT =
 export const UPDATE_MANIFEST_URL =
   import.meta.env.VITE_ANIMO_UPDATES_URL || "https://getanimo.app/updates/latest.json";
 
+export const TURNSTILE_SITE_KEY =
+  import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
+
 const App: StandaloneAppDescription = {
   name: "Animo",
   version: "0.1.0",

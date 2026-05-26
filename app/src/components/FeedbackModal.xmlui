@@ -5,14 +5,13 @@
   var.emailInput="{''}"
   var.diagnosticsOptIn="{false}"
   var.diagnosticsPreview="{''}"
-  var.turnstileToken="{''}"
   var.submitting="{false}"
   var.successIssueUrl="{''}"
   var.errorMessage="{''}"
   var.modalOpen="{false}"
   var.titleError="{!titleInput.trim() ? 'Title is required' : (titleInput.length > 120 ? 'Title must be 120 characters or less' : '')}"
   var.bodyError="{!bodyInput.trim() ? 'Description is required' : (bodyInput.length > 8000 ? 'Description must be 8000 characters or less' : '')}"
-  var.canSubmit="{!submitting && !successIssueUrl && !titleError && !bodyError && !!turnstileToken.trim()}"
+  var.canSubmit="{!submitting && !successIssueUrl && !titleError && !bodyError}"
   method.saveDraft="() => {
     if (!window.animoFeedbackSaveDraft) return;
     window.animoFeedbackSaveDraft({
@@ -24,16 +23,21 @@
     });
   }"
   method.refreshDiagnostics="() => {
-    diagnosticsPreview = '';
-    if (!diagnosticsOptIn) return;
-    if (!window.animoFeedbackCollectDiagnostics) {
-      diagnosticsPreview = '{\n  &quot;error&quot;: &quot;Diagnostics unavailable&quot;\n}';
+    if (!diagnosticsOptIn) {
+      diagnosticsPreview = '';
       return;
     }
-    window.animoFeedbackCollectDiagnostics(
-      (json) => diagnosticsPreview = json,
-      (message) => diagnosticsPreview = JSON.stringify({ error: message }, null, 2)
-    );
+    const diag = {
+      app_version: window.__ANIMO_VERSION__ || 'unknown',
+      platform: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'unknown',
+      os_version: navigator.userAgent || 'unknown',
+      locale: (navigator.languages && navigator.languages[0]) || navigator.language || 'unknown',
+      tauri: !!window.__TAURI_INTERNALS__
+    };
+    if (window.__ANIMO_LOG_TAIL__) {
+      diag.recent_log_tail = window.__ANIMO_LOG_TAIL__;
+    }
+    diagnosticsPreview = JSON.stringify(diag, null, 2);
   }"
   method.open="() => {
     const draft = window.animoFeedbackLoadDraft ? window.animoFeedbackLoadDraft() : null;
@@ -42,7 +46,6 @@
     bodyInput = draft && draft.body ? draft.body : '';
     emailInput = draft && draft.contact_email ? draft.contact_email : '';
     diagnosticsOptIn = !!(draft && draft.diagnostics_opt_in);
-    turnstileToken = '';
     submitting = false;
     successIssueUrl = '';
     errorMessage = '';
@@ -170,14 +173,6 @@
           </VStack>
         </Card>
 
-        <TextBox
-          label="Verification token"
-          required="true"
-          initialValue="{turnstileToken}"
-          onDidChange="(v) => turnstileToken = v || ''"
-          placeholder="Turnstile token"
-        />
-
         <Text
           when="{errorMessage}"
           color="$color-danger-600"
@@ -230,7 +225,6 @@
                 contact_email: emailInput,
                 diagnostics_opt_in: diagnosticsOptIn
               },
-              turnstileToken,
               (result) => {
                 submitting = false;
                 if (result && result.ok) {

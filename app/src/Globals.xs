@@ -3,6 +3,7 @@ function pageTitleFromPath(path) {
   if (to === '/projects') return 'Projects';
   if (to === '/clients') return 'Clients';
   if (to === '/tags') return 'Tags';
+  if (to === '/import') return 'Import';
   if (to === '/reports') return 'Reports';
   if (to === '/list') return 'List';
   if (to === '/settings') return 'Settings';

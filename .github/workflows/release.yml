@@ -208,6 +208,7 @@ jobs:
         run: npx turbo run build-prod --filter=animo-app
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
 
       - name: Install tauri CLI
         if: steps.gate.outputs.skip != 'true'
