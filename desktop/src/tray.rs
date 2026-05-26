@@ -31,7 +31,7 @@ use std::sync::Mutex;
 use serde::{Deserialize, Serialize};
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
-    tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
+    tray::{TrayIcon, TrayIconBuilder},
     AppHandle, Emitter, Manager, Runtime,
 };
 use tauri_plugin_notification::NotificationExt;
@@ -91,25 +91,57 @@ fn format_duration(total_seconds: u64) -> String {
 
 /// Compose the status-line label shown as a disabled menu item. Pure
 /// function so it's unit-testable without spinning up Tauri.
+///
+/// Deliberately *does not* include the elapsed duration — that would
+/// change every second and force `set_menu` to fire on every tick,
+/// which closes any open menu on macOS mid-interaction. The duration
+/// lives in the tooltip ([`tray_tooltip`]) instead, where it can update
+/// freely without disturbing the menu.
 fn status_label(snapshot: &StopwatchSnapshot) -> String {
     if !snapshot.onboarding_complete {
         return "Setup required".to_string();
     }
     if snapshot.is_running {
-        let prefix = snapshot.label.as_deref().unwrap_or("Running");
-        format!("{prefix} — {}", format_duration(snapshot.elapsed_seconds))
+        let label = snapshot.label.as_deref().unwrap_or("Running");
+        format!("Running: {label}")
     } else if snapshot.can_resume {
-        let prefix = snapshot.label.as_deref().unwrap_or("Paused");
-        format!("{prefix} — {}", format_duration(snapshot.elapsed_seconds))
+        match snapshot.label.as_deref() {
+            Some(l) if !l.is_empty() => format!("Paused: {l}"),
+            _ => "Paused".to_string(),
+        }
     } else {
         "Idle".to_string()
     }
 }
 
-/// Compose the tooltip shown when hovering the tray icon. Mirrors the
-/// status line so users can read state without opening the menu.
+/// Compose the tooltip shown when hovering the tray icon. Carries the
+/// live elapsed duration alongside the status label — safe to update
+/// per-second because `set_tooltip` doesn't disturb an open menu.
 fn tray_tooltip(snapshot: &StopwatchSnapshot) -> String {
-    format!("Animo — {}", status_label(snapshot))
+    let base = format!("Animo — {}", status_label(snapshot));
+    if snapshot.is_running || snapshot.can_resume {
+        format!("{base} — {}", format_duration(snapshot.elapsed_seconds))
+    } else {
+        base
+    }
+}
+
+/// Text shown next to the tray icon (macOS menu bar). Renders the
+/// live elapsed duration while the timer is running so the user can
+/// glance up at the menu bar without opening anything; empty string
+/// when idle so the icon alone shows the resting state.
+///
+/// Returns an empty string (rather than `None`) on idle because macOS
+/// treats `set_title(None)` as a no-op — passing `Some("")` is the
+/// only reliable way to actually clear a previously-set title.
+/// `set_title` is safe to call per tick — unlike `set_menu`, it
+/// doesn't close an open menu.
+fn tray_title(snapshot: &StopwatchSnapshot) -> String {
+    if snapshot.is_running {
+        format_duration(snapshot.elapsed_seconds)
+    } else {
+        String::new()
+    }
 }
 
 /// Build a fresh menu reflecting the current snapshot. The menu shape
@@ -205,25 +237,17 @@ pub fn create<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         tauri::Error::Anyhow(anyhow::anyhow!("no default window icon configured"))
     })?;
 
+    // Default behaviour on every platform: left-click drops the menu down,
+    // matching how every other macOS/Windows tray app behaves. Window focus
+    // is handled by the "Show Window" menu item — overriding the click to
+    // also focus would either swallow the menu (what was happening before)
+    // or fire both actions on the same click, which is confusing.
     let tray = TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
         .tooltip(tray_tooltip(&snapshot))
         .menu(&menu)
-        .show_menu_on_left_click(false)
+        .show_menu_on_left_click(true)
         .on_menu_event(|app, event| handle_menu_event(app, event.id.as_ref()))
-        .on_tray_icon_event(|tray, event| {
-            // Left-click brings the main window forward. We intentionally
-            // don't toggle hide/show — users routinely click the tray on
-            // every macOS minimise and expect "show", not "yoyo".
-            if let TrayIconEvent::Click {
-                button: MouseButton::Left,
-                button_state: MouseButtonState::Up,
-                ..
-            } = event
-            {
-                focus_main_window(tray.app_handle());
-            }
-        })
         .build(app)?;
 
     if let Some(state) = app.try_state::<TrayHandle<R>>() {
@@ -260,13 +284,25 @@ pub fn update_tray_state<R: Runtime>(
         let mut current = state.0.lock().map_err(|e| e.to_string())?;
         *current = snapshot.clone();
     }
-    let menu = build_menu(&app, &snapshot).map_err(|e| e.to_string())?;
+
+    // Only rebuild the menu when its *shape* changes. Calling `set_menu`
+    // on every tick (the frontend pushes a snapshot per second while
+    // running) closes any menu the user has open mid-interaction — they
+    // see a flash and lose the click. Tooltip and title can update
+    // freely; neither disturbs open menus.
     let tooltip = tray_tooltip(&snapshot);
+    let title = tray_title(&snapshot);
     let guard = tray.0.lock().map_err(|e| e.to_string())?;
     if let Some(tray_icon) = guard.as_ref() {
-        tray_icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+        if menu_shape_changed(&previous, &snapshot) {
+            let menu = build_menu(&app, &snapshot).map_err(|e| e.to_string())?;
+            tray_icon.set_menu(Some(menu)).map_err(|e| e.to_string())?;
+        }
         tray_icon
             .set_tooltip(Some(&tooltip))
+            .map_err(|e| e.to_string())?;
+        tray_icon
+            .set_title(Some(title.as_str()))
             .map_err(|e| e.to_string())?;
     }
     drop(guard);
@@ -311,6 +347,20 @@ fn diff_for_notification(prev: &StopwatchSnapshot, next: &StopwatchSnapshot) -> 
     } else {
         NotifyKind::Stopped
     })
+}
+
+/// Decide whether the tray menu needs to be rebuilt for the next
+/// snapshot. The menu is rebuilt only when something visible inside
+/// it would change: the running flag, the resume affordance, the
+/// onboarding gate, or the per-session label that flows into the
+/// status item's text. Pure tick updates (elapsed_seconds drifting
+/// upward) intentionally don't trigger a rebuild — see
+/// [`update_tray_state`] for why.
+fn menu_shape_changed(prev: &StopwatchSnapshot, next: &StopwatchSnapshot) -> bool {
+    prev.is_running != next.is_running
+        || prev.can_resume != next.can_resume
+        || prev.onboarding_complete != next.onboarding_complete
+        || prev.label != next.label
 }
 
 /// Fire a "Timer started" notification. Best-effort: a missing
@@ -387,7 +437,9 @@ mod tests {
     }
 
     #[test]
-    fn status_label_running_includes_label_and_duration() {
+    fn status_label_running_uses_label_without_duration() {
+        // Duration intentionally omitted so the menu doesn't need
+        // rebuilding every tick — it lives in the tooltip instead.
         let snap = StopwatchSnapshot {
             onboarding_complete: true,
             is_running: true,
@@ -395,7 +447,18 @@ mod tests {
             label: Some("Animo — task 18".into()),
             ..Default::default()
         };
-        assert_eq!(status_label(&snap), "Animo — task 18 — 00:02:05");
+        assert_eq!(status_label(&snap), "Running: Animo — task 18");
+    }
+
+    #[test]
+    fn status_label_running_falls_back_to_running_when_no_label() {
+        let snap = StopwatchSnapshot {
+            onboarding_complete: true,
+            is_running: true,
+            elapsed_seconds: 30,
+            ..Default::default()
+        };
+        assert_eq!(status_label(&snap), "Running: Running");
     }
 
     #[test]
@@ -406,7 +469,71 @@ mod tests {
             elapsed_seconds: 10,
             ..Default::default()
         };
-        assert_eq!(status_label(&snap), "Paused — 00:00:10");
+        assert_eq!(status_label(&snap), "Paused");
+    }
+
+    #[test]
+    fn status_label_paused_with_label() {
+        let snap = StopwatchSnapshot {
+            onboarding_complete: true,
+            can_resume: true,
+            elapsed_seconds: 10,
+            label: Some("Animo — task 18".into()),
+            ..Default::default()
+        };
+        assert_eq!(status_label(&snap), "Paused: Animo — task 18");
+    }
+
+    #[test]
+    fn tooltip_carries_duration_when_running() {
+        let snap = StopwatchSnapshot {
+            onboarding_complete: true,
+            is_running: true,
+            elapsed_seconds: 125,
+            label: Some("Animo".into()),
+            ..Default::default()
+        };
+        assert_eq!(tray_tooltip(&snap), "Animo — Running: Animo — 00:02:05");
+    }
+
+    #[test]
+    fn tooltip_skips_duration_when_idle() {
+        let snap = StopwatchSnapshot {
+            onboarding_complete: true,
+            ..Default::default()
+        };
+        assert_eq!(tray_tooltip(&snap), "Animo — Idle");
+    }
+
+    #[test]
+    fn tray_title_shows_duration_while_running() {
+        let snap = StopwatchSnapshot {
+            onboarding_complete: true,
+            is_running: true,
+            elapsed_seconds: 3725,
+            ..Default::default()
+        };
+        assert_eq!(tray_title(&snap), "01:02:05");
+    }
+
+    #[test]
+    fn tray_title_empty_when_idle_or_paused() {
+        let idle = StopwatchSnapshot {
+            onboarding_complete: true,
+            ..Default::default()
+        };
+        // Empty string, not None — macOS's set_title(None) is a no-op,
+        // so we must pass Some("") to actually clear a previous title.
+        assert_eq!(tray_title(&idle), "");
+
+        let paused = StopwatchSnapshot {
+            onboarding_complete: true,
+            can_resume: true,
+            elapsed_seconds: 60,
+            ..Default::default()
+        };
+        // Paused: keep the menu bar clean, the icon alone is enough.
+        assert_eq!(tray_title(&paused), "");
     }
 
     fn snap(onboarding: bool, running: bool, elapsed: u64) -> StopwatchSnapshot {
@@ -460,5 +587,46 @@ mod tests {
         let prev = snap(false, false, 0);
         let next = snap(true, false, 0);
         assert_eq!(diff_for_notification(&prev, &next), None);
+    }
+
+    #[test]
+    fn menu_shape_unchanged_on_tick() {
+        // Running → still running, just one second later. Must NOT
+        // trigger a menu rebuild — that's what closes the open menu.
+        let prev = snap(true, true, 10);
+        let next = snap(true, true, 11);
+        assert!(!menu_shape_changed(&prev, &next));
+    }
+
+    #[test]
+    fn menu_shape_changed_on_start() {
+        assert!(menu_shape_changed(
+            &snap(true, false, 0),
+            &snap(true, true, 0)
+        ));
+    }
+
+    #[test]
+    fn menu_shape_changed_on_stop() {
+        assert!(menu_shape_changed(
+            &snap(true, true, 30),
+            &snap(true, false, 0)
+        ));
+    }
+
+    #[test]
+    fn menu_shape_changed_on_label_change() {
+        let prev = StopwatchSnapshot {
+            onboarding_complete: true,
+            is_running: true,
+            elapsed_seconds: 5,
+            label: Some("Animo".into()),
+            ..Default::default()
+        };
+        let next = StopwatchSnapshot {
+            label: Some("Animo — refactor".into()),
+            ..prev.clone()
+        };
+        assert!(menu_shape_changed(&prev, &next));
     }
 }
