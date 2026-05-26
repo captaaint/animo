@@ -7,6 +7,7 @@
   var.projectFilter="{[]}"
   var.tagFilter="{[]}"
   var.sliceBy="{'billable'}"
+  var.exportFormat="{(window.localStorage && window.localStorage.getItem('animo:exportFormat')) || 'pdf'}"
   var.distData="{((fe) => sliceBy === 'project' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const key = p ? String(p.id) : '__none__'; if (!acc[key]) acc[key] = { label: p ? p.name : 'No project', seconds: 0, color: p ? p.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'client' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const c = p ? (clientsDs.value || []).find(cc => cc.id === p.clientId) : null; const key = c ? String(c.id) : '__none__'; if (!acc[key]) acc[key] = { label: c ? c.name : 'No client', seconds: 0, color: c ? c.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'tag' ? fe.reduce((acc, e) => { const tags = tagsForIds(e.tagIds || [], tagsDs.value || []); if (tags.length === 0) { const ex = acc.find(a => a.label === 'No tag'); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: 'No tag', seconds: e.durationSeconds || 0, color: '#C2BDB7' }); } else { tags.forEach(t => { const ex = acc.find(a => a.label === t.name); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: t.name, seconds: e.durationSeconds || 0, color: t.color }); }); } return acc; }, []) : [{ label: 'Billable', seconds: sumBillableSeconds(fe) }, { label: 'Non-billable', seconds: sumDurationSeconds(fe) - sumBillableSeconds(fe) }])(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))}"
 >
   <Viewport id="vp" />
@@ -31,12 +32,6 @@
     url="{apiBase + '/tags'}"
     credentials="include"
   />
-  <DataSource
-    id="meDs"
-    url="{apiBase + '/auth/me'}"
-    credentials="include"
-  />
-
   <ModalDialog
     id="progressModal"
     padding="$space-4"
@@ -180,7 +175,7 @@
         {
           fromDate: fromDate,
           toDate: toDate,
-          user: ((meDs.value || {}).user) || { name: 'User', email: '' },
+          user: { name: $props.userName || 'Local User' },
           totalSeconds: sumDurationSeconds(filtered),
           entries: enriched
         },
@@ -322,14 +317,40 @@
           "
         />
         <SpaceFiller />
-        <Button
-          label="Export PDF"
-          icon="doc"
-          width="fit-content"
-          variant="ghost"
-          testId="header-export-pdf"
-          onClick="window.ttExportReport()"
-        />
+        <HStack gap="$space-2" verticalAlignment="center">
+          <Select
+            id="exportFormatSel"
+            width="140px"
+            initialValue="{exportFormat}"
+            testId="export-format"
+            onDidChange="(v) => {
+              exportFormat = v || 'pdf';
+              if (window.localStorage) window.localStorage.setItem('animo:exportFormat', exportFormat);
+            }"
+          >
+            <Option value="pdf" label="PDF" />
+            <Option value="csv" label="CSV" />
+            <Option value="xlsx" label="Excel (XLSX)" />
+          </Select>
+          <!-- One button, format-aware. PDF keeps its client-side path
+               (xmlui-pdf via window.ttExportReport) so the preview drawer
+               keeps working; CSV/XLSX hit the server and trigger a
+               download via the reportExport.ts helper. -->
+          <Button
+            label="Export"
+            icon="download"
+            width="fit-content"
+            variant="ghost"
+            testId="header-export"
+            onClick="() => {
+              if (exportFormat === 'pdf') {
+                window.ttExportReport();
+                return;
+              }
+              window.animoDownloadReport(exportFormat, fromDate, toDate);
+            }"
+          />
+        </HStack>
       </HStack>
     </Card>
 
@@ -546,11 +567,14 @@
     </Card>
 
     <Card height="*" when-xs="false" when-sm="true">
-      <NoResult
+      <TimeEntriesEmptyState
         when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
-        label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+        title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
           ? 'No entries match your filters'
           : 'No entries in this date range'}"
+        subtitle="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+          ? 'Try adjusting search, project, tag, or date filters.'
+          : 'Choose another date range or add time entries to see them here.'}"
       />
       <VStack
         when-xs="false"
@@ -700,10 +724,19 @@
         />
       </Card>
       <Card when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
-        <NoResult
-          label="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+        <TimeEntriesEmptyState
+          title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
             ? 'No entries match your filters'
             : 'No entries in this date range'}"
+          subtitle="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
+            ? 'Try adjusting search, project, tag, or date filters.'
+            : 'Choose another date range or add time entries to see them here.'}"
+          minHeight="260px"
+          paddingVertical="$space-5"
+          imageWidth="200px"
+          imageHeight="138px"
+          titleSize="1.125rem"
+          subtitleSize="$fontSize-xs"
         />
       </Card>
       <VStack

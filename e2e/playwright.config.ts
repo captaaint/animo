@@ -40,7 +40,10 @@ export default defineConfig({
     {
       command: 'cargo run',
       cwd: path.join(__dirname, '..', 'api'),
-      url: `${API_URL}/auth/me`,
+      // Local-first: no /auth route. /user/bootstrap returns 200 with
+      // { setupComplete: bool } whether a user has been created yet, so it
+      // is a safe readiness probe for the API.
+      url: `${API_URL}/user/bootstrap`,
       reuseExistingServer: !isCI,
       // Cold cargo build can take a few minutes on a fresh checkout.
       timeout: 5 * 60 * 1000,

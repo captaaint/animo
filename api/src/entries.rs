@@ -1,6 +1,6 @@
-use crate::auth::AuthUser;
 use crate::error::{AppError, AppResult};
 use crate::state::AppState;
+use crate::users::LocalUser;
 use axum::extract::{Path, Query, State};
 use axum::Json;
 use chrono::{DateTime, Utc};
@@ -175,7 +175,7 @@ async fn replace_entry_tags(state: &AppState, entry_id: &str, tag_ids: &[String]
 
 pub async fn list(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Query(q): Query<ListQuery>,
 ) -> AppResult<Json<Vec<TimeEntry>>> {
     let from = q.from.as_deref().unwrap_or("0000-01-01");
@@ -211,7 +211,7 @@ pub async fn list(
 
 pub async fn create(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Json(payload): Json<CreateEntryReq>,
 ) -> AppResult<Json<TimeEntry>> {
     if let Some(pid) = &payload.project_id {
@@ -252,7 +252,7 @@ pub async fn create(
 
 pub async fn update(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Path(id): Path<String>,
     Json(payload): Json<UpdateEntryReq>,
 ) -> AppResult<Json<TimeEntry>> {
@@ -323,7 +323,7 @@ pub async fn update(
 
 pub async fn delete(
     State(state): State<AppState>,
-    user: AuthUser,
+    user: LocalUser,
     Path(id): Path<String>,
 ) -> AppResult<Json<serde_json::Value>> {
     let res = sqlx::query("DELETE FROM time_entries WHERE id = ? AND user_id = ?")

@@ -8,6 +8,7 @@
   var.tagSearch="{''}"
 >
   <Stopwatch id="sw"
+    label="{descr}"
     onStop="(p) => {
       if ($props.compact) {
         emitEvent('counterStop', { startTime: p.startTime, endTime: p.endTime, description: descr, projectId: projectId, tagIds: tagIds });

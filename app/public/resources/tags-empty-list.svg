@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220" fill="none">
+  <rect x="40" y="34" width="240" height="152" rx="18" fill="#14181C" fill-opacity="0.74"/>
+  <rect x="41" y="35" width="238" height="150" rx="17" stroke="#3F8F8C" stroke-opacity="0.90" stroke-width="2"/>
+
+  <!-- plus badge intentionally inside the card bounds -->
+  <circle cx="248" cy="62" r="15" fill="#3F8F8C"/>
+  <path d="M248 56V68" stroke="#FAF8F6" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M242 62H254" stroke="#FAF8F6" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- shared header placeholders -->
+  <rect x="68" y="62" width="92" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+  <rect x="168" y="62" width="34" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.72"/>
+  <path d="M76 104L87 93C87.9 92.1 89.1 91.6 90.4 91.6H103C105.2 91.6 107 93.4 107 95.6V107.2C107 108.5 106.5 109.7 105.6 110.6L94 122.2L76 104Z" stroke="#A7D0C9" stroke-opacity="0.88" stroke-width="2.2" stroke-linejoin="round"/>
+  <circle cx="98.5" cy="99.4" r="2.2" fill="#A7D0C9" fill-opacity="0.88"/>
+
+  <rect x="118" y="90" width="84" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.88"/>
+  <rect x="210" y="90" width="18" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.48"/>
+  <rect x="118" y="103" width="112" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+
+  <path d="M76 133L87 122C87.9 121.1 89.1 120.6 90.4 120.6H103C105.2 120.6 107 122.4 107 124.6V136.2C107 137.5 106.5 138.7 105.6 139.6L94 151.2L76 133Z" stroke="#F2A82F" stroke-opacity="0.94" stroke-width="2.2" stroke-linejoin="round"/>
+  <circle cx="98.5" cy="128.4" r="2.2" fill="#F2A82F" fill-opacity="0.94"/>
+
+  <rect x="118" y="119" width="106" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.88"/>
+  <rect x="232" y="119" width="20" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.48"/>
+  <rect x="118" y="132" width="88" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+
+  <path d="M76 162L87 151C87.9 150.1 89.1 149.6 90.4 149.6H103C105.2 149.6 107 151.4 107 153.6V165.2C107 166.5 106.5 167.7 105.6 168.6L94 180.2L76 162Z" stroke="#A7D0C9" stroke-opacity="0.70" stroke-width="2.2" stroke-linejoin="round"/>
+  <circle cx="98.5" cy="157.4" r="2.2" fill="#A7D0C9" fill-opacity="0.70"/>
+
+  <rect x="118" y="148" width="72" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.88"/>
+  <rect x="118" y="161" width="54" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.48"/>
+</svg>

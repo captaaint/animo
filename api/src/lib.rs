@@ -1,12 +1,13 @@
-pub mod auth;
 pub mod clients;
 pub mod config;
 pub mod entries;
 pub mod error;
+pub mod import;
 pub mod projects;
 pub mod reports;
 pub mod state;
 pub mod tags;
+pub mod users;
 
 use axum::{
     http::{header, HeaderValue, Method},
@@ -15,12 +16,13 @@ use axum::{
 };
 use serde_json::{json, Value};
 use sqlx::sqlite::SqlitePoolOptions;
+use std::collections::HashMap;
 use std::net::SocketAddr;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use tower_http::cors::CorsLayer;
 use tower_http::trace::TraceLayer;
 
-pub use crate::config::{Config, CookieSameSite};
+pub use crate::config::Config;
 pub use crate::state::AppState;
 
 /// Builds the SQLx pool, runs embedded migrations, and returns an [`AppState`]
@@ -36,6 +38,7 @@ pub async fn build_state(cfg: Config) -> anyhow::Result<AppState> {
     Ok(AppState {
         db,
         config: Arc::new(cfg),
+        import_sessions: Arc::new(Mutex::new(HashMap::new())),
     })
 }
 
@@ -44,10 +47,14 @@ pub async fn build_state(cfg: Config) -> anyhow::Result<AppState> {
 pub fn build_app(state: AppState) -> Router {
     let cfg = state.config.clone();
     let api = Router::new()
-        .route("/auth/register", post(auth::routes::register))
-        .route("/auth/login", post(auth::routes::login))
-        .route("/auth/logout", post(auth::routes::logout))
-        .route("/auth/me", get(auth::routes::me))
+        .route(
+            "/user/bootstrap",
+            get(users::get_bootstrap_status).post(users::create_first_user),
+        )
+        .route(
+            "/user/me",
+            get(users::get_current_user).patch(users::update_current_user),
+        )
         .route("/clients", get(clients::list).post(clients::create))
         .route(
             "/clients/:id",
@@ -66,7 +73,13 @@ pub fn build_app(state: AppState) -> Router {
         .route("/tags", get(tags::list).post(tags::create))
         .route("/tags/:id", patch(tags::update).delete(tags::delete))
         .route("/reports/summary", get(reports::summary))
-        .route("/reports/export.pdf", get(reports::export_pdf));
+        .route("/reports/export.csv", get(reports::export_csv))
+        .route("/reports/export.xlsx", get(reports::export_xlsx))
+        .route("/reports/export.pdf", get(reports::export_pdf))
+        .route("/import/csv/preview", post(import::preview_csv))
+        .route("/import/csv/commit", post(import::commit_import))
+        .route("/import/xlsx/preview", post(import::preview_xlsx))
+        .route("/import/xlsx/commit", post(import::commit_import));
 
     let mut app = Router::new()
         .route("/health", get(health))

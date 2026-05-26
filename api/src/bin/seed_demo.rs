@@ -9,9 +9,9 @@
 // Then launch the API against that DB:
 //   cd api && DATABASE_URL="sqlite:demo.db?mode=rwc" cargo run
 //
-// Login credentials (printed at the end too):
-//   email:    demo@example.com
-//   password: demo1234
+// Demo profile:
+//   name:     Demo User
+//   username: demo
 //
 // Safe to re-run: only the demo user's rows are wiped before reseeding.
 
@@ -29,16 +29,6 @@ use uuid::Uuid;
 // renders in local time, so subtract 2h from a "wall clock" hour to land at
 // the right local hour. Good enough for a demo.
 const LOCAL_OFFSET_HOURS: i64 = 2;
-
-fn hash_password(password: &str) -> Result<String> {
-    use argon2::password_hash::{rand_core::OsRng, PasswordHasher, SaltString};
-    use argon2::Argon2;
-    let salt = SaltString::generate(&mut OsRng);
-    Argon2::default()
-        .hash_password(password.as_bytes(), &salt)
-        .map(|h| h.to_string())
-        .map_err(|e| anyhow::anyhow!("argon2 hash: {e}"))
-}
 
 fn iso(dt: DateTime<Utc>) -> String {
     dt.format("%Y-%m-%dT%H:%M:%S%.3fZ").to_string()
@@ -61,21 +51,19 @@ async fn main() -> Result<()> {
 
     sqlx::migrate!("./migrations").run(&db).await?;
 
-    // -- demo user (find or create; password always reset to known value) ---
-    let demo_email = "demo@example.com";
-    let demo_password = "demo1234";
+    // -- demo user (find or create) -----------------------------------------
     let demo_name = "Demo User";
-    let password_hash = hash_password(demo_password)?;
+    let demo_username = "demo";
 
-    let existing: Option<(String,)> = sqlx::query_as("SELECT id FROM users WHERE email = ?")
-        .bind(demo_email)
+    let existing: Option<(String,)> = sqlx::query_as("SELECT id FROM users WHERE username = ?")
+        .bind(demo_username)
         .fetch_optional(&db)
         .await?;
     let user_id = match existing {
         Some((id,)) => {
-            sqlx::query("UPDATE users SET password_hash = ?, name = ? WHERE id = ?")
-                .bind(&password_hash)
+            sqlx::query("UPDATE users SET name = ?, username = ? WHERE id = ?")
                 .bind(demo_name)
+                .bind(demo_username)
                 .bind(&id)
                 .execute(&db)
                 .await?;
@@ -83,16 +71,19 @@ async fn main() -> Result<()> {
         }
         None => {
             let id = Uuid::new_v4().to_string();
-            sqlx::query("INSERT INTO users (id, email, password_hash, name) VALUES (?, ?, ?, ?)")
+            sqlx::query("INSERT INTO users (id, name, username) VALUES (?, ?, ?)")
                 .bind(&id)
-                .bind(demo_email)
-                .bind(&password_hash)
                 .bind(demo_name)
+                .bind(demo_username)
                 .execute(&db)
                 .await?;
             id
         }
     };
+    sqlx::query("INSERT OR IGNORE INTO user_preferences (user_id) VALUES (?)")
+        .bind(&user_id)
+        .execute(&db)
+        .await?;
 
     // -- wipe demo user's data only (never touches other users) --------------
     sqlx::query(
@@ -107,7 +98,6 @@ async fn main() -> Result<()> {
         "DELETE FROM tags         WHERE user_id = ?",
         "DELETE FROM projects     WHERE user_id = ?",
         "DELETE FROM clients      WHERE user_id = ?",
-        "DELETE FROM sessions     WHERE user_id = ?",
     ] {
         sqlx::query(sql).bind(&user_id).execute(&db).await?;
     }
@@ -378,7 +368,7 @@ async fn main() -> Result<()> {
     }
 
     println!("seed complete:");
-    println!("  user:     {demo_email} / {demo_password}");
+    println!("  user:     {demo_name} (@{demo_username})");
     println!("  clients:  {}", clients.len());
     println!("  projects: {}", projects.len());
     println!("  tags:     {}", tags.len());

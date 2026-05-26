@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="220" viewBox="0 0 320 220" fill="none">
+  <rect x="40" y="34" width="240" height="152" rx="18" fill="#FFFFFF" fill-opacity="0.96"/>
+  <rect x="41" y="35" width="238" height="150" rx="17" stroke="#3F8F8C" stroke-opacity="0.58" stroke-width="2"/>
+
+  <!-- plus badge intentionally inside the card bounds -->
+  <circle cx="248" cy="62" r="15" fill="#3F8F8C"/>
+  <path d="M248 56V68" stroke="#FAF8F6" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M242 62H254" stroke="#FAF8F6" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- shared header placeholders -->
+  <rect x="68" y="62" width="92" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.28"/>
+  <rect x="168" y="62" width="34" height="7" rx="3.5" fill="#A7D0C9" fill-opacity="0.78"/>
+
+  <path d="M105 90H130L140 100H195C200.523 100 205 104.477 205 110V137C205 142.523 200.523 147 195 147H105C99.477 147 95 142.523 95 137V100C95 94.477 99.477 90 105 90Z" stroke="#3F8F8C" stroke-opacity="0.72" stroke-width="2.4" stroke-linejoin="round"/>
+  <rect x="95" y="158" width="110" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.28"/>
+  <rect x="95" y="170" width="78" height="7" rx="3.5" fill="#3F8F8C" fill-opacity="0.28"/>
+</svg>

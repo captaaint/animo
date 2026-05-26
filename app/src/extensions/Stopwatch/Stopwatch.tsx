@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { pushSnapshot, subscribeTrayEvents } from "../../helpers/tauriTray";
+
 type UpdateStateFn = (
   newState: Record<string, unknown>,
   options?: { initial?: boolean },
@@ -10,6 +12,11 @@ type RegisterApiCb = (
 ) => void;
 
 export type StopwatchProps = {
+  /// Short text included in tray snapshots so the OS menu reads e.g.
+  /// "Running — Tray bridge" instead of just "Running". TimerBar passes
+  /// the description input here; if empty the tray falls back to "Running"
+  /// on its own (see `status_label` in tray.rs).
+  label?: string;
   onStop?: (payload: { startTime: string; endTime: string; elapsedSec: number }) => void;
   onResume?: (payload: { description: string; projectId: string | null }) => void;
   updateState?: UpdateStateFn;
@@ -52,7 +59,7 @@ function writePersisted(p: Persisted | null) {
 }
 
 export function Stopwatch(props: StopwatchProps) {
-  const { onStop, onResume, updateState, registerComponentApi } = props;
+  const { label, onStop, onResume, updateState, registerComponentApi } = props;
 
   const initial = useMemo(() => readPersisted(), []);
 
@@ -165,6 +172,64 @@ export function Stopwatch(props: StopwatchProps) {
     setStartedAt(null);
     setElapsedSec(0);
   }, []);
+
+  // Tauri tray + global hotkey bridge. Subscribed once on mount; the
+  // helpers no-op in non-Tauri contexts so we can keep this effect
+  // unconditional. Action refs are read at call time so the latest
+  // start/stop closures always win, no re-subscribe on every render.
+  const startRef = useRef(start);
+  startRef.current = start;
+  const stopRef = useRef(stop);
+  stopRef.current = stop;
+
+  useEffect(() => {
+    let unsubscribe: (() => void) | null = null;
+    let cancelled = false;
+    void subscribeTrayEvents({
+      onStart: () => {
+        if (!runningRef.current) startRef.current();
+      },
+      onStop: () => {
+        if (runningRef.current) stopRef.current();
+      },
+      // Resume is currently aliased to start — the tray has no notion
+      // of "what to resume" without project/description context, and
+      // the frontend snapshot sets `canResume: false` for now so this
+      // branch is effectively unreachable from the tray menu.
+      onResume: () => {
+        if (!runningRef.current) startRef.current();
+      },
+      onToggle: () => {
+        if (runningRef.current) stopRef.current();
+        else startRef.current();
+      },
+    }).then((u) => {
+      if (cancelled) {
+        u();
+      } else {
+        unsubscribe = u;
+      }
+    });
+    return () => {
+      cancelled = true;
+      unsubscribe?.();
+    };
+  }, []);
+
+  // Push snapshots whenever the visible state changes. The tick effect
+  // updates `elapsedSec` once per second while running, so this fires at
+  // most once a second — well within Tauri IPC budget. `onboardingComplete`
+  // is hardcoded true because the Stopwatch only mounts after
+  // LocalUserGate lets the user through.
+  useEffect(() => {
+    void pushSnapshot({
+      isRunning: running,
+      canResume: false,
+      elapsedSeconds: elapsedSec,
+      label: label && label.trim().length > 0 ? label.trim() : null,
+      onboardingComplete: true,
+    });
+  }, [running, elapsedSec, label]);
 
   useEffect(() => {
     if (!registerComponentApi) return;

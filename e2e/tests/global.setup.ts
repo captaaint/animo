@@ -2,46 +2,53 @@ import { test as setup, expect } from '@playwright/test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { API_URL, STORAGE_STATE } from '../constants';
-import { TEST_USER } from '../test-user';
+import { LOCAL_USER } from '../test-user';
 
-setup('authenticate', async ({ browser }) => {
+// Local-first bootstrap: there is no login or session cookie. We just need to
+// ensure the single local user exists so the app reaches the "ready" state
+// (instead of showing the onboarding screen) on first navigation. POST
+// /api/user/bootstrap creates the user and returns 409 if one already exists,
+// which is fine — we only need *some* user present.
+setup('bootstrap-local-user', async ({ browser }) => {
   fs.mkdirSync(path.dirname(STORAGE_STATE), { recursive: true });
 
   const context = await browser.newContext();
 
-  // Ensure the test user exists. The endpoint returns 409 if already
-  // registered, which is fine for our purposes.
-  const registerRes = await context.request.post(`${API_URL}/auth/register`, {
-    data: {
-      email: TEST_USER.email,
-      password: TEST_USER.password,
-      name: TEST_USER.name,
-    },
+  const bootstrapRes = await context.request.post(`${API_URL}/user/bootstrap`, {
+    data: { name: LOCAL_USER.name, username: LOCAL_USER.username },
     failOnStatusCode: false,
   });
-  if (!registerRes.ok() && registerRes.status() !== 409) {
+  if (!bootstrapRes.ok() && bootstrapRes.status() !== 409) {
     throw new Error(
-      `register failed: ${registerRes.status()} ${await registerRes.text()}`,
+      `bootstrap failed: ${bootstrapRes.status()} ${await bootstrapRes.text()}`,
     );
   }
 
-  // Log in through the UI so the session cookie is set by the browser
-  // (Chromium honours the Secure-over-localhost exception that the API
-  // request context does not).
-  const page = await context.newPage();
-  await page.goto('/login');
-  await page.locator('input#email').fill(TEST_USER.email);
-  await page.locator('input#password').fill(TEST_USER.password);
-  await page.getByRole('button', { name: 'Sign in' }).click();
+  // Sanity check: the GET form must now report setupComplete:true so every
+  // spec can assume the app boots straight into the workspace.
+  const statusRes = await context.request.get(`${API_URL}/user/bootstrap`);
+  if (!statusRes.ok()) {
+    throw new Error(
+      `bootstrap status check failed: ${statusRes.status()} ${await statusRes.text()}`,
+    );
+  }
+  const status = (await statusRes.json()) as { setupComplete: boolean };
+  if (!status.setupComplete) {
+    throw new Error('bootstrap status reports setupComplete=false after POST');
+  }
 
-  await expect(page).toHaveURL(/\/$/, { timeout: 10_000 });
-  await expect(page.getByRole('link', { name: 'Calendar' })).toBeVisible();
-
-  // Wipe leftover test data so screens don't overflow and tables don't grow
+  // Wipe leftover CRUD data so screens don't overflow and tables don't grow
   // past the viewport (which makes role-based cell selectors miss entries
-  // that are rendered below the fold). Delete via fetch from inside the page
-  // so the Secure session cookie is sent correctly. Order matters: entries
-  // first (FK to projects), then projects (FK to clients), then clients.
+  // rendered below the fold). Order matters: time-entries first (FK→projects,
+  // tags), then projects (FK→clients), then clients and tags.
+  const page = await context.newPage();
+  await page.goto('/');
+  // Wait for the workspace to mount before issuing deletes — otherwise the
+  // AppShell may still be loading its data sources.
+  await expect(page.getByRole('link', { name: 'Calendar' })).toBeVisible({
+    timeout: 10_000,
+  });
+
   await page.evaluate(async (apiBase) => {
     const deleteAll = async (
       listUrl: string,
@@ -69,6 +76,10 @@ setup('authenticate', async ({ browser }) => {
     await deleteAll(`${apiBase}/tags`, (id) => `/tags/${id}`);
   }, API_URL);
 
+  // Persist the (mostly empty) storage state so the chromium project can
+  // reuse the same browser-context shape across specs. There are no session
+  // cookies in the local-first model, but localStorage (e.g. tt:theme-pref)
+  // can carry user preferences that some specs want pre-cleared.
   await context.storageState({ path: STORAGE_STATE });
   await context.close();
 });

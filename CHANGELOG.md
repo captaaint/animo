@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(api): add CSV export endpoint and import parser infrastructure (c928dfc)
+- feat(api): add CSV export endpoint and import parser infrastructure (eab3284)
+- feat(desktop): add system tray with stopwatch controls (a03c29d)
+- feat(desktop): add Cmd/Ctrl+Shift+T global hotkey for stopwatch toggle (55d3daa)
+- feat(api): add CSV import preview and commit endpoints (b727d73)
+- feat(app): bridge stopwatch state with Tauri tray and global hotkey (3d67bfc)
+- feat(api): add XLSX import preview and commit endpoints (a491bb2)
+- feat(app): add CSV/XLSX import UI to Settings (2427b24)
+- feat(app): add themed empty project state (adc825e)
+- feat(desktop): native notifications on stopwatch transitions (dbef25f)
+- feat(app): illustrated empty state for time-entry lists (2a9d71a)
+- feat(app): illustrated empty state for time-entry lists (9f24568)
+
+### Fixed
+
+- fix(api): drop needless borrows in XLSX summary writes (f93a503)
 
 ## [0.1.3] - 2026-05-23
 
