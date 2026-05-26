@@ -75,6 +75,10 @@ dev-debug.log
 *.sw?
 # OS specific
 
+# Task Master local state (not tracked — kept out of the public repo).
+.taskmaster/
+.taskmasterconfig
+
 # Task files
 # tasks.json
-# tasks/ 
+# tasks/
