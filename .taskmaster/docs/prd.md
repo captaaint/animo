@@ -1,235 +1,374 @@
-# Replace Authentication With First-Run Local User Onboarding
+# In-App Feedback and Tauri Auto-Update
 
 ## Goal
 
-Animo should become a local-first, single-user application without login, registration, passwords, sessions, or sign-out flows. On first use, the app should show a welcoming onboarding screen where the user can enter their display name and username. Submitting this form creates the local user record that all existing and future app data belongs to.
+Animo should add two user-facing desktop capabilities that improve the feedback loop and long-term retention:
 
-The onboarding screen should include a graphic area. The final illustration will be provided later, so the initial implementation should use a clean placeholder.
+- In-app feedback submission through a structured form that sends bug reports, feature requests, and questions to a developer-owned HTTP endpoint.
+- Desktop auto-update support through Tauri's updater plugin, with signed release artifacts and a custom in-app update UI.
+
+The feedback feature should ship first as version `0.2.0`. The updater infrastructure and UI should follow in later releases, targeting `0.3.0` for the user-facing auto-update experience.
 
 ## Background
 
-The current app has a full authentication flow:
+Animo is a local-first desktop app. Users currently need an external channel to send feedback, and installed desktop builds require manual replacement when a new version is released.
 
-- Backend auth module and routes under `/api/auth/*`
-- `users` table with `email` and `password_hash`
-- `sessions` table and cookie-backed session handling
-- Frontend `AuthGate` extension with login/register/logout state
-- `LoginScreen` and `RegisterScreen`
-- Route guards that redirect unauthenticated users to `/login`
-- Sign-out menu and sign-out confirmation modal
+The website already runs on Netlify at `getanimo.app`, so feedback should be implemented as a Netlify Function under the same origin. The function should create GitHub issues using a server-side token so no secret is exposed to the app.
 
-This is no longer the desired product model. Animo is intended to behave as a single-user local workspace. The user identity should still exist in the database because existing entities already reference `user_id`, and future preferences should be attached to that user.
+Tauri supports auto-updates through signed release artifacts and an update manifest. The app should use that foundation, but display update status through Animo's own UI rather than Tauri's built-in dialog.
+
+Code signing with Apple Developer ID or Windows EV certificates is not part of this PRD. The updater artifact signatures are still required and separate from OS-level code signing.
 
 ## Product Requirements
 
-### 1. Remove Authentication UX
+### 1. Add In-App Feedback UX
 
-Remove the login/register/sign-out experience from the app.
+Add a feedback flow available from Settings.
 
 Requirements:
 
-- The app must not show login or registration screens.
-- The app must not redirect users to `/login`.
-- The app header/nav should not include a sign-out action.
-- The user menu can remain only if it is useful for profile/settings access, but it must not imply account authentication.
-- Existing app pages should be accessible after local onboarding is complete.
+- Add a `Help & feedback` area in Settings with a `Send feedback` action.
+- Show a feedback modal on desktop.
+- Provide a mobile-friendly drawer variant if the app's existing responsive patterns require it.
+- Collect feedback category, title, description, optional contact email, and diagnostics opt-in.
+- Support the categories `bug`, `feature`, and `question`.
+- Require title and description.
+- Limit title to 120 characters.
+- Limit description to 8000 characters.
+- Show clear loading, success, and error states.
+- Preserve unsent draft feedback in `localStorage` so the user does not lose typed content after a timeout, close, or retry.
+- Hide feedback entry points in demo mode when `VITE_ANIMO_DEMO=true`.
 
-Affected frontend areas:
+The diagnostics checkbox must default to off.
 
+When diagnostics are enabled, the form must show the exact diagnostics payload before submission. The user should be able to review literally what will be sent.
+
+### 2. Define Feedback Payload
+
+The client should send a structured JSON payload to the feedback endpoint.
+
+Required payload shape:
+
+```jsonc
+{
+  "category": "bug | feature | question",
+  "title": "string, max 120",
+  "body": "string, max 8000",
+  "contact_email": "optional string",
+  "diagnostics_opt_in": true,
+  "diagnostics": {
+    "app_version": "0.2.0",
+    "platform": "darwin-aarch64",
+    "os_version": "14.4.1",
+    "locale": "hu-HU",
+    "tauri": true,
+    "recent_log_tail": "string"
+  },
+  "turnstile_token": "string"
+}
+```
+
+Requirements:
+
+- Include `diagnostics` only when `diagnostics_opt_in === true`.
+- Mark browser or non-Tauri submissions with `tauri: false`.
+- Include a Turnstile token with every real submission.
+- Keep the request body under 16 KB.
+
+### 3. Implement Feedback Endpoint
+
+Add a Netlify Function at `website/netlify/functions/feedback.ts` exposed as `/api/feedback`.
+
+Requirements:
+
+- Accept only `POST` requests with JSON bodies.
+- Allow CORS only from `https://getanimo.app` and the Tauri app origin.
+- Validate payload shape, required fields, category values, and field lengths.
+- Reject bodies over 16 KB.
+- Verify Cloudflare Turnstile tokens server-side.
+- Rate-limit by IP to 5 submissions per hour.
+- Create a GitHub issue through the GitHub REST API.
+- Apply `feedback` and `from-app` labels to created issues.
+- Prefix issue titles with the category, for example `[bug] Crash on timer start`.
+- Render the issue body as markdown.
+- Put diagnostics in a fenced code block when present.
+- Return `{ "ok": true, "issue_url": "https://github.com/..." }` on success.
+- Return clear non-2xx responses for validation, Turnstile, rate-limit, and upstream GitHub failures.
+
+Secrets such as GitHub tokens and Turnstile secret keys must live only in Netlify environment variables.
+
+### 4. Preserve No-Telemetry Privacy Expectations
+
+The feedback feature must remain explicit and user-initiated.
+
+Requirements:
+
+- Do not add automatic telemetry.
+- Do not send diagnostics unless the user explicitly opts in for that submission.
+- Add a Settings toggle named along the lines of `Allow sending feedback to getanimo.app`.
+- Default the toggle to on, while still requiring explicit form submission.
+- If the toggle is off, hide or disable feedback sending in the app.
+- Add `docs/privacy.md` explaining what the feedback form sends, where it is stored, and how users can request deletion.
+- Update the README so users are directed to in-app feedback and still have an issue-link fallback.
+
+### 5. Add Tauri Updater Configuration
+
+Configure the desktop app for Tauri updater support.
+
+Requirements:
+
+- Add `tauri-plugin-updater = "2"` to `desktop/Cargo.toml`.
+- Register the updater plugin in `desktop/src/lib.rs`.
+- Add an updater plugin block to `desktop/tauri.conf.json`.
+- Use `dialog: false` so Animo controls the update UI.
+- Use `https://getanimo.app/updates/latest.json` as the stable update endpoint.
+- Store the ed25519 public key in Tauri config.
+- Keep the private signing key only in secure local backup and GitHub Actions secrets.
+
+The signing keypair must be generated once with Tauri's signer tooling. The private key must be backed up in two independent offline locations before it is used for production releases.
+
+### 6. Publish Update Manifest
+
+Host the Tauri update manifest at `https://getanimo.app/updates/latest.json`.
+
+Requirements:
+
+- Add a placeholder manifest file under `website/public/updates/latest.json`.
+- Ensure the release workflow overwrites the manifest during release publication.
+- Use a 5-minute cache policy for the manifest.
+- Include version, notes, publication date, platform download URLs, and signatures.
+- Support at least `darwin-aarch64`, `darwin-x86_64`, `linux-x86_64`, and `windows-x86_64` when those release artifacts exist.
+
+Expected manifest shape:
+
+```jsonc
+{
+  "version": "0.3.0",
+  "notes": "See CHANGELOG.md",
+  "pub_date": "2026-06-15T12:00:00Z",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "base64-signature",
+      "url": "https://github.com/captaaint/animo/releases/download/v0.3.0/Animo_0.3.0_aarch64.dmg"
+    }
+  }
+}
+```
+
+### 7. Update Release Workflow
+
+Extend `.github/workflows/release.yml` to produce signed updater artifacts and publish the manifest.
+
+Requirements:
+
+- Sign each Tauri bundle with the Tauri signer.
+- Upload each `.sig` file as a GitHub Release asset.
+- Extend existing artifact-exists checks to include `.sig` files.
+- Add a final manifest publication job that runs only after all platform jobs succeed.
+- Generate `latest.json` using the release asset URLs and signatures.
+- Publish the manifest to the Netlify-hosted website.
+- Use GitHub Actions secrets for `TAURI_SIGNING_PRIVATE_KEY` and `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`.
+
+The first signed release is a baseline release. Existing unsigned installs will still need to update manually to that baseline before future auto-updates can work.
+
+### 8. Add Update Check Helper
+
+Add a frontend helper for update checks.
+
+Requirements:
+
+- Add `app/src/helpers/updater.ts`.
+- Lazy-load Tauri updater APIs so browser and demo mode remain safe.
+- Return a no-op result when Tauri internals are unavailable.
+- Provide a `checkForUpdates()` helper used by startup, Settings, and background polling.
+- Retry failed checks up to 3 times with exponential backoff.
+- Avoid blocking the UI thread.
+- Support an environment override such as `VITE_ANIMO_UPDATES_URL` for local update-manifest testing.
+
+### 9. Add Update UI
+
+Add an Animo-native update banner and Settings update controls.
+
+Requirements:
+
+- Add `app/src/components/UpdateBanner.xmlui`.
+- Mount the banner from `app/src/Main.xmlui`, above the timer bar or equivalent top app content.
+- Check for updates about 3 seconds after app startup.
+- Show the banner only when an update is available.
+- Allow the user to dismiss the banner temporarily.
+- Add a manual `Check for updates` action in Settings.
+- Show current app version in Settings.
+- Show last checked timestamp in Settings.
+- Add an `Automatically check for updates` toggle, default on.
+- Add a `Channel` select with `stable` as the only working channel for now.
+- Run background update checks every 24 hours while the app is open, if automatic checks are enabled.
+
+UI states:
+
+- Up to date in Settings.
+- Update available banner with version difference.
+- Downloading with progress.
+- Ready to install with restart action.
+- Non-blocking error toast with retry action.
+
+### 10. Add Diagnostics Helper
+
+Add a diagnostics helper for feedback.
+
+Requirements:
+
+- Add `app/src/helpers/diagnostics.ts`.
+- Collect app version.
+- Collect platform and OS version where available.
+- Collect locale.
+- Detect whether the app is running in Tauri.
+- Include recent log tail only if available and safe to expose.
+- Make the resulting diagnostics object previewable before feedback submission.
+
+### 11. Update Configuration and Documentation
+
+Add or update configuration and public documentation.
+
+Requirements:
+
+- Add feedback endpoint and update endpoint configuration to `app/src/config.ts` or the existing config pattern.
+- Update `README.md` to mention in-app feedback.
+- Add privacy documentation.
+- Update `CHANGELOG.md` under `[Unreleased]` with feedback and updater entries.
+
+## Affected Files
+
+Expected new files:
+
+- `app/src/components/FeedbackModal.xmlui`
+- `app/src/components/FeedbackDrawer.xmlui`
+- `app/src/components/UpdateBanner.xmlui`
+- `app/src/helpers/feedback.ts`
+- `app/src/helpers/updater.ts`
+- `app/src/helpers/diagnostics.ts`
+- `docs/privacy.md`
+- `website/netlify/functions/feedback.ts`
+- `website/public/updates/latest.json`
+
+Expected modified files:
+
+- `desktop/Cargo.toml`
+- `desktop/src/lib.rs`
+- `desktop/tauri.conf.json`
 - `app/src/Main.xmlui`
-- `app/src/components/LoginScreen.xmlui`
-- `app/src/components/RegisterScreen.xmlui`
-- `app/src/extensions/AuthGate/*`
-- Any XMLUI bindings that depend on `auth.value.kind === 'authenticated'`
+- `app/src/components/SettingsScreen.xmlui`
+- `app/src/config.ts`
+- `README.md`
+- `CHANGELOG.md`
+- `.github/workflows/release.yml`
 
-### 2. Add First-Run Welcome / Onboarding Screen
+Expected untouched areas:
 
-When the app starts and no local user exists, show a first-run onboarding screen.
+- No SQLite schema migration is required.
+- The local Rust API crate should not receive feedback submissions.
+- Existing local app data ownership should not change.
 
-The screen should collect:
+## Rollout Plan
 
-- Display name
-- Username
+### Phase 1: Feedback for 0.2.0
 
-The screen should include:
-
-- A friendly welcome message
-- A placeholder graphic area for a future custom illustration
-- A primary action to create the local user and continue into the app
-- Basic validation for required fields
-
-Placeholder graphic requirements:
-
-- Use a simple visual placeholder for now.
-- Do not block the implementation on final artwork.
-- Make the graphic area easy to replace later with a real asset.
-
-Completion behavior:
-
-- On submit, create the local user record.
-- Persist enough state so the onboarding screen is not shown again on subsequent launches.
-- Navigate to the main app after successful creation.
-
-### 3. Preserve User Ownership Model
-
-The application should keep using `user_id` as the ownership boundary for clients, projects, tags, time entries, reports, and future data.
+Deliver feedback independently before the updater.
 
 Requirements:
 
-- Existing tables that reference `users(id)` should continue to work.
-- API handlers should still resolve a current local user, but without requiring a login session.
-- All list/create/update/delete operations should continue to scope data to the current local user.
-- The implementation should not introduce multi-user behavior.
+- Publish the Netlify Function at `getanimo.app/api/feedback`.
+- Configure GitHub token access for issue creation.
+- Configure Cloudflare Turnstile.
+- Add feedback UI and Settings integration.
+- Add privacy documentation.
+- Run manual end-to-end tests for bug, feature, and question submissions.
+- Verify diagnostics opt-in and opt-out behavior.
 
-### 4. Update User Schema for Local Profile
+### Phase 2: Signing Infrastructure for 0.2.x
 
-The current `users` schema is authentication-oriented:
-
-- `email TEXT NOT NULL UNIQUE`
-- `password_hash TEXT NOT NULL`
-- `name TEXT NOT NULL`
-
-Replace or migrate this toward a local profile model:
-
-- `id`
-- `name`
-- `username`
-- `created_at`
-- Optional profile/preferences fields if the implementation chooses to keep them directly on the user record
+Prepare signed artifacts and manifest publication.
 
 Requirements:
 
-- `username` should be required and unique for the local database.
-- `email` and `password_hash` should no longer be required for the local-first flow.
-- Existing development/demo databases should be migrated safely.
-- The API should expose the local user profile without leaking obsolete auth fields.
+- Generate the Tauri updater signing keypair.
+- Store the private key securely and test restore from backups.
+- Add GitHub Actions secrets.
+- Add updater public key and endpoint to Tauri config.
+- Extend release workflow for signing and manifest publication.
+- Publish a signed baseline release such as `0.2.1`.
 
-### 5. Add Preferences Foundation
+### Phase 3: Auto-Update UI for 0.3.0
 
-User preferences should be attached to the local user so future settings can be added cleanly.
-
-Initial preferences should include:
-
-- Theme preference
-
-The design should allow future preferences such as:
-
-- UI density
-- Default report options
-- Date/time formatting
-- Other app-specific settings
-
-Implementation options:
-
-- Add preference columns to `users`, or
-- Add a `user_preferences` table keyed by `user_id`
-
-The preferred approach should be chosen based on maintainability and migration safety.
-
-### 6. Backend API Changes
-
-Replace auth/session endpoints with local-user bootstrap/profile endpoints.
-
-Desired capabilities:
-
-- Check whether a local user exists.
-- Create the first local user.
-- Fetch the current local user/profile.
-- Update profile/preferences later, especially from Settings.
-
-Possible endpoint shape:
-
-- `GET /api/user/bootstrap` returns whether setup is complete and the current user if present.
-- `POST /api/user/bootstrap` creates the first user from `{ name, username }`.
-- `GET /api/user/me` returns the current local user.
-- `PATCH /api/user/me` updates profile and preferences.
-
-Exact endpoint names can differ if they better match existing project conventions.
-
-Backend requirements:
-
-- Remove or stop exposing `/api/auth/register`, `/api/auth/login`, `/api/auth/logout`, and `/api/auth/me`.
-- Remove session cookie dependency from normal API usage.
-- Replace `AuthUser` extraction with a local current-user resolver.
-- Existing handlers should continue to receive a user identity or otherwise scope queries by the local user.
-- If no user exists, protected data endpoints should return a clear setup-required error or an empty state that the frontend handles intentionally.
-
-### 7. Frontend State Changes
-
-Replace auth state with local setup/profile state.
+Deliver user-facing update checks and installation.
 
 Requirements:
 
-- On app load, check whether the local user exists.
-- If no user exists, show the onboarding screen.
-- If a user exists, load the main app immediately.
-- DataSources should load once setup is complete.
-- The app should keep showing user name/initials where appropriate.
-- Settings should use the local user profile instead of auth user/email.
+- Add updater helper and banner UI.
+- Add Settings update controls.
+- Add startup and 24-hour background checks.
+- Test against a fake or staging `latest.json`.
+- Verify download, signature validation, install, and restart behavior.
 
-Possible implementation:
+## Risks
 
-- Replace `AuthGate` with a simpler `UserGate`, `LocalUserGate`, or similar headless component.
-- The component can expose:
-  - `value.kind`: `bootstrapping`, `needs-setup`, `ready`
-  - `value.user`
-  - `createUser(name, username)`
-  - `updateUser(...)`
-  - `fetch(...)` if a shared API fetch wrapper is still useful
+Critical risks:
 
-### 8. Remove Security Artifacts That No Longer Apply
+- Losing the Tauri private signing key would prevent existing installs from accepting future updater artifacts. Mitigate with two tested offline backups before release.
+- Feedback submission failures could cause users to lose typed content. Mitigate by saving drafts locally and offering retry.
 
-Because the app is local-first and no longer has authentication, remove unused authentication-specific code where safe.
+Medium risks:
 
-Candidates:
+- Feedback endpoint spam or abuse. Mitigate with Turnstile, IP rate limits, payload size limits, and GitHub issue labels.
+- Stale update manifest cache. Mitigate with a short cache policy and release-time publish or purge behavior.
+- Lack of OS-level code signing may still trigger Gatekeeper or SmartScreen warnings. Document this and treat full code signing as a separate epic.
 
-- Password hashing and verification code
-- Session token creation/revocation
-- Session cookie handling
-- Login/register API client methods
-- CSRF/XSRF behavior tied only to cookie sessions
-- Login/register routes and UI
-- Idle timeout sign-out behavior
+Low risks:
 
-Do not remove data ownership by `user_id`.
+- Multiple update channels are not implemented yet. Keep the Settings field, but support only stable initially.
+- Offline users will not see update checks until connectivity returns.
+- Feedback and updater UI copy may need later localization.
 
-### 9. Demo / Seed Data
+## Open Questions
 
-Update demo seeding so it creates a local user profile instead of an email/password account.
-
-Requirements:
-
-- Demo data should still belong to a user.
-- Demo seeding should not print or rely on a demo password.
-- Existing clients, projects, tags, entries, and reports should continue to work in demo mode.
-
-### 10. Testing and Verification
-
-Verify the following flows:
-
-- Fresh database starts on the onboarding screen.
-- Entering display name and username creates the user and opens the main app.
-- Reloading the app after setup opens the main app directly.
-- Clients, projects, tags, time entries, reports, and settings still load and save under the local user.
-- Login/register routes and UI are no longer reachable from normal navigation.
-- Existing demo mode still works.
-- Theme preference is stored under the local user or preferences table.
+- Should feedback issues be created in the public `captaaint/animo` repository or a private `captaaint/animo-feedback` repository?
+- Should phase 1 start with a fine-grained PAT for speed, then move to a GitHub App later?
+- Should the feedback and update UI copy remain English for now, matching the app?
 
 ## Non-Goals
 
-- Multi-user support
-- Password-based authentication
-- Cloud accounts
-- OAuth or external identity providers
-- Final welcome illustration artwork
-- Full settings redesign beyond what is needed for local user/profile/preferences
+- Apple Developer ID, Windows EV, or other OS-level code signing.
+- Beta, pre-release, or multi-channel updater behavior beyond a stored stable channel field.
+- Automatic telemetry, usage analytics, or Sentry-style error reporting.
+- A feedback dashboard or multi-tenant feedback product.
+- Update rollback support.
+- Database schema changes.
 
-## Acceptance Criteria
+## Definition of Done
 
-- A new user with `name` and `username` can be created from the first-run welcome screen.
-- The app no longer requires or presents login/registration.
-- The backend no longer depends on sessions for normal app data endpoints.
-- Existing app data remains scoped to a user record.
-- The user model supports future preferences, starting with theme preference.
-- Placeholder welcome artwork is present and can be swapped later.
-- Existing app workflows continue to work after onboarding.
+Feedback is done when:
+
+- The Netlify Function creates a GitHub issue from a real staging or production request.
+- Requests without a valid Turnstile token fail.
+- The sixth request within an hour from the same IP is rate-limited.
+- Feedback drafts survive closing and reopening the app window.
+- Diagnostics are absent from the payload when opt-in is off.
+- Diagnostics are previewed exactly when opt-in is on.
+- Demo mode hides feedback sending.
+- Privacy documentation is available publicly.
+
+Signing infrastructure is done when:
+
+- A signed baseline release exists with `.sig` files for every published platform artifact.
+- `latest.json` is reachable from `getanimo.app`.
+- The manifest validates against Tauri updater expectations.
+- Private key backups have been restore-tested.
+
+Auto-update UI is done when:
+
+- A mocked newer manifest shows an update banner after startup.
+- Manual Settings checks show up-to-date, update-available, and error states correctly.
+- Download progress is visible.
+- Invalid signatures are rejected by the updater.
+- Restarting after installation runs the new version.
+- Settings shows the updated app version after restart.
+- The 24-hour background poll does not block normal app interaction.

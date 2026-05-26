@@ -1,0 +1,6 @@
+{
+  "version": "99.99.99",
+  "notes": "Local development test manifest. Point VITE_ANIMO_UPDATES_URL at this file to exercise the updater UI without shipping a release.",
+  "pub_date": "2099-12-31T00:00:00Z",
+  "platforms": {}
+}

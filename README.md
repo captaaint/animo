@@ -209,11 +209,23 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the local pre-commit hook
 
 ---
 
-## Wishlist
+## Feedback
 
-Got a feature you'd like to see, or a workflow Animo doesn't fit yet?
-Open an issue and tell me about it:
+The fastest way to send bug reports, feature requests, or questions is
+from inside the desktop app:
+
+1. Open **Settings → Help & feedback**.
+2. Click **Send feedback**, pick a category, and write your message.
+3. Optionally attach diagnostics (off by default — the form shows the
+   exact payload before sending).
+
+Each submission lands as a GitHub issue under
+[`captaaint/animo`](https://github.com/captaaint/animo/issues). Prefer
+the web? Open an issue directly:
 <https://github.com/captaaint/animo/issues/new?template=feature_request.yml>.
+
+See [docs/privacy.md](docs/privacy.md) for what the form sends and how
+to disable it.
 
 ---
 
