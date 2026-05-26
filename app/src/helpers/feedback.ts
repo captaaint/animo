@@ -32,8 +32,10 @@ declare global {
       onSuccess: (diagnosticsJson: string) => void,
       onError?: (message: string) => void,
     ) => void;
+    animoFeedbackIsEnabled?: () => boolean;
     animoFeedbackLoadDraft?: () => FeedbackDraft | null;
     animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
+    animoFeedbackSetEnabled?: (enabled: boolean) => void;
     animoFeedbackSubmit?: (
       draft: FeedbackDraft,
       turnstileToken: string,
@@ -44,6 +46,7 @@ declare global {
 }
 
 const DRAFT_KEY = "animo_feedback_draft";
+const ENABLED_KEY = "animo_feedback_enabled";
 const MAX_PAYLOAD_BYTES = 16 * 1024;
 const MAX_TITLE_LENGTH = 120;
 const MAX_BODY_LENGTH = 8000;
@@ -82,6 +85,24 @@ export function clearDraft(): void {
     window.localStorage.removeItem(DRAFT_KEY);
   } catch {
     // Best effort only; a stale draft is harmless.
+  }
+}
+
+export function isFeedbackEnabled(): boolean {
+  if (!hasStorage()) return true;
+  try {
+    return window.localStorage.getItem(ENABLED_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+export function setFeedbackEnabled(enabled: boolean): void {
+  if (!hasStorage()) return;
+  try {
+    window.localStorage.setItem(ENABLED_KEY, String(enabled));
+  } catch {
+    // Best effort only. The current UI state still reflects the user's click.
   }
 }
 
@@ -185,8 +206,10 @@ async function parseResponse(response: Response): Promise<{
 
 if (typeof window !== "undefined") {
   window.animoFeedbackClearDraft = clearDraft;
+  window.animoFeedbackIsEnabled = isFeedbackEnabled;
   window.animoFeedbackLoadDraft = loadDraft;
   window.animoFeedbackSaveDraft = saveDraft;
+  window.animoFeedbackSetEnabled = setFeedbackEnabled;
   window.animoFeedbackCollectDiagnostics = (onSuccess, onError) => {
     collectDiagnostics()
       .then((diagnostics) => onSuccess(JSON.stringify(diagnostics, null, 2)))

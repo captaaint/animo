@@ -16,6 +16,7 @@ declare module "*.css";
 interface Window {
   __ANIMO_API_BASE__?: string;
   __ANIMO_VERSION__?: string;
+  __ANIMO_DEMO__?: boolean;
 }
 
 interface ImportMetaEnv {

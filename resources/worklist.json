@@ -69,5 +69,16 @@
     ],
     "before": "The updater public key is committed directly in desktop/tauri.conf.json.",
     "after": "The updater public key is read from TAURI_UPDATER_PUBKEY by the desktop plugin builder, while tauri.conf.json keeps only a non-secret placeholder."
+  },
+  {
+    "id": "task-25-settings-feedback-integration",
+    "files": [
+      "app/src/components/SettingsScreen.xmlui",
+      "app/src/helpers/feedback.ts",
+      ".taskmaster/tasks/tasks.json",
+      "resources/worklist.json"
+    ],
+    "before": "Settings has no Help & feedback section, no feedback enable toggle, and no way to open the feedback modal.",
+    "after": "Settings exposes Help & feedback with a persisted enable toggle and Send feedback action that opens FeedbackModal outside demo mode."
   }
 ]

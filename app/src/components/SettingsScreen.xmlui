@@ -2,6 +2,8 @@
   var.nameInput="{$props.userName || ''}"
   var.usernameInput="{$props.username || ''}"
   var.themeInput="{$props.theme || 'system'}"
+  var.feedbackEnabled="{window.animoFeedbackIsEnabled ? window.animoFeedbackIsEnabled() : true}"
+  var.isDemoMode="{window.__ANIMO_DEMO__ === true}"
   var.savingProfile="{false}"
   var.normalizeUsername="{(v) => (v || '').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 30)}"
   var.nameError="{
@@ -152,6 +154,52 @@
         <ImportFlow />
       </VStack>
 
+      <VStack when="{!isDemoMode}" gap="$space-3">
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Help & feedback
+        </Text>
+        <ContentSeparator />
+
+        <HStack
+          verticalAlignment="center"
+          gap="$space-3"
+          paddingVertical="$space-3"
+        >
+          <Icon name="mail" size="18px" />
+          <VStack width="*" gap="$space-1">
+            <Text>Allow sending feedback to getanimo.app</Text>
+            <Text variant="secondary" fontSize="$fontSize-small">
+              Feedback is only sent when you submit the form.
+            </Text>
+          </VStack>
+          <Switch
+            initialValue="{feedbackEnabled}"
+            onDidChange="(v) => {
+              feedbackEnabled = !!v;
+              if (window.animoFeedbackSetEnabled) window.animoFeedbackSetEnabled(feedbackEnabled);
+            }"
+          />
+        </HStack>
+
+        <HStack gap="$space-2" verticalAlignment="center">
+          <Button
+            label="Send feedback"
+            icon="mail"
+            themeColor="primary"
+            enabled="{feedbackEnabled}"
+            onClick="feedbackModal.open()"
+          />
+          <Text
+            when="{!feedbackEnabled}"
+            variant="secondary"
+            fontSize="$fontSize-small"
+          >
+            Enable feedback sending to open the form.
+          </Text>
+        </HStack>
+      </VStack>
+
     </Card>
   </HStack>
+  <FeedbackModal id="feedbackModal" when="{!isDemoMode}" />
 </Component>
