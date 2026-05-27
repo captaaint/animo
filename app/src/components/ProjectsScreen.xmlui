@@ -67,7 +67,7 @@
       />
     </HStack>
 
-    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4" borderRadius="16px">
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
       <Table
         data="{projectsDs.value || []}"
         when="{(projectsDs.value || []).length > 0}"
@@ -137,7 +137,7 @@
         onClick="projectDrawer.open()"
       />
 
-      <Card when="{(projectsDs.value || []).length > 0}" padding="$space-2" width="100%" borderRadius="16px">
+      <Card when="{(projectsDs.value || []).length > 0}" padding="$space-2" width="100%">
         <Items data="{projectsDs.value || []}">
           <VStack gap="0">
             <HStack
@@ -179,7 +179,7 @@
       </Card>
 
       <Card when="{projectsDs.loaded && (projectsDs.value || []).length === 0}"
-        padding="$space-2" width="100%" borderRadius="16px">
+        padding="$space-2" width="100%">
         <Stack
           horizontalAlignment="center"
           verticalAlignment="center"

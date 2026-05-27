@@ -44,7 +44,7 @@
     </property>
 
     <VStack width="100%" gap="$space-3">
-      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack gap="$space-1" width="100%">
           <Text fontWeight="600" color="$color-surface-900">
             {$props.confirmText || 'Delete this entry?'}
@@ -57,7 +57,7 @@
 
       <Card
         when="{entry &amp;&amp; entry.startTime}"
-        padding="$space-2" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        padding="$space-2" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack width="100%" gap="0">
           <HStack width="100%" verticalAlignment="center" gap="$space-3" padding="$space-3">
             <Icon name="doc" color="$color-primary-500" />
@@ -143,7 +143,7 @@
 
       <Card
         when="{entry &amp;&amp; !entry.startTime &amp;&amp; (entry.name || entry.color)}"
-        padding="$space-3" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        padding="$space-3" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <HStack width="100%" verticalAlignment="center" gap="$space-3">
           <Stack
             when="{!!(entry &amp;&amp; entry.color)}"

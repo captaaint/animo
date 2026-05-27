@@ -167,6 +167,7 @@ export const TrackerTheme: ThemeDefinition = {
     "borderRadius-TextArea": "6px",
     "borderRadius-DateInput": "6px",
     "borderRadius-Button": "6px",
+    "borderRadius-Card": "16px",
     "backgroundColor-AutoComplete": "$color-surface-0",
     "backgroundColor-Select": "$color-surface-0",
     "backgroundColor-TextBox": "$color-surface-0",

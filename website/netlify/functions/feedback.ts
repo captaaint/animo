@@ -18,7 +18,6 @@ type FeedbackPayload = {
   category?: unknown;
   title?: unknown;
   body?: unknown;
-  contact_email?: unknown;
   diagnostics_opt_in?: unknown;
   diagnostics?: unknown;
   turnstile_token?: unknown;
@@ -28,7 +27,6 @@ type ValidFeedbackPayload = {
   category: FeedbackCategory;
   title: string;
   body: string;
-  contactEmail?: string;
   diagnosticsOptIn: boolean;
   diagnostics?: unknown;
   turnstileToken?: string;
@@ -146,14 +144,6 @@ function validatePayload(
     return { ok: false, error: "Missing Turnstile token" };
   }
 
-  if (
-    payload.contact_email !== undefined &&
-    payload.contact_email !== null &&
-    (typeof payload.contact_email !== "string" || payload.contact_email.length > 254)
-  ) {
-    return { ok: false, error: "Invalid contact email" };
-  }
-
   const diagnosticsOptIn = payload.diagnostics_opt_in === true;
 
   return {
@@ -162,10 +152,6 @@ function validatePayload(
       category: payload.category,
       title: payload.title.trim(),
       body: payload.body.trim(),
-      contactEmail:
-        typeof payload.contact_email === "string" && payload.contact_email.trim()
-          ? payload.contact_email.trim()
-          : undefined,
       diagnosticsOptIn,
       diagnostics: diagnosticsOptIn ? payload.diagnostics : undefined,
       turnstileToken: isNonEmptyString(payload.turnstile_token)
@@ -275,10 +261,6 @@ async function createGithubIssue(
 
 function issueBody(payload: ValidFeedbackPayload): string {
   const parts = [payload.body];
-
-  if (payload.contactEmail) {
-    parts.push(`**Contact:** ${payload.contactEmail}`);
-  }
 
   if (payload.diagnosticsOptIn && payload.diagnostics !== undefined) {
     parts.push(`**Diagnostics:**\n\n\`\`\`json\n${JSON.stringify(payload.diagnostics, null, 2)}\n\`\`\``);

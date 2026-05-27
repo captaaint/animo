@@ -7,7 +7,6 @@ export type FeedbackDraft = {
   category: FeedbackCategory;
   title: string;
   body: string;
-  contact_email: string;
   diagnostics_opt_in: boolean;
 };
 
@@ -15,7 +14,6 @@ export type FeedbackPayload = {
   category: FeedbackCategory;
   title: string;
   body: string;
-  contact_email?: string;
   diagnostics_opt_in: boolean;
   diagnostics?: Diagnostics;
   turnstile_token?: string;
@@ -52,6 +50,7 @@ declare global {
     animoFeedbackLoadDraft?: () => FeedbackDraft | null;
     animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
     animoFeedbackCollectDiagnostics?: () => Promise<Diagnostics>;
+    animoFeedbackBuildPreview?: (draft: FeedbackDraft) => Promise<string>;
     animoFeedbackSubmit?: (
       draft: FeedbackDraft,
       onSuccess: (result: FeedbackResult) => void,
@@ -73,7 +72,6 @@ export const EMPTY_FEEDBACK_DRAFT: FeedbackDraft = {
   category: "bug",
   title: "",
   body: "",
-  contact_email: "",
   diagnostics_opt_in: false,
 };
 
@@ -122,15 +120,22 @@ export async function buildFeedbackPayload(
     payload.turnstile_token = turnstileToken;
   }
 
-  if (normalized.contact_email.trim()) {
-    payload.contact_email = normalized.contact_email.trim();
-  }
-
   if (normalized.diagnostics_opt_in) {
     payload.diagnostics = await collectDiagnostics();
   }
 
   return payload;
+}
+
+export async function buildFeedbackPreview(draft: FeedbackDraft): Promise<string> {
+  const payload = await buildFeedbackPayload(
+    {
+      ...draft,
+      diagnostics_opt_in: true,
+    },
+    undefined,
+  );
+  return JSON.stringify(payload.diagnostics || {}, null, 2);
 }
 
 export async function submitFeedback(draft: FeedbackDraft): Promise<FeedbackResult> {
@@ -302,7 +307,6 @@ function normalizeDraft(draft: Partial<FeedbackDraft>): FeedbackDraft {
     category: isFeedbackCategory(draft.category) ? draft.category : EMPTY_FEEDBACK_DRAFT.category,
     title: typeof draft.title === "string" ? draft.title : "",
     body: typeof draft.body === "string" ? draft.body : "",
-    contact_email: typeof draft.contact_email === "string" ? draft.contact_email : "",
     diagnostics_opt_in: draft.diagnostics_opt_in === true,
   };
 }
@@ -343,6 +347,7 @@ async function parseResponse(response: Response): Promise<{
 }
 
 if (typeof window !== "undefined") {
+  window.animoFeedbackBuildPreview = buildFeedbackPreview;
   window.animoFeedbackClearDraft = clearDraft;
   window.animoFeedbackCollectDiagnostics = collectDiagnostics;
   window.animoFeedbackLoadDraft = loadDraft;

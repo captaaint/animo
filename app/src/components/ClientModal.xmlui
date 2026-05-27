@@ -52,7 +52,7 @@
     borderRadius="16px">
     <VStack gap="$space-4" width="100%">
 
-      <Card padding="$space-4" borderRadius="12px">
+      <Card padding="$space-4">
         <VStack gap="$space-2" width="100%">
           <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
           <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your client</Text>
@@ -64,14 +64,14 @@
         </VStack>
       </Card>
 
-      <Card padding="$space-4" borderRadius="12px">
+      <Card padding="$space-4">
         <VStack gap="$space-3" width="100%">
           <VStack gap="$space-1" width="100%">
             <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Color</Text>
             <Text variant="secondary" fontSize="$fontSize-small">Choose a color to identify your client</Text>
           </VStack>
 
-          <Card padding="$space-3" borderRadius="8px"
+          <Card padding="$space-3"
             backgroundColor="$color-surface-50"
             border="1px solid $color-surface-200">
             <HStack verticalAlignment="center" gap="$space-3" width="100%">
