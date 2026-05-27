@@ -360,8 +360,9 @@
             <VStack width="*" gap="$space-1">
               <Text>Report a bug or share an idea</Text>
               <Text variant="secondary" fontSize="$fontSize-small">
-                Feedback is only sent when you submit the form. We use Cloudflare
-                Turnstile in the background to keep spam out — no CAPTCHA to solve.
+                {isTauri
+                  ? 'Feedback is only sent when you submit the form. Desktop submissions use the local app origin.'
+                  : 'Feedback is only sent when you submit the form. We use Cloudflare Turnstile in the background to keep spam out — no CAPTCHA to solve.'}
               </Text>
             </VStack>
             <Button

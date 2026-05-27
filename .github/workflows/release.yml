@@ -124,6 +124,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          HAS_UPDATER_SIGNING: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && 'true' || 'false' }}
         run: |
           version="${{ needs.verify.outputs.version }}"
           case "${{ matrix.label }}" in
@@ -132,6 +133,14 @@ jobs:
             macos-intel)   expected="Animo_${version}_x64.dmg" ;;
             windows-amd64) expected="Animo_${version}_x64.msi" ;;
           esac
+          if [ "$HAS_UPDATER_SIGNING" = "true" ]; then
+            case "${{ matrix.label }}" in
+              linux-amd64)   expected="$expected Animo_${version}_amd64.AppImage.tar.gz Animo_${version}_amd64.AppImage.tar.gz.sig" ;;
+              macos-arm64)   expected="$expected Animo_${version}_aarch64.app.tar.gz Animo_${version}_aarch64.app.tar.gz.sig" ;;
+              macos-intel)   expected="$expected Animo_${version}_x64.app.tar.gz Animo_${version}_x64.app.tar.gz.sig" ;;
+              windows-amd64) expected="$expected Animo_${version}_x64.msi.zip Animo_${version}_x64.msi.zip.sig" ;;
+            esac
+          fi
           existing=$(gh release view "$TAG" --repo "${{ github.repository }}" --json assets --jq '.assets[].name' 2>/dev/null || true)
           skip=true
           for f in $expected; do

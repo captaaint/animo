@@ -1,6 +1,6 @@
 {
-  "version": "0.2.2",
-  "notes": "Initial placeholder. The release workflow rewrites this file with the actual artifacts and signatures when a new release publishes.",
-  "pub_date": "2026-05-26T00:00:00Z",
+  "version": "0.2.4",
+  "notes": "No signed updater artifacts are published in this placeholder manifest. The release workflow rewrites this file with actual platform packages and signatures.",
+  "pub_date": "2026-05-27T00:00:00Z",
   "platforms": {}
 }

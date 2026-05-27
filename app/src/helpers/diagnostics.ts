@@ -28,6 +28,7 @@ export type Diagnostics = {
   locale: string;
   tauri: boolean;
   recent_log_tail?: string;
+  diagnostics_error?: string;
 };
 
 const MAX_LOG_TAIL_BYTES = 1024;
@@ -37,17 +38,21 @@ export function isTauriRuntime(): boolean {
 }
 
 export async function collectDiagnostics(): Promise<Diagnostics> {
-  const tauri = isTauriRuntime();
-  const [appVersion, logTail] = await Promise.all([resolveAppVersion(tauri), resolveLogTail()]);
+  try {
+    const tauri = isTauriRuntime();
+    const [appVersion, logTail] = await Promise.all([resolveAppVersion(tauri), resolveLogTail()]);
 
-  return stripEmpty({
-    app_version: appVersion,
-    platform: resolvePlatform(),
-    os_version: resolveOsVersion(),
-    locale: resolveLocale(),
-    tauri,
-    recent_log_tail: logTail,
-  });
+    return stripEmpty({
+      app_version: appVersion,
+      platform: resolvePlatform(),
+      os_version: resolveOsVersion(),
+      locale: resolveLocale(),
+      tauri,
+      recent_log_tail: logTail,
+    });
+  } catch (error) {
+    return fallbackDiagnostics(error);
+  }
 }
 
 async function resolveAppVersion(tauri: boolean): Promise<string> {
@@ -92,6 +97,22 @@ async function resolveLogTail(): Promise<string | undefined> {
 
 function normalize(value: unknown): string {
   return typeof value === "string" && value.trim() ? value.trim() : "unknown";
+}
+
+function fallbackDiagnostics(error: unknown): Diagnostics {
+  const message = error instanceof Error && error.message ? error.message : "unknown";
+  return {
+    app_version: normalize(
+      import.meta.env.VITE_ANIMO_VERSION ||
+        import.meta.env.VITE_APP_VERSION ||
+        (typeof window !== "undefined" ? window.__ANIMO_VERSION__ : undefined),
+    ),
+    platform: resolvePlatform(),
+    os_version: resolveOsVersion(),
+    locale: resolveLocale(),
+    tauri: isTauriRuntime(),
+    diagnostics_error: message.slice(0, 240),
+  };
 }
 
 function truncateUtf8(value: string, maxBytes: number): string {
