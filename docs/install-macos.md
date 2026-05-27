@@ -3,6 +3,9 @@
 Animo is a single-user, local-first time tracker. Your work data stays on
 your machine; the app has no telemetry or hosted account service.
 
+This guide covers the current macOS desktop app. Mobile apps and an
+installable on-premise web app are planned separately.
+
 ## System requirements
 
 - macOS 11 (Big Sur) or newer

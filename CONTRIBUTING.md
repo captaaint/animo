@@ -7,6 +7,8 @@ conventions so issues, discussions, and pull requests stay easy to review.
 
 - **Repo visibility:** public
 - **Stability:** alpha; breaking changes can happen on any release
+- **Product focus:** desktop app first; mobile apps and on-premise web app
+  packaging are planned
 - **Issue tracking:** GitHub Issues
 - **Discussion:** open an issue with the `discussion` label
 

@@ -78,6 +78,7 @@ dev-debug.log
 # Task Master local state (not tracked — kept out of the public repo).
 .taskmaster/
 .taskmasterconfig
+resources/worklist.json
 
 # Task files
 # tasks.json

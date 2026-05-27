@@ -53,7 +53,7 @@
             </VStack>
 
             <Text fontSize="17px" lineHeight="1.8" color="$color-muted" maxWidth="640px" textAlign="center" ellipses="false">
-              Animo is a self-hosted, single-user time tracker. No cloud account, no telemetry, and your work data stays on your own machine.
+              Animo is a desktop-first, single-user time tracker. No cloud account, no telemetry, and your work data stays on your own machine.
             </Text>
 
             <Image
@@ -93,6 +93,10 @@
               <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
                 <Icon name="filetext" size="14px" color="$color-accent" />
                 <Text color="$color-text" fontSize="13px" ellipses="false">PDF export</Text>
+              </HStack>
+              <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
+                <Icon name="app" size="14px" color="$color-accent" />
+                <Text color="$color-text" fontSize="13px" ellipses="false">Mobile planned</Text>
               </HStack>
             </CenterRow>
 
@@ -194,7 +198,7 @@
                 <Icon name="link" size="34px" color="$color-accent-soft" />
                 <VStack gap="$space-1">
                   <Text color="$color-text" fontWeight="700">Tauri</Text>
-                  <Text color="$color-muted" fontSize="13px" lineHeight="1.55" ellipses="false">Lightweight desktop shell. Small, secure, cross-platform.</Text>
+                  <Text color="$color-muted" fontSize="13px" lineHeight="1.55" ellipses="false">Lightweight desktop shell today, with mobile and on-prem web app paths planned.</Text>
                 </VStack>
               </HStack>
             </CenterRow>
@@ -277,7 +281,7 @@
         <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" horizontalAlignment="center">
           <VStack paddingTop="48px" paddingBottom="160px" horizontalAlignment="center" gap="$space-4">
             <Text color="$color-text" fontSize="28px" fontWeight="700" textAlign="center" ellipses="false">Ready to take control of your time?</Text>
-            <Text color="$color-muted" fontSize="16px" textAlign="center" ellipses="false">Download Animo and start tracking on your terms.</Text>
+            <Text color="$color-muted" fontSize="16px" textAlign="center" ellipses="false">Download the desktop app today; mobile and on-prem web app packaging are on the roadmap.</Text>
             <Button
               label="Download for Windows, macOS, Linux"
               icon="download"
@@ -301,7 +305,7 @@
           >
             <VStack gap="$space-2" horizontalAlignment="start">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
@@ -325,7 +329,7 @@
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
           </VStack>
         </Stack>
@@ -374,7 +378,7 @@
               Download Animo
             </Text>
             <Text fontSize="16px" lineHeight="1.7" color="$color-muted" maxWidth="560px" textAlign="center" ellipses="false">
-              Pick the build for your operating system. Animo is self-hosted — your data never leaves your machine.
+              Pick the desktop build for your operating system. Animo is local-first — your work data stays on your machine.
             </Text>
           </VStack>
 
@@ -394,7 +398,7 @@
           >
             <VStack gap="$space-2" horizontalAlignment="start">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
@@ -418,7 +422,7 @@
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
           </VStack>
         </Stack>

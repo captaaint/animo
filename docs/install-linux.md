@@ -3,6 +3,9 @@
 Animo is a single-user, local-first time tracker. Your work data stays on
 your machine; the app has no telemetry or hosted account service.
 
+This guide covers the current Linux desktop app. Mobile apps and an
+installable on-premise web app are planned separately.
+
 ## System requirements
 
 - A modern x86_64 distro (tested on Ubuntu 22.04 / 24.04, Debian 12,

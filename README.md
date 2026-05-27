@@ -1,6 +1,7 @@
 # Animo
 
 > A self-hosted, single-user time tracker.
+> Desktop-first today, with planned mobile apps and on-premise web app deployment.
 > XMLUI frontend, Rust + axum backend, SQLite storage, Tauri desktop shell.
 > Your data stays on your machine — no cloud, no telemetry, no accounts to manage.
 
@@ -12,6 +13,11 @@ Track work against projects and clients, either by typing start/end times
 or by running the live header stopwatch. View entries on a weekly calendar
 grid or as a list grouped by day, slice them with project / client / tag /
 date-range filters, and export a styled PDF report.
+
+The current public release focuses on the Tauri desktop app for macOS,
+Windows, and Linux. The codebase is also structured around the same XMLUI
+app and Rust API that will support future mobile apps and an installable
+on-premise web app.
 
 → **Live demo:** <https://getanimo.app>
 → **Releases:** <https://github.com/captaaint/animo/releases>
@@ -90,6 +96,10 @@ npm run web          # just the XMLUI dev server
 npm run seed:demo    # populate demo.db with the "Demo User" (@demo) profile
 npm run dev:demo     # dev mode against demo.db
 ```
+
+For now, this browser mode is the development path for the future
+on-premise web app. The public installer flow still targets desktop
+bundles.
 
 ### Tauri desktop
 
