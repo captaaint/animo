@@ -49,7 +49,8 @@
         "!dist-ssg/**"
       ],
       "dependsOn": ["^build:extension"],
-      "outputs": ["dist-ssg/**"]
+      "outputs": ["dist-ssg/**"],
+      "passThroughEnv": ["GITHUB_TOKEN", "GH_TOKEN", "VERSION", "REPO"]
     },
     "check": {
       "inputs": ["$TURBO_DEFAULT$", "!**/*.spec.ts", "!**/*.test.ts", "!dist/**", "!dist-ssg/**"],

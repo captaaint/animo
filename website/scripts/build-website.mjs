@@ -39,6 +39,13 @@ function run(command, args, options = {}) {
 // still succeeds.
 run("node", ["scripts/sync-downloads.mjs"], { cwd: websiteDir });
 
+// Regenerate the Tauri updater manifest (public/updates/latest.json) from
+// the release's signed bundles. Running it here — in every website build,
+// not just the release workflow — keeps the manifest correct no matter
+// which build wins the production deploy, so the committed placeholder can
+// never strand installed apps on an old version. No-ops without a token.
+run("node", ["scripts/sync-update-manifest.mjs"], { cwd: websiteDir });
+
 // Build the public site with XMLUI's static-site generator. The CSS-stub
 // loader lets Node import the externalized xmlui library during SSR
 // without choking on its `.css` import and un-substituted
