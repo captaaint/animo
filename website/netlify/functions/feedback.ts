@@ -31,7 +31,7 @@ type ValidFeedbackPayload = {
   contactEmail?: string;
   diagnosticsOptIn: boolean;
   diagnostics?: unknown;
-  turnstileToken: string;
+  turnstileToken?: string;
 };
 
 const ALLOWED_ORIGINS = new Set([
@@ -68,7 +68,8 @@ export async function handler(event: NetlifyEvent): Promise<NetlifyResponse> {
     return json(400, { error: "Invalid JSON" }, headers);
   }
 
-  const payload = validatePayload(parsed.value);
+  const desktopOrigin = isDesktopOrigin(event.headers);
+  const payload = validatePayload(parsed.value, { allowMissingTurnstile: desktopOrigin });
   if (!payload.ok) {
     return json(400, { error: payload.error }, headers);
   }
@@ -78,9 +79,11 @@ export async function handler(event: NetlifyEvent): Promise<NetlifyResponse> {
     return json(429, { error: "Rate limit exceeded" }, headers);
   }
 
-  const turnstileResult = await verifyTurnstile(payload.value.turnstileToken, ip);
-  if (!turnstileResult.ok) {
-    return json(turnstileResult.statusCode, { error: turnstileResult.error }, headers);
+  if (payload.value.turnstileToken) {
+    const turnstileResult = await verifyTurnstile(payload.value.turnstileToken, ip);
+    if (!turnstileResult.ok) {
+      return json(turnstileResult.statusCode, { error: turnstileResult.error }, headers);
+    }
   }
 
   const issueResult = await createGithubIssue(payload.value);
@@ -125,6 +128,7 @@ function parseJson(body: string): { ok: true; value: FeedbackPayload } | { ok: f
 
 function validatePayload(
   payload: FeedbackPayload,
+  options: { allowMissingTurnstile: boolean },
 ): { ok: true; value: ValidFeedbackPayload } | { ok: false; error: string } {
   if (!isCategory(payload.category)) {
     return { ok: false, error: "Invalid category" };
@@ -138,7 +142,7 @@ function validatePayload(
     return { ok: false, error: "Invalid body" };
   }
 
-  if (!isNonEmptyString(payload.turnstile_token)) {
+  if (!isNonEmptyString(payload.turnstile_token) && !options.allowMissingTurnstile) {
     return { ok: false, error: "Missing Turnstile token" };
   }
 
@@ -164,7 +168,9 @@ function validatePayload(
           : undefined,
       diagnosticsOptIn,
       diagnostics: diagnosticsOptIn ? payload.diagnostics : undefined,
-      turnstileToken: payload.turnstile_token,
+      turnstileToken: isNonEmptyString(payload.turnstile_token)
+        ? payload.turnstile_token
+        : undefined,
     },
   };
 }
@@ -287,6 +293,15 @@ function clientIp(headers: HeaderMap): string {
     header(headers, "client-ip") ||
     header(headers, "x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown"
+  );
+}
+
+function isDesktopOrigin(headers: HeaderMap): boolean {
+  const origin = header(headers, "origin");
+  return (
+    origin === "tauri://localhost" ||
+    origin === "http://tauri.localhost" ||
+    origin === "https://tauri.localhost"
   );
 }
 

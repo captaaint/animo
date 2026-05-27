@@ -18,7 +18,7 @@ export type FeedbackPayload = {
   contact_email?: string;
   diagnostics_opt_in: boolean;
   diagnostics?: Diagnostics;
-  turnstile_token: string;
+  turnstile_token?: string;
 };
 
 export type FeedbackResult =
@@ -108,7 +108,7 @@ export function clearDraft(): void {
 
 export async function buildFeedbackPayload(
   draft: FeedbackDraft,
-  turnstileToken: string,
+  turnstileToken?: string,
 ): Promise<FeedbackPayload> {
   const normalized = normalizeDraft(draft);
   const payload: FeedbackPayload = {
@@ -116,8 +116,11 @@ export async function buildFeedbackPayload(
     title: normalized.title.slice(0, MAX_TITLE_LENGTH),
     body: normalized.body.slice(0, MAX_BODY_LENGTH),
     diagnostics_opt_in: normalized.diagnostics_opt_in,
-    turnstile_token: turnstileToken,
   };
+
+  if (turnstileToken) {
+    payload.turnstile_token = turnstileToken;
+  }
 
   if (normalized.contact_email.trim()) {
     payload.contact_email = normalized.contact_email.trim();
@@ -136,13 +139,15 @@ export async function submitFeedback(draft: FeedbackDraft): Promise<FeedbackResu
     return { ok: false, error: "Title and description are required." };
   }
 
-  let turnstileToken: string;
-  try {
-    turnstileToken = await getTurnstileToken();
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Could not verify the request.";
-    return { ok: false, error: message };
+  let turnstileToken: string | undefined;
+  if (!isDesktopRuntime()) {
+    try {
+      turnstileToken = await getTurnstileToken();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Could not verify the request.";
+      return { ok: false, error: friendlyVerificationError(message) };
+    }
   }
 
   const payload = await buildFeedbackPayload(normalized, turnstileToken);
@@ -308,6 +313,17 @@ function isFeedbackCategory(value: unknown): value is FeedbackCategory {
 
 function hasStorage(): boolean {
   return typeof window !== "undefined" && Boolean(window.localStorage);
+}
+
+function isDesktopRuntime(): boolean {
+  return typeof window !== "undefined" && Boolean(window.__TAURI_INTERNALS__);
+}
+
+function friendlyVerificationError(message: string): string {
+  if (message.includes("110200")) {
+    return "Feedback verification is not authorized for this app domain. Please update Animo or try again later.";
+  }
+  return message;
 }
 
 function byteLength(value: string): number {

@@ -35,6 +35,11 @@ export type DownloadResult = { success: true } | { success: false; error: string
 type UpdaterModule = typeof import("@tauri-apps/plugin-updater");
 type ProcessModule = typeof import("@tauri-apps/plugin-process");
 
+type UpdateManifest = {
+  version?: unknown;
+  platforms?: unknown;
+};
+
 let cachedUpdater: UpdaterModule | null | undefined;
 let cachedProcess: ProcessModule | null | undefined;
 
@@ -87,10 +92,11 @@ function sleep(ms: number): Promise<void> {
 
 export async function checkForUpdates(): Promise<UpdateInfo> {
   const updater = await loadUpdaterModule();
+  const currentVersion = currentAppVersion();
   if (!updater) {
     return {
       available: false,
-      currentVersion: currentAppVersion(),
+      currentVersion,
       error: "Updater is only available in the desktop app.",
     };
   }
@@ -98,13 +104,25 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
   let lastError: unknown = null;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
+      const manifestRead = await readManifestStatus(currentVersion);
+      if (manifestRead.kind === "up-to-date") {
+        return { available: false, currentVersion };
+      }
+      if (manifestRead.kind === "missing-platform") {
+        return {
+          available: false,
+          currentVersion,
+          error: manifestRead.message,
+        };
+      }
+
       const update = await updater.check();
       if (!update) {
-        return { available: false, currentVersion: currentAppVersion() };
+        return { available: false, currentVersion };
       }
       return {
         available: true,
-        currentVersion: currentAppVersion(),
+        currentVersion,
         latestVersion: update.version,
         releaseNotes: update.body ?? undefined,
       };
@@ -118,7 +136,7 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
 
   return {
     available: false,
-    currentVersion: currentAppVersion(),
+    currentVersion,
     error: errorMessage(lastError, "Update check failed."),
   };
 }
@@ -171,9 +189,89 @@ export function updateManifestUrl(): string {
 }
 
 function errorMessage(error: unknown, fallback: string): string {
-  if (error instanceof Error && error.message) return error.message;
-  if (typeof error === "string" && error) return error;
+  const message =
+    error instanceof Error && error.message ? error.message : typeof error === "string" ? error : "";
+  if (message.includes("None of the fallback platforms")) {
+    return "No signed desktop update is published for this Mac yet. The installed version can still be current.";
+  }
+  if (message) return message;
   return fallback;
+}
+
+async function readManifestStatus(
+  currentVersion: string,
+): Promise<
+  | { kind: "unknown" }
+  | { kind: "up-to-date" }
+  | { kind: "missing-platform"; message: string }
+> {
+  try {
+    const response = await fetch(updateManifestUrl(), { cache: "no-store" });
+    if (!response.ok) return { kind: "unknown" };
+
+    const manifest = (await response.json()) as UpdateManifest;
+    const latestVersion = typeof manifest.version === "string" ? manifest.version : "";
+    const platforms =
+      manifest.platforms && typeof manifest.platforms === "object"
+        ? (manifest.platforms as Record<string, unknown>)
+        : {};
+
+    if (!isNewerVersion(latestVersion, currentVersion)) {
+      return { kind: "up-to-date" };
+    }
+
+    const supportedPlatforms = platformFallbacks();
+    if (
+      supportedPlatforms.length > 0 &&
+      !supportedPlatforms.some((platform) => platform in platforms)
+    ) {
+      return {
+        kind: "missing-platform",
+        message: `v${latestVersion} is published, but no signed update package is available for ${supportedPlatforms[0]} yet. Please download the installer from getanimo.app/download.`,
+      };
+    }
+  } catch {
+    return { kind: "unknown" };
+  }
+
+  return { kind: "unknown" };
+}
+
+function platformFallbacks(): string[] {
+  if (typeof navigator === "undefined") return [];
+  const platform = `${navigator.userAgentData?.platform || navigator.platform || ""}`.toLowerCase();
+  const arch = `${navigator.userAgentData?.architecture || ""}`.toLowerCase();
+
+  if (platform.includes("mac") || platform.includes("darwin")) {
+    if (arch.includes("arm") || arch.includes("aarch64")) {
+      return ["darwin-aarch64-app", "darwin-aarch64"];
+    }
+    if (arch.includes("x86") || arch.includes("x64") || arch.includes("amd64")) {
+      return ["darwin-x86_64-app", "darwin-x86_64"];
+    }
+    return ["darwin-aarch64-app", "darwin-aarch64", "darwin-x86_64-app", "darwin-x86_64"];
+  }
+  if (platform.includes("win")) return ["windows-x86_64"];
+  if (platform.includes("linux")) return ["linux-x86_64"];
+  return [];
+}
+
+function isNewerVersion(candidate: string, current: string): boolean {
+  const candidateParts = parseVersion(candidate);
+  const currentParts = parseVersion(current);
+  if (!candidateParts || !currentParts) return true;
+
+  for (let index = 0; index < 3; index++) {
+    if (candidateParts[index] > currentParts[index]) return true;
+    if (candidateParts[index] < currentParts[index]) return false;
+  }
+  return false;
+}
+
+function parseVersion(version: string): [number, number, number] | null {
+  const match = version.trim().replace(/^v/, "").match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!match) return null;
+  return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
 declare global {
