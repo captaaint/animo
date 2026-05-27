@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - feat(app): drop contact-email field from feedback form (5d68173)
 
+### Fixed
+
+- fix(app): clip WeekCalendar to its card's rounded corners (955e985)
+
 ## [0.2.6] - 2026-05-27
 
 ### Fixed
