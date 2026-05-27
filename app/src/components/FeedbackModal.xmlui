@@ -2,7 +2,6 @@
   var.category="{'bug'}"
   var.titleInput="{''}"
   var.bodyInput="{''}"
-  var.emailInput="{''}"
   var.diagnosticsOptIn="{false}"
   var.diagnosticsPreview="{''}"
   var.submitting="{false}"
@@ -18,7 +17,6 @@
       category: category,
       title: titleInput,
       body: bodyInput,
-      contact_email: emailInput,
       diagnostics_opt_in: diagnosticsOptIn
     });
   }"
@@ -29,19 +27,18 @@
       return;
     }
     diagnosticsPreview = 'Collecting diagnostics...';
-    if (!window.animoFeedbackCollectDiagnostics) {
-      diagnosticsPreview = JSON.stringify({
-        app_version: window.__ANIMO_VERSION__ || 'unknown',
-        platform: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'unknown',
-        os_version: navigator.userAgent || 'unknown',
-        locale: (navigator.languages && navigator.languages[0]) || navigator.language || 'unknown',
-        tauri: !!window.__TAURI_INTERNALS__
-      }, null, 2);
+    if (!window.animoFeedbackBuildPreview) {
+      diagnosticsPreview = 'Diagnostics preview is unavailable.';
       return;
     }
-    window.animoFeedbackCollectDiagnostics()
-      .then((diag) => {
-        diagnosticsPreview = JSON.stringify(diag, null, 2);
+    window.animoFeedbackBuildPreview({
+      category: category,
+      title: titleInput,
+      body: bodyInput,
+      diagnostics_opt_in: true
+    })
+      .then((preview) => {
+        diagnosticsPreview = preview || 'Diagnostics preview is unavailable.';
       })
       .catch(() => {
         diagnosticsPreview = 'Diagnostics preview is unavailable.';
@@ -53,7 +50,6 @@
     category = draft && draft.category ? draft.category : 'bug';
     titleInput = draft && draft.title ? draft.title : '';
     bodyInput = draft && draft.body ? draft.body : '';
-    emailInput = draft && draft.contact_email ? draft.contact_email : '';
     diagnosticsOptIn = wantsDiagnostics;
     submitting = false;
     successIssueUrl = '';
@@ -131,13 +127,6 @@
           </HStack>
         </VStack>
 
-        <TextBox
-          label="Contact email (optional)"
-          initialValue="{emailInput}"
-          onDidChange="(v) => { emailInput = v || ''; saveDraft(); }"
-          placeholder="Only if you want a reply"
-        />
-
         <HStack gap="$space-3" verticalAlignment="center" width="100%">
           <VStack width="*" gap="$space-1">
             <Text fontWeight="500" color="$color-surface-900">Attach diagnostics</Text>
@@ -172,13 +161,14 @@
                 onClick="refreshDiagnostics()"
               />
             </HStack>
-            <Text
+            <TextArea
+              width="100%"
+              rows="12"
+              readOnly="true"
+              value="{diagnosticsPreview || 'Collecting diagnostics...'}"
               fontFamily="monospace"
               fontSize="$fontSize-xs"
-              whiteSpace="pre-wrap"
-            >
-              {diagnosticsPreview || 'Collecting diagnostics...'}
-            </Text>
+            />
           </VStack>
         </Card>
 
@@ -231,7 +221,6 @@
                 category: category,
                 title: titleInput,
                 body: bodyInput,
-                contact_email: emailInput,
                 diagnostics_opt_in: diagnosticsOptIn
               },
               (result) => {
