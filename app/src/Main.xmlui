@@ -1,6 +1,6 @@
 <App
   layout="vertical-sticky"
-  scrollWholePage="true"
+  scrollWholePage="false"
   global.apiBase="{window.__ANIMO_API_BASE__ || 'http://127.0.0.1:8080/api'}"
   global.pageTitle="{pageTitleFromPath(window.location.pathname)}"
   global.entriesTick="{0}"

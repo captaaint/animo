@@ -226,8 +226,8 @@
               </VStack>
             </Card>
 
-          <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
-            <VStack width="100%" gap="$space-3">
+          <Card height="*" padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+            <VStack width="100%" height="*" gap="$space-3">
               <VStack gap="$space-2" width="100%">
                 <Text fontWeight="500" color="$color-surface-900">
                   Date
@@ -240,6 +240,8 @@
                   startIcon="date"
                 />
               </VStack>
+
+              <SpaceFiller />
 
               <HStack gap="$space-3" width="100%" verticalAlignment="center">
                 <VStack width="*" gap="$space-1">
