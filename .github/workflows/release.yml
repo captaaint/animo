@@ -591,6 +591,7 @@ jobs:
           mkdir -p deploy/updates
           cp website/public/updates/latest.json deploy/updates/latest.json
           netlify deploy --prod \
+            --filter=animo-website \
             --dir=deploy \
             --site="$NETLIFY_SITE_ID" \
             --auth="$NETLIFY_AUTH_TOKEN" \

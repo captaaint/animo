@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Fixed
+
+- fix(desktop): configure updater signing from release secrets (2a8b7fc)
 
 ## [0.2.2] - 2026-05-26
 
