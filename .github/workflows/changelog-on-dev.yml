@@ -56,4 +56,18 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add CHANGELOG.md
           git commit -m "chore(changelog): auto-update unreleased"
-          git push origin dev
+          # Retry the push. GitHub intermittently rejects with a transient
+          # "remote: fatal error in commit_refs", and a concurrent push to dev
+          # landing between checkout and push makes the update non-fast-forward.
+          # Rebasing the single CHANGELOG commit onto the latest origin/dev and
+          # retrying absorbs both cases without losing the appended entries.
+          for attempt in 1 2 3; do
+            if git push origin dev; then
+              exit 0
+            fi
+            echo "push attempt ${attempt} failed; rebasing onto origin/dev and retrying"
+            git pull --rebase origin dev || true
+            sleep $((attempt * 3))
+          done
+          echo "::error::failed to push CHANGELOG update after 3 attempts"
+          exit 1

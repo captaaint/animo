@@ -51,6 +51,7 @@ declare global {
     animoFeedbackClearDraft?: () => void;
     animoFeedbackLoadDraft?: () => FeedbackDraft | null;
     animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
+    animoFeedbackCollectDiagnostics?: () => Promise<Diagnostics>;
     animoFeedbackSubmit?: (
       draft: FeedbackDraft,
       onSuccess: (result: FeedbackResult) => void,
@@ -327,6 +328,7 @@ async function parseResponse(response: Response): Promise<{
 
 if (typeof window !== "undefined") {
   window.animoFeedbackClearDraft = clearDraft;
+  window.animoFeedbackCollectDiagnostics = collectDiagnostics;
   window.animoFeedbackLoadDraft = loadDraft;
   window.animoFeedbackSaveDraft = saveDraft;
   window.animoFeedbackSubmit = (draft, onSuccess, onError) => {

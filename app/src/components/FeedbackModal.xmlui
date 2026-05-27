@@ -22,35 +22,44 @@
       diagnostics_opt_in: diagnosticsOptIn
     });
   }"
-  method.refreshDiagnostics="() => {
-    if (!diagnosticsOptIn) {
+  method.refreshDiagnostics="(optIn) => {
+    const wantDiagnostics = optIn === undefined ? diagnosticsOptIn : optIn;
+    if (!wantDiagnostics) {
       diagnosticsPreview = '';
       return;
     }
-    const diag = {
-      app_version: window.__ANIMO_VERSION__ || 'unknown',
-      platform: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'unknown',
-      os_version: navigator.userAgent || 'unknown',
-      locale: (navigator.languages && navigator.languages[0]) || navigator.language || 'unknown',
-      tauri: !!window.__TAURI_INTERNALS__
-    };
-    if (window.__ANIMO_LOG_TAIL__) {
-      diag.recent_log_tail = window.__ANIMO_LOG_TAIL__;
+    diagnosticsPreview = 'Collecting diagnostics...';
+    if (!window.animoFeedbackCollectDiagnostics) {
+      diagnosticsPreview = JSON.stringify({
+        app_version: window.__ANIMO_VERSION__ || 'unknown',
+        platform: (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || 'unknown',
+        os_version: navigator.userAgent || 'unknown',
+        locale: (navigator.languages && navigator.languages[0]) || navigator.language || 'unknown',
+        tauri: !!window.__TAURI_INTERNALS__
+      }, null, 2);
+      return;
     }
-    diagnosticsPreview = JSON.stringify(diag, null, 2);
+    window.animoFeedbackCollectDiagnostics()
+      .then((diag) => {
+        diagnosticsPreview = JSON.stringify(diag, null, 2);
+      })
+      .catch(() => {
+        diagnosticsPreview = 'Diagnostics preview is unavailable.';
+      });
   }"
   method.open="() => {
     const draft = window.animoFeedbackLoadDraft ? window.animoFeedbackLoadDraft() : null;
+    const wantsDiagnostics = !!(draft && draft.diagnostics_opt_in);
     category = draft && draft.category ? draft.category : 'bug';
     titleInput = draft && draft.title ? draft.title : '';
     bodyInput = draft && draft.body ? draft.body : '';
     emailInput = draft && draft.contact_email ? draft.contact_email : '';
-    diagnosticsOptIn = !!(draft && draft.diagnostics_opt_in);
+    diagnosticsOptIn = wantsDiagnostics;
     submitting = false;
     successIssueUrl = '';
     errorMessage = '';
     modalOpen = true;
-    refreshDiagnostics();
+    refreshDiagnostics(wantsDiagnostics);
     modal.open();
   }"
 >
@@ -141,7 +150,7 @@
             onDidChange="(v) => {
               diagnosticsOptIn = !!v;
               saveDraft();
-              refreshDiagnostics();
+              refreshDiagnostics(!!v);
             }"
           />
         </HStack>

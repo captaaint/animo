@@ -249,6 +249,7 @@ jobs:
           tauri "${args[@]}"
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
+          VITE_TURNSTILE_SITE_KEY: ${{ secrets.VITE_TURNSTILE_SITE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           TAURI_UPDATER_PUBKEY: ${{ secrets.TAURI_UPDATER_PUBKEY }}
@@ -558,7 +559,9 @@ jobs:
           }
 
           add_platform "darwin-aarch64" "Animo_${VERSION}_aarch64.app.tar.gz"
+          add_platform "darwin-aarch64-app" "Animo_${VERSION}_aarch64.app.tar.gz"
           add_platform "darwin-x86_64"  "Animo_${VERSION}_x64.app.tar.gz"
+          add_platform "darwin-x86_64-app"  "Animo_${VERSION}_x64.app.tar.gz"
           add_platform "linux-x86_64"   "Animo_${VERSION}_amd64.AppImage.tar.gz"
           add_platform "windows-x86_64" "Animo_${VERSION}_x64.msi.zip"
 
