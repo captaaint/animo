@@ -80,7 +80,10 @@
       else toast.error('End must be after start');
     }" />
 
-  <Theme height-Drawer="95vh" maxHeight-Drawer="95vh">
+  <!-- EntryDrawer intentionally opens tall (fixed height, not auto). dvh keeps
+       it within the visible viewport so the pinned header stays on screen;
+       see the global Drawer tokens in tracker-theme.ts. -->
+  <Theme height-Drawer="95dvh" maxHeight-Drawer="95dvh">
   <Drawer
     when="{drawerOpen}"
     initiallyOpen="true"

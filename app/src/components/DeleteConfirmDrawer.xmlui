@@ -3,7 +3,6 @@
   var.drawerOpen="{false}"
   method.open="(item) => { entry = item || null; drawerOpen = true; }"
 >
-  <Theme height-Drawer="auto" maxHeight-Drawer="92vh">
   <Drawer
     when="{drawerOpen}"
     initiallyOpen="true"
@@ -158,5 +157,4 @@
       </Card>
     </VStack>
   </Drawer>
-  </Theme>
 </Component>

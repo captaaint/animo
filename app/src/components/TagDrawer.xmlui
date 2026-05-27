@@ -42,7 +42,6 @@
     onError="(err) => toast.error(err &amp;&amp; err.message ? err.message : 'Save failed')"
   />
 
-  <Theme height-Drawer="auto" maxHeight-Drawer="92vh">
   <Drawer
     when="{drawerOpen}"
     initiallyOpen="true"
@@ -187,5 +186,4 @@
       </Theme>
     </VStack>
   </Drawer>
-  </Theme>
 </Component>
