@@ -506,6 +506,12 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install workspace dependencies
+        if: steps.gate.outputs.skip != 'true'
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --prefer-offline --no-audit --no-fund --ignore-scripts
+
       - name: Download signed updater assets
         if: steps.gate.outputs.skip != 'true'
         env:
@@ -578,21 +584,26 @@ jobs:
             console.log("manifest ok:", count, "platform(s)");
           '
 
-      - name: Publish manifest to Netlify
+      - name: Build website deploy directory
         if: steps.gate.outputs.skip != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.verify.outputs.version }}
+        run: npx turbo run build:website --filter=animo-website
+
+      - name: Publish website + manifest to Netlify
+        if: steps.gate.outputs.skip != 'true'
+        working-directory: website
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
           npm install --no-audit --no-fund --silent --global netlify-cli@17
-          # Deploy only the /updates directory as a production deploy.
-          # The XMLUI site itself is rebuilt by release-published.yml on
-          # tag publish — this is a focused, secrets-only deploy.
-          mkdir -p deploy/updates
-          cp website/public/updates/latest.json deploy/updates/latest.json
+          test -f dist-ssg/index.html
+          test -f dist-ssg/updates/latest.json
           netlify deploy --prod \
             --filter=animo-website \
-            --dir=deploy \
+            --dir=dist-ssg \
             --site="$NETLIFY_SITE_ID" \
             --auth="$NETLIFY_AUTH_TOKEN" \
             --message="updater manifest for ${TAG}"
