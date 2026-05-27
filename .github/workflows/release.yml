@@ -218,15 +218,35 @@ jobs:
       # build time and emits a `.sig` (base64 ed25519 signature) next to
       # each updater bundle (`*.app.tar.gz` on macOS, `*.AppImage.tar.gz`
       # on Linux, `*.msi.zip` / `*.nsis.zip` on Windows). When the secret
-      # is unset (initial-key-rotation window, fork build) we leave the
-      # env unset so `tauri build` runs without signing and the release
-      # still produces installers — just no updater channel for that
-      # platform. The publish-manifest job below skips any platform
-      # missing a `.sig`, so the installer-only flow is non-fatal.
+      # is unset (initial-key-rotation window, fork build) we leave updater
+      # artifacts disabled so the release still produces installers. The
+      # publish-manifest job below skips any platform missing a `.sig`, so
+      # the installer-only flow is non-fatal.
       - name: Build desktop bundle
         if: steps.gate.outputs.skip != 'true'
         working-directory: desktop
-        run: tauri build --target ${{ matrix.target }}
+        shell: bash
+        run: |
+          args=(build --target "${{ matrix.target }}")
+          if [ -n "${TAURI_SIGNING_PRIVATE_KEY:-}" ]; then
+            if [ -z "${TAURI_UPDATER_PUBKEY:-}" ]; then
+              echo "::error::TAURI_UPDATER_PUBKEY is required when TAURI_SIGNING_PRIVATE_KEY is set"
+              exit 1
+            fi
+            config_json=$(node -e '
+              process.stdout.write(JSON.stringify({
+                bundle: { createUpdaterArtifacts: true },
+                plugins: {
+                  updater: {
+                    pubkey: process.env.TAURI_UPDATER_PUBKEY,
+                    endpoints: ["https://getanimo.app/updates/latest.json"]
+                  }
+                }
+              }))
+            ')
+            args+=(--config "$config_json")
+          fi
+          tauri "${args[@]}"
         env:
           VITE_ANIMO_VERSION: ${{ needs.verify.outputs.version }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
