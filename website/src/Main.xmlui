@@ -53,7 +53,7 @@
             </VStack>
 
             <Text fontSize="17px" lineHeight="1.8" color="$color-muted" maxWidth="640px" textAlign="center" ellipses="false">
-              Animo is a self-hosted, single-user time tracker. No cloud. No telemetry. No accounts. Your data stays on your own machine.
+              Animo is a self-hosted, single-user time tracker. No cloud account, no telemetry, and your work data stays on your own machine.
             </Text>
 
             <Image
@@ -116,7 +116,7 @@
             </CenterRow>
 
             <CenterRow gap="$space-2" verticalAlignment="center">
-              <Text fontSize="12px" color="$color-subtle">v0.1.0</Text>
+              <Text fontSize="12px" color="$color-subtle">v0.2.2</Text>
               <Text fontSize="12px" color="$color-subtle">Open Source</Text>
               <Text fontSize="12px" color="$color-subtle">MIT License</Text>
             </CenterRow>
@@ -210,7 +210,7 @@
                 <Text color="$color-accent" fontSize="28px" fontWeight="700">your machine.</Text>
               </CenterRow>
               <Text color="$color-muted" fontSize="16px" lineHeight="1.8" maxWidth="410px" textAlign="center" ellipses="false">
-                Animo is designed for privacy and control. No accounts. No cloud sync. No telemetry. You own your time data - always.
+                Animo is designed for privacy and control. No hosted accounts, no cloud sync, no telemetry. You own your time data - always.
               </Text>
               <CenterRow gap="$space-2">
                 <HStack border="1px solid $color-border" borderRadius="6px" paddingHorizontal="$space-4" paddingVertical="$space-2" gap="$space-2" verticalAlignment="center">

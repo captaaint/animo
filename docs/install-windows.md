@@ -1,7 +1,7 @@
 # Installing Animo — Windows
 
-Animo is a single-user, on-premise time tracker. Your data stays on your
-machine — no cloud, no external services.
+Animo is a single-user, local-first time tracker. Your work data stays on
+your machine; the app has no telemetry or hosted account service.
 
 ## System requirements
 
@@ -25,7 +25,7 @@ uninstaller entry — no manual PATH editing is needed.
 Pin a specific version:
 
 ```powershell
-& { iwr -useb https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex } -Version 0.1.0
+& { iwr -useb https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex } -Version <version>
 ```
 
 Silent (no UI, scripted installs):
@@ -47,8 +47,7 @@ After install you can launch Animo from the Start Menu.
 
 ## SmartScreen / Defender warnings
 
-The MSI is unsigned (Windows code-signing certificates are scheduled for a
-later release), so:
+The MSI is currently unsigned, so:
 
 - **SmartScreen** prompts "Windows protected your PC" — click **More info**,
   then **Run anyway**. This is a one-time confirmation per binary hash.
@@ -73,8 +72,8 @@ Schema migrations run automatically at startup.
 
 ```powershell
 iwr https://github.com/captaaint/animo/releases/latest/download/SHA256SUMS.txt -OutFile SHA256SUMS.txt
-$expected = (Get-Content SHA256SUMS.txt | Select-String "Animo_0.1.0_x64.msi").ToString().Split()[0]
-$actual = (Get-FileHash Animo_0.1.0_x64.msi -Algorithm SHA256).Hash.ToLower()
+$expected = (Get-Content SHA256SUMS.txt | Select-String "Animo_<version>_x64.msi").ToString().Split()[0]
+$actual = (Get-FileHash Animo_<version>_x64.msi -Algorithm SHA256).Hash.ToLower()
 $expected -eq $actual
 ```
 
@@ -99,7 +98,7 @@ Remove-Item -Recurse -Force "$env:APPDATA\app.getanimo.timetracker"
 ```
 
 The second step **permanently deletes all your time entries, projects,
-clients, and user data**.
+clients, tags, and local profile data**.
 
 ## Troubleshooting
 

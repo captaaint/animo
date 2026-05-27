@@ -2,7 +2,7 @@
 #
 # Usage:
 #   irm https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex
-#   & { iwr -useb https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex } -Version 0.1.0
+#   & { iwr -useb https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex } -Version <version>
 #
 # Parameters:
 #   -Version <N.N.N>   pin a specific version (default: latest)

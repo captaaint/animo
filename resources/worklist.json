@@ -80,5 +80,78 @@
     ],
     "before": "Settings has no Help & feedback section, no feedback enable toggle, and no way to open the feedback modal.",
     "after": "Settings exposes Help & feedback with a persisted enable toggle and Send feedback action that opens FeedbackModal outside demo mode."
+  },
+  {
+    "id": "public-readiness-docs-refresh",
+    "files": [
+      "README.md",
+      "CONTRIBUTING.md",
+      "SECURITY.md",
+      "CHANGELOG.md",
+      "docs/install.md",
+      "docs/install-macos.md",
+      "docs/install-windows.md",
+      "docs/install-linux.md",
+      "docs/privacy.md",
+      "resources/worklist.json"
+    ],
+    "before": "Public-facing docs contain private-preview language, stale web/ paths, old pinned install versions, and claims that need to be checked against the current app direction.",
+    "after": "Public-facing docs consistently describe the current app, app/ layout, release/install flow, privacy/security posture, and public contribution expectations."
+  },
+  {
+    "id": "public-readiness-repo-metadata",
+    "files": [
+      "package.json",
+      ".env.example",
+      "api/.env.example",
+      "app/package.json",
+      "website/package.json",
+      "demo/package.json",
+      "extensions/animo-blocks/package.json",
+      "package-lock.json",
+      "resources/worklist.json"
+    ],
+    "before": "Repository metadata and environment examples have not been audited for public visibility, package names, descriptions, private flags, and current configuration names.",
+    "after": "Repository metadata and environment examples are accurate, publish-safe, and aligned with the public Animo project naming and configuration."
+  },
+  {
+    "id": "public-readiness-code-config-audit",
+    "files": [
+      "api/src",
+      "app/src",
+      "desktop/src",
+      "desktop/tauri.conf.json",
+      "website/src",
+      "website/netlify/functions",
+      "install.sh",
+      "install.ps1",
+      "resources/worklist.json"
+    ],
+    "before": "Code and runtime config have not been audited for stale product direction, hard-coded private assumptions, public URLs, update endpoints, diagnostics, and release-install behavior.",
+    "after": "Code and runtime config match the current public-facing direction and do not contain obvious stale naming, private-preview behavior, or unsafe public defaults."
+  },
+  {
+    "id": "public-readiness-ci-release-audit",
+    "files": [
+      ".github",
+      "scripts",
+      "website/public/updates/latest.json",
+      "website/public/downloads/manifest.json",
+      "resources/worklist.json"
+    ],
+    "before": "CI, release, changelog, update-manifest, and download-manifest automation have not been checked for public repository readiness.",
+    "after": "CI and release automation are documented and configured for a public repository, with no stale private-preview assumptions in generated manifests or workflows."
+  },
+  {
+    "id": "public-readiness-local-secret-hygiene",
+    "files": [
+      ".env",
+      "app/.env",
+      "api/.env",
+      ".gitignore",
+      "resources/worklist.json"
+    ],
+    "before": "Ignored local env files exist, including at least one real-looking provider API key and development secrets that should not survive a public-readiness pass.",
+    "after": "Local env files are either removed from the working tree or reduced to safe placeholders, .gitignore continues to protect env material, and any exposed-looking keys are rotated outside the repo."
   }
 ]

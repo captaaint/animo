@@ -1,7 +1,7 @@
 # Installing Animo — Linux
 
-Animo is a single-user, on-premise time tracker. Your data stays on your
-machine — no cloud, no external services.
+Animo is a single-user, local-first time tracker. Your work data stays on
+your machine; the app has no telemetry or hosted account service.
 
 ## System requirements
 
@@ -35,7 +35,7 @@ export PATH="$HOME/.local/bin:$PATH"
 Pin a specific version:
 
 ```sh
-curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh -s -- --version 0.1.0
+curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh -s -- --version <version>
 ```
 
 Custom install directory:
@@ -49,9 +49,9 @@ curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.s
 ### AppImage (portable, no root)
 
 ```sh
-curl -fLO https://github.com/captaaint/animo/releases/latest/download/Animo_0.1.0_amd64.AppImage
-chmod +x Animo_0.1.0_amd64.AppImage
-./Animo_0.1.0_amd64.AppImage
+curl -fLO https://github.com/captaaint/animo/releases/latest/download/Animo_<version>_amd64.AppImage
+chmod +x Animo_<version>_amd64.AppImage
+./Animo_<version>_amd64.AppImage
 ```
 
 To integrate it with the desktop menu, use an AppImage integration tool
@@ -60,8 +60,8 @@ such as [AppImageLauncher][appimagelauncher].
 ### .deb (Debian / Ubuntu)
 
 ```sh
-curl -fLO https://github.com/captaaint/animo/releases/latest/download/Animo_0.1.0_amd64.deb
-sudo apt install ./Animo_0.1.0_amd64.deb
+curl -fLO https://github.com/captaaint/animo/releases/latest/download/Animo_<version>_amd64.deb
+sudo apt install ./Animo_<version>_amd64.deb
 ```
 
 This drops `Animo` into `/usr/bin/` and adds a `.desktop` entry to the
@@ -103,7 +103,7 @@ rm -rf "$HOME/.local/share/app.getanimo.timetracker"
 ```
 
 The wipe step **permanently deletes all your time entries, projects,
-clients, and user data**.
+clients, tags, and local profile data**.
 
 ## Troubleshooting
 

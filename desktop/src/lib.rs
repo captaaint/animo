@@ -76,12 +76,8 @@ fn bootstrap_data_dir(data_dir: &std::path::Path) -> anyhow::Result<()> {
 
 #[tauri::command]
 fn api_base(port: State<'_, ApiPort>) -> String {
-    // Use `localhost`, not `127.0.0.1`. The webview lives at
-    // `http://localhost:5173` (dev) or `tauri://localhost` (release), and
-    // WKWebView's ITP treats `127.0.0.1` as a different site — it silently
-    // drops the `Set-Cookie` from the login response, so the session never
-    // sticks. With `localhost` on both sides the cookie is same-site and
-    // survives subsequent fetches. The listener still binds on 127.0.0.1
+    // Use `localhost`, not `127.0.0.1`, so the webview and embedded API stay
+    // same-site in dev and release. The listener still binds on 127.0.0.1
     // (see `Config::for_desktop`); `localhost` resolves to the same loopback
     // interface.
     format!("http://localhost:{}/api", port.0)

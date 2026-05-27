@@ -1,8 +1,7 @@
 # Installing Animo
 
 Animo is a self-hosted, single-user time tracker. The desktop builds are
-unsigned (Apple Developer ID and Windows code-signing are scheduled for a
-later release), so the OS will warn on first launch — the per-platform
+currently unsigned, so the OS will warn on first launch — the per-platform
 guides walk through the one-time approval.
 
 All downloads come from the [GitHub releases page][releases]. Every release
@@ -20,7 +19,7 @@ curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.s
 Pin a specific version:
 
 ```sh
-curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh -s -- --version 0.1.0
+curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh -s -- --version <version>
 ```
 
 ### Windows (PowerShell)
@@ -32,7 +31,7 @@ irm https://github.com/captaaint/animo/releases/latest/download/install.ps1 | ie
 Pin a version:
 
 ```powershell
-& { iwr -useb https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex } -Version 0.1.0
+& { iwr -useb https://github.com/captaaint/animo/releases/latest/download/install.ps1 | iex } -Version <version>
 ```
 
 ## Manual install
@@ -55,8 +54,8 @@ shasum -a 256 -c SHA256SUMS.txt --ignore-missing         # macOS
 On Windows:
 
 ```powershell
-$expected = (Get-Content SHA256SUMS.txt | Select-String "Animo_0.1.0_x64.msi").ToString().Split()[0]
-$actual = (Get-FileHash Animo_0.1.0_x64.msi -Algorithm SHA256).Hash.ToLower()
+$expected = (Get-Content SHA256SUMS.txt | Select-String "Animo_<version>_x64.msi").ToString().Split()[0]
+$actual = (Get-FileHash Animo_<version>_x64.msi -Algorithm SHA256).Hash.ToLower()
 $expected -eq $actual
 ```
 

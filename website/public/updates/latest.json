@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.2.2",
   "notes": "Initial placeholder. The release workflow rewrites this file with the actual artifacts and signatures when a new release publishes.",
   "pub_date": "2026-05-26T00:00:00Z",
   "platforms": {}

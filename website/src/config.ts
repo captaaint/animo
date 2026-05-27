@@ -3,7 +3,7 @@ import { WebsiteTheme } from "./themes/website-theme";
 
 const App: StandaloneAppDescription = {
   name: "Animo",
-  version: "0.1.0",
+  version: "0.2.2",
   themes: [WebsiteTheme],
   defaultTheme: "animo-website",
   resources: {

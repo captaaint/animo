@@ -51,10 +51,10 @@ Gatekeeper / SmartScreen handling, and per-platform notes, see:
 
 | Layer       | Choice                                                                                                  |
 | ----------- | ------------------------------------------------------------------------------------------------------- |
-| Frontend    | [XMLUI](https://docs.xmlui.org) 0.12 + custom React extensions in [`web/`](web/)                        |
+| Frontend    | [XMLUI](https://docs.xmlui.org) 0.12 + custom React extensions in [`app/`](app/) and [`extensions/`](extensions/) |
 | Backend     | Rust + [axum](https://docs.rs/axum/) + [sqlx](https://docs.rs/sqlx/) in [`api/`](api/)                  |
 | Database    | SQLite (single file, embedded migrations)                                                               |
-| Auth        | HttpOnly cookie session, Argon2id password hash, SHA-256 token hash                                     |
+| User model  | Local first-run profile; no hosted accounts or password flow                                            |
 | PDF export  | Client-side via [pdfmake](https://pdfmake.github.io/) — [`app/src/helpers/reportPdf.ts`](app/src/helpers/reportPdf.ts) |
 | Desktop     | [Tauri 2](https://tauri.app) shell in [`desktop/`](desktop/) — embeds the axum server in-process        |
 | E2E tests   | [Playwright](https://playwright.dev/) in [`e2e/`](e2e/)                                                 |
@@ -108,9 +108,9 @@ npm run preview:demo     # build + preview locally
 
 The bundle ships a hand-written `/api/*` fetch handler
 ([`app/src/demoApi.ts`](app/src/demoApi.ts)) that intercepts `window.fetch`
-before XMLUI mounts. Auth is bypassed (always returns "Demo User"), data
-covers four work-weeks of seed entries, and all CRUD persists in
-`localStorage`. The version stamp on the LoginScreen comes from
+before XMLUI mounts. Bootstrap always returns the "Demo User" local profile,
+data covers four work-weeks of seed entries, and all CRUD persists in
+`localStorage`. The version stamp in the app shell comes from
 `VITE_ANIMO_VERSION` — see [`app/scripts/with-version.mjs`](app/scripts/with-version.mjs).
 
 ---
@@ -122,29 +122,27 @@ covers four work-weeks of seed entries, and all CRUD persists in
 │  Browser (or Tauri webview)                                          │
 │  ┌────────────────────────────────────────────────────────────────┐  │
 │  │  XMLUI app                                                     │  │
-│  │  • Main.xmlui — App + AuthGate + NavPanel + Pages              │  │
-│  │  • DataSource / APICall ──── credentials: 'include' ───────┐   │  │
-│  │  • Extensions: AuthGate, WeekCalendar, Stopwatch,          │   │  │
+│  │  • Main.xmlui — App + LocalUserGate + NavPanel + Pages         │  │
+│  │  • DataSource / APICall ───────────────────────────────────┐   │  │
+│  │  • Extensions: LocalUserGate, WeekCalendar, Stopwatch,     │   │  │
 │  │    BarChart, PieChart, KeyListener, Viewport, …            │   │  │
 │  └─────────────────────────────────────────────────────────────│───┘  │
-│                                                                │      │
-│  Set-Cookie: tt_session=<random>; HttpOnly; SameSite=Lax|None; │      │
-│              Path=/; Max-Age=30 days                           │      │
 └────────────────────────────────────────────────────────────────│──────┘
                                                                  ▼
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Rust axum API                                                       │
-│  • /api/auth/{register, login, logout, me}                           │
+│  • /api/user/bootstrap + /api/user/me                                │
 │  • /api/clients, /api/projects, /api/tags, /api/time-entries (CRUD)  │
-│  • /api/reports/summary + /api/reports/export.pdf                    │
+│  • /api/import/{csv,xlsx}/{preview,commit}                           │
+│  • /api/reports/summary + CSV / XLSX / PDF exports                   │
 │  • CORS layer, TraceLayer                                            │
-│  • AuthUser extractor: cookie → sha256 → sessions table → user       │
+│  • LocalUser extractor: first local profile scopes all records        │
 └──────────────────────────────────────────────────────────────────────┘
                                   │
                                   ▼
                           SQLite (data.db)
-                  users · sessions · clients · projects ·
-                       tags · entry_tags · time_entries
+                  users · user_preferences · clients · projects ·
+                  tags · entry_tags · time_entries
 ```
 
 The Tauri shell embeds the same axum router in-process. At startup it
@@ -160,7 +158,10 @@ uses that URL as its `apiBase` global. See
 ```text
 animo/
 ├── api/              Rust crate — axum router, sqlx pool, migrations
-├── web/              XMLUI frontend (Vite + custom extensions)
+├── app/              XMLUI frontend (Vite + app-specific extensions)
+├── extensions/       Shared XMLUI extension package(s)
+├── website/          Marketing/download site
+├── demo/             Static demo build wrapper
 ├── desktop/          Tauri 2 shell — embeds animo-api in-process
 ├── e2e/              Playwright tests
 ├── docs/             User-facing install + ops docs
@@ -188,9 +189,9 @@ The target can be an explicit `N.N.N` version or one of `patch` / `minor` /
 
 ```sh
 # Standard release (commit + tag + push + workflow dispatch):
-scripts/bump.sh patch          # 0.1.0 → 0.1.1
-scripts/bump.sh minor          # 0.1.0 → 0.2.0
-scripts/bump.sh major          # 0.1.0 → 1.0.0
+scripts/bump.sh patch          # X.Y.Z → X.Y.(Z+1)
+scripts/bump.sh minor          # X.Y.Z → X.(Y+1).0
+scripts/bump.sh major          # X.Y.Z → (X+1).0.0
 scripts/bump.sh 0.2.0          # explicit target
 
 # Local-only dry-run:
