@@ -33,6 +33,21 @@ export default defineConfig({
         storageState: STORAGE_STATE,
       },
       dependencies: ['setup'],
+      // The mobile suite owns its own viewport/engine project below.
+      testIgnore: /mobile\.spec\.ts/,
+    },
+    {
+      // iOS Safari proxy for the mobile web UX regression suite. WebKit +
+      // iPhone viewport is the closest automatable engine; real-device-only
+      // behaviour (focus auto-zoom, dynamic toolbar) is covered manually in
+      // docs/mobile-testing.md.
+      name: 'mobile-safari',
+      use: {
+        ...devices['iPhone 13'],
+        storageState: STORAGE_STATE,
+      },
+      dependencies: ['setup'],
+      testMatch: /mobile\.spec\.ts/,
     },
   ],
 
