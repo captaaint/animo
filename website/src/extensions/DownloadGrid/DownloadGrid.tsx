@@ -21,6 +21,14 @@ type Props = {
   className?: string;
 };
 
+type ReleaseVersionProps = {
+  manifestUrl?: string;
+  prefix?: string;
+  loadingLabel?: string;
+  errorLabel?: string;
+  className?: string;
+};
+
 type PlatformMeta = {
   key: PlatformKey;
   group: PlatformGroup;
@@ -230,6 +238,41 @@ export function DownloadGrid({ manifestUrl = "/downloads/manifest.json", classNa
         release.
       </div>
     </div>
+  );
+}
+
+export function ReleaseVersion({
+  manifestUrl = "/downloads/manifest.json",
+  prefix = "v",
+  loadingLabel = "Loading latest version...",
+  errorLabel = "Latest release",
+  className,
+}: ReleaseVersionProps) {
+  const [version, setVersion] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(manifestUrl, { cache: "no-cache" })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return (await res.json()) as Manifest;
+      })
+      .then((data) => {
+        if (!cancelled) setVersion(data.version);
+      })
+      .catch(() => {
+        if (!cancelled) setHasError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [manifestUrl]);
+
+  return (
+    <span className={className}>
+      {version ? `${prefix}${version}` : hasError ? errorLabel : loadingLabel}
+    </span>
   );
 }
 

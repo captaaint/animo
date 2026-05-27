@@ -3,7 +3,7 @@
 #
 # Usage:
 #   curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh
-#   curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh -s -- --version 0.1.0
+#   curl -fsSL https://github.com/captaaint/animo/releases/latest/download/install.sh | sh -s -- --version <version>
 #
 # Flags:
 #   --version <N.N.N>   pin a specific version (default: latest)

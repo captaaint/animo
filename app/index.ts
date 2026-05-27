@@ -51,7 +51,7 @@ async function boot() {
     installDemoApi();
   }
   window.__ANIMO_API_BASE__ = await resolveApiBase();
-  window.__ANIMO_VERSION__ = import.meta.env.VITE_ANIMO_VERSION || "0.1.0";
+  window.__ANIMO_VERSION__ = import.meta.env.VITE_ANIMO_VERSION || "0.2.2";
   window.__ANIMO_DEMO__ = import.meta.env.VITE_ANIMO_DEMO === "true";
   startApp(runtime, extensions);
 }

@@ -21,7 +21,7 @@
             </Link>
             <SpaceFiller />
             <HStack when-md="true" gap="$space-7" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
             <Button
               label="Download"
@@ -53,7 +53,7 @@
             </VStack>
 
             <Text fontSize="17px" lineHeight="1.8" color="$color-muted" maxWidth="640px" textAlign="center" ellipses="false">
-              Animo is a self-hosted, single-user time tracker. No cloud. No telemetry. No accounts. Your data stays on your own machine.
+              Animo is a desktop-first, single-user time tracker. No cloud account, no telemetry, and your work data stays on your own machine.
             </Text>
 
             <Image
@@ -94,6 +94,10 @@
                 <Icon name="filetext" size="14px" color="$color-accent" />
                 <Text color="$color-text" fontSize="13px" ellipses="false">PDF export</Text>
               </HStack>
+              <HStack gap="$space-2" verticalAlignment="center" paddingHorizontal="$space-4" paddingVertical="$space-2" border="1px solid $color-border" borderRadius="999px">
+                <Icon name="app" size="14px" color="$color-accent" />
+                <Text color="$color-text" fontSize="13px" ellipses="false">Mobile planned</Text>
+              </HStack>
             </CenterRow>
 
             <CenterRow gap="$space-2">
@@ -103,7 +107,7 @@
                 size="md"
                 onClick="Actions.navigate('/download')"
               />
-              <Link to="https://demo.getanimo.app">
+              <Link to="https://demo.getanimo.app" target="_blank">
                 <Button
                   label="View Demo"
                   icon="external"
@@ -116,7 +120,7 @@
             </CenterRow>
 
             <CenterRow gap="$space-2" verticalAlignment="center">
-              <Text fontSize="12px" color="$color-subtle">v0.1.0</Text>
+              <Text fontSize="12px" color="$color-subtle"><ReleaseVersion /></Text>
               <Text fontSize="12px" color="$color-subtle">Open Source</Text>
               <Text fontSize="12px" color="$color-subtle">MIT License</Text>
             </CenterRow>
@@ -194,7 +198,7 @@
                 <Icon name="link" size="34px" color="$color-accent-soft" />
                 <VStack gap="$space-1">
                   <Text color="$color-text" fontWeight="700">Tauri</Text>
-                  <Text color="$color-muted" fontSize="13px" lineHeight="1.55" ellipses="false">Lightweight desktop shell. Small, secure, cross-platform.</Text>
+                  <Text color="$color-muted" fontSize="13px" lineHeight="1.55" ellipses="false">Lightweight desktop shell today, with mobile and on-prem web app paths planned.</Text>
                 </VStack>
               </HStack>
             </CenterRow>
@@ -210,7 +214,7 @@
                 <Text color="$color-accent" fontSize="28px" fontWeight="700">your machine.</Text>
               </CenterRow>
               <Text color="$color-muted" fontSize="16px" lineHeight="1.8" maxWidth="410px" textAlign="center" ellipses="false">
-                Animo is designed for privacy and control. No accounts. No cloud sync. No telemetry. You own your time data - always.
+                Animo is designed for privacy and control. No hosted accounts, no cloud sync, no telemetry. You own your time data - always.
               </Text>
               <CenterRow gap="$space-2">
                 <HStack border="1px solid $color-border" borderRadius="6px" paddingHorizontal="$space-4" paddingVertical="$space-2" gap="$space-2" verticalAlignment="center">
@@ -277,7 +281,7 @@
         <VStack width="100%" maxWidth="1240px" marginHorizontal="auto" paddingHorizontal="$space-5" paddingHorizontal-xs="$space-4" horizontalAlignment="center">
           <VStack paddingTop="48px" paddingBottom="160px" horizontalAlignment="center" gap="$space-4">
             <Text color="$color-text" fontSize="28px" fontWeight="700" textAlign="center" ellipses="false">Ready to take control of your time?</Text>
-            <Text color="$color-muted" fontSize="16px" textAlign="center" ellipses="false">Download Animo and start tracking on your terms.</Text>
+            <Text color="$color-muted" fontSize="16px" textAlign="center" ellipses="false">Download the desktop app today; mobile and on-prem web app packaging are on the roadmap.</Text>
             <Button
               label="Download for Windows, macOS, Linux"
               icon="download"
@@ -301,11 +305,11 @@
           >
             <VStack gap="$space-2" horizontalAlignment="start">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </HStack>
           </HStack>
@@ -320,12 +324,12 @@
             horizontalAlignment="center"
           >
             <VStack gap="$space-3" horizontalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
           </VStack>
         </Stack>
@@ -352,7 +356,7 @@
             </Link>
             <SpaceFiller />
             <HStack when-md="true" gap="$space-7" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
           </HStack>
         </Stack>
@@ -374,7 +378,7 @@
               Download Animo
             </Text>
             <Text fontSize="16px" lineHeight="1.7" color="$color-muted" maxWidth="560px" textAlign="center" ellipses="false">
-              Pick the build for your operating system. Animo is self-hosted — your data never leaves your machine.
+              Pick the desktop build for your operating system. Animo is local-first — your work data stays on your machine.
             </Text>
           </VStack>
 
@@ -394,11 +398,11 @@
           >
             <VStack gap="$space-2" horizontalAlignment="start">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </HStack>
           </HStack>
@@ -413,12 +417,12 @@
             horizontalAlignment="center"
           >
             <VStack gap="$space-3" horizontalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
               <Logo height="$space-7" alt="Animo" />
-              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A self-hosted, single-user time tracker for focused professionals.</Text>
+              <Text color="$color-muted" fontSize="13px" lineHeight="1.6" textAlign="center" ellipses="false">A desktop-first, single-user time tracker for focused professionals.</Text>
             </VStack>
           </VStack>
         </Stack>

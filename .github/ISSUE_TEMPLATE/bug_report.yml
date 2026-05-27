@@ -14,8 +14,8 @@ body:
     id: version
     attributes:
       label: Animo version
-      description: Visible at the bottom of the sign-in screen, or check the bundle filename.
-      placeholder: "v0.1.0"
+      description: Visible in Settings, or check the bundle filename.
+      placeholder: "v0.2.2"
     validations:
       required: true
 

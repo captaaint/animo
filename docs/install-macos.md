@@ -1,7 +1,10 @@
 # Installing Animo — macOS
 
-Animo is a single-user, on-premise time tracker. Your data stays on your
-machine — no cloud, no external services.
+Animo is a single-user, local-first time tracker. Your work data stays on
+your machine; the app has no telemetry or hosted account service.
+
+This guide covers the current macOS desktop app. Mobile apps and an
+installable on-premise web app are planned separately.
 
 ## System requirements
 
@@ -76,10 +79,9 @@ After this the app launches normally — just double-click.
 
 ## First use
 
-On first launch you'll see the sign-in screen. Since this is a fresh
-install with no user yet, click **"No account? Register"** and provide
-an email and password. Registration happens locally in the embedded
-SQLite database — no external API is contacted.
+On first launch you'll see the setup screen. Add a display name and
+username to create the first local profile. This happens in the embedded
+SQLite database — no hosted account is created.
 
 ## Where is the data stored?
 
@@ -89,7 +91,7 @@ SQLite database — no external API is contacted.
 
 This is a standard SQLite file. To back up your data, copy this file —
 it contains all your time entries, projects, clients, tags, and user
-accounts.
+profile.
 
 ## Verifying the SHA256 manually
 
@@ -116,7 +118,7 @@ rm -rf "$HOME/Library/Application Support/app.getanimo.timetracker"
 ```
 
 The second command **permanently deletes all your time entries, projects,
-clients, and user data**. Only run it if you really want to discard
+clients, tags, and local profile data**. Only run it if you really want to discard
 everything.
 
 ## Troubleshooting

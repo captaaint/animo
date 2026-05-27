@@ -84,7 +84,7 @@ EOF
 LEAK_FOUND=0
 while IFS= read -r pat; do
   [ -z "$pat" ] && continue
-  if git diff --cached -U0 | grep -E "^\+" | grep -qE "$pat"; then
+  if git diff --cached -U0 | grep -E "^\+" | grep -qE -- "$pat"; then
     fail "potential secret in staged content: pattern matched: $pat"
     LEAK_FOUND=1
   fi

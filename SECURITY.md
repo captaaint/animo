@@ -59,10 +59,11 @@ Out of scope:
 
 ## Hardening recommendations for operators
 
-Animo is an on-prem app. When deploying `animo-api` outside of localhost:
+Animo is a local-first app. When deploying `animo-api` outside of localhost:
 
 - Always serve behind TLS (e.g. via a reverse proxy like Caddy or nginx)
-- Set a strong JWT secret in the API config; never use the default
+- Bind the API to a private interface unless you intentionally want LAN access
+- Restrict `CORS_ORIGINS` to the exact frontend origins you serve
 - Keep the SQLite database file off network shares
 - Run the API as a non-root user with restricted filesystem access
 - Apply OS updates promptly — Animo relies on the system's TLS stack

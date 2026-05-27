@@ -1,29 +1,27 @@
 # Contributing to Animo
 
-Thanks for your interest. Animo is currently in a **private preview**
-phase — the repo will be made public soon, and broader community
-contribution is welcome at that point. Until then, this document
-captures the conventions I already follow internally so the public
-opening is a smooth transition.
+Thanks for your interest in Animo. This document captures the project
+conventions so issues, discussions, and pull requests stay easy to review.
 
 ## Status
 
-- **Repo visibility:** private (going public — see project board)
+- **Repo visibility:** public
 - **Stability:** alpha; breaking changes can happen on any release
+- **Product focus:** desktop app first; mobile apps and on-premise web app
+  packaging are planned
 - **Issue tracking:** GitHub Issues
 - **Discussion:** open an issue with the `discussion` label
 
 ## Reporting bugs
 
-Open a GitHub Issue using the **Bug report** template (when public).
-Until then, include:
+Open a GitHub Issue using the **Bug report** template. Include:
 
-- Animo version (footer of the web app, or `Animo > About` in the desktop app)
+- Animo version (Settings, the download filename, or the issue template field)
 - Platform (macOS / Linux / Windows + version)
 - Reproduction steps
 - Expected vs. actual behaviour
-- Relevant logs (`~/Library/Application Support/animo/` on macOS,
-  XDG equivalent on Linux, `%APPDATA%\animo\` on Windows)
+- Relevant logs from launching the app binary in a terminal; see
+  `docs/install-*.md` troubleshooting sections
 
 ## Requesting features
 
@@ -34,7 +32,7 @@ Describe the user-facing problem before proposing a solution.
 
 ### Prerequisites
 
-- Node.js 20+ (for `web/` and tooling)
+- Node.js 20+ (for `app/`, `website/`, and tooling)
 - Rust toolchain (stable, for `api/` and `desktop/`)
 - macOS / Linux / Windows — all platforms supported
 
@@ -42,9 +40,12 @@ Describe the user-facing problem before proposing a solution.
 
 ```text
 animo/
-├── web/         # XMLUI SPA (Vite + XMLUI standalone)
+├── app/         # XMLUI app (Vite + XMLUI standalone)
+├── extensions/  # shared XMLUI extension package(s)
+├── website/     # marketing/download site
+├── demo/        # static demo build wrapper
 ├── api/         # Rust HTTP API (axum + SQLite)
-├── desktop/    # Tauri 2.x shell wrapping the web build
+├── desktop/     # Tauri 2.x shell wrapping the app build
 ├── e2e/        # Playwright end-to-end tests
 └── scripts/    # release & maintenance scripts
 ```
@@ -61,8 +62,9 @@ hook runs locally. It's idempotent — re-running is safe.
 ### Running locally
 
 ```bash
-npm run dev          # API + Web dev servers concurrently
-npm run dev:demo     # Web only, with bundled demo data (no API)
+npm run dev          # API + app dev servers concurrently
+npm run dev:demo     # API + app dev servers against demo.db
+npm run app:demo     # app dev server with bundled demo data (no API)
 npm run tauri:dev    # Desktop shell (Tauri webview)
 ```
 

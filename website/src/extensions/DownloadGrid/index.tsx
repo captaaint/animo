@@ -1,5 +1,5 @@
 import { createComponentRenderer, createMetadata } from "xmlui";
-import { DownloadGrid } from "./DownloadGrid";
+import { DownloadGrid, ReleaseVersion } from "./DownloadGrid";
 
 const metadata = createMetadata({
   status: "experimental",
@@ -34,7 +34,53 @@ export const downloadGridRenderer = createComponentRenderer(
   },
 );
 
+const releaseVersionMetadata = createMetadata({
+  status: "experimental",
+  description:
+    "Renders the latest release version from the same downloads manifest used by DownloadGrid.",
+  props: {
+    manifestUrl: {
+      description:
+        "URL of the JSON manifest listing the current version. Defaults to `/downloads/manifest.json`.",
+      valueType: "string",
+    },
+    prefix: {
+      description: "Text prepended to the version. Defaults to `v`.",
+      valueType: "string",
+    },
+    loadingLabel: {
+      description: "Text shown while the release manifest is loading.",
+      valueType: "string",
+    },
+    errorLabel: {
+      description: "Text shown if the release manifest cannot be loaded.",
+      valueType: "string",
+    },
+  },
+});
+
+export const releaseVersionRenderer = createComponentRenderer(
+  "ReleaseVersion",
+  releaseVersionMetadata,
+  (rendererContext) => {
+    const { node, extractValue, classes } = rendererContext;
+    const manifestUrl = extractValue.asOptionalString(node.props?.manifestUrl);
+    const prefix = extractValue.asOptionalString(node.props?.prefix);
+    const loadingLabel = extractValue.asOptionalString(node.props?.loadingLabel);
+    const errorLabel = extractValue.asOptionalString(node.props?.errorLabel);
+    return (
+      <ReleaseVersion
+        className={classes?.["default-part"]}
+        manifestUrl={manifestUrl || undefined}
+        prefix={prefix || undefined}
+        loadingLabel={loadingLabel || undefined}
+        errorLabel={errorLabel || undefined}
+      />
+    );
+  },
+);
+
 export default {
   namespace: "XMLUIExtensions",
-  components: [downloadGridRenderer],
+  components: [downloadGridRenderer, releaseVersionRenderer],
 };

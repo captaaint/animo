@@ -12,7 +12,7 @@ export const TURNSTILE_SITE_KEY =
 
 const App: StandaloneAppDescription = {
   name: "Animo",
-  version: "0.1.0",
+  version: import.meta.env.VITE_ANIMO_VERSION || "0.2.2",
   themes: [TrackerTheme],
   defaultTheme: "tracker-theme",
   appGlobals: {

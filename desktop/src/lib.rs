@@ -33,8 +33,6 @@ use tauri::{Manager, State};
 
 use crate::tray::{StopwatchSnapshot, StopwatchStateMutex, TrayHandle};
 
-const UPDATER_PUBKEY_ENV: &str = "TAURI_UPDATER_PUBKEY";
-
 /// Port assigned to the embedded axum server at startup. Exposed to the
 /// webview via the [`api_base`] command so the XMLUI frontend can build its
 /// `apiBase` global without hard-coding a port at compile time.
@@ -76,12 +74,8 @@ fn bootstrap_data_dir(data_dir: &std::path::Path) -> anyhow::Result<()> {
 
 #[tauri::command]
 fn api_base(port: State<'_, ApiPort>) -> String {
-    // Use `localhost`, not `127.0.0.1`. The webview lives at
-    // `http://localhost:5173` (dev) or `tauri://localhost` (release), and
-    // WKWebView's ITP treats `127.0.0.1` as a different site — it silently
-    // drops the `Set-Cookie` from the login response, so the session never
-    // sticks. With `localhost` on both sides the cookie is same-site and
-    // survives subsequent fetches. The listener still binds on 127.0.0.1
+    // Use `localhost`, not `127.0.0.1`, so the webview and embedded API stay
+    // same-site in dev and release. The listener still binds on 127.0.0.1
     // (see `Config::for_desktop`); `localhost` resolves to the same loopback
     // interface.
     format!("http://localhost:{}/api", port.0)
@@ -111,13 +105,8 @@ pub fn run() {
         .setup(|app| {
             #[cfg(desktop)]
             {
-                let mut updater = tauri_plugin_updater::Builder::new();
-                if let Some(pubkey) = updater_pubkey() {
-                    updater = updater.pubkey(pubkey);
-                } else {
-                    tracing::warn!("{UPDATER_PUBKEY_ENV} is not set; updater signature verification will use the placeholder config key");
-                }
-                app.handle().plugin(updater.build())?;
+                app.handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())?;
             }
 
             let data_dir = app
@@ -192,11 +181,4 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![api_base, tray::update_tray_state])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-fn updater_pubkey() -> Option<String> {
-    std::env::var(UPDATER_PUBKEY_ENV)
-        .ok()
-        .map(|value| value.trim().trim_end_matches('%').to_string())
-        .filter(|value| !value.is_empty())
 }
