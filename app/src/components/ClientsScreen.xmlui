@@ -67,7 +67,7 @@
       />
     </HStack>
 
-    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4" borderRadius="16px">
+    <Card when="{!vp.value || !vp.value.isMobile}" padding="$space-4">
       <Table
         data="{clientsDs.value || []}"
         when="{(clientsDs.value || []).length > 0}"
@@ -155,7 +155,6 @@
         when="{(clientsDs.value || []).length > 0}"
         padding="$space-2"
         width="100%"
-        borderRadius="16px"
       >
         <Items data="{clientsDs.value || []}">
           <VStack gap="0">
@@ -202,7 +201,6 @@
         when="{clientsDs.loaded && (clientsDs.value || []).length === 0}"
         padding="$space-2"
         width="100%"
-        borderRadius="16px"
       >
         <Stack
           horizontalAlignment="center"

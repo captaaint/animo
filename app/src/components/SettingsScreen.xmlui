@@ -267,7 +267,6 @@
             when="{updateAvailable}"
             padding="$space-3"
             backgroundColor="$color-primary-50"
-            borderRadius="8px"
           >
             <VStack gap="$space-2" width="100%">
               <Text fontWeight="600">Update available: v{updateLatestVersion}</Text>

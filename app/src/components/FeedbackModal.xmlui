@@ -147,7 +147,6 @@
         <Card
           when="{diagnosticsOptIn}"
           padding="$space-3"
-          borderRadius="8px"
           backgroundColor="$color-surface-50"
         >
           <VStack gap="$space-2" width="100%">

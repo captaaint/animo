@@ -19,7 +19,7 @@
     onError="() => { toast.error('Update failed'); pendingUpdate = null; }"
   />
 
-  <Card padding="0">
+  <Card padding="0" overflowX="hidden" overflowY="hidden">
     <WeekCalendar
       entries="{$props.entries || []}"
       projects="{$props.projects || []}"

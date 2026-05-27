@@ -121,7 +121,7 @@
     </property>
 
     <VStack width="100%" gap="$space-3">
-      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack gap="$space-2" width="100%">
           <Text fontWeight="500" color="$color-surface-900">
             What did you work on?
@@ -144,7 +144,7 @@
         </VStack>
       </Card>
 
-      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack width="100%" gap="$space-3">
           <VStack gap="$space-2" width="100%">
             <Text fontWeight="500" color="$color-surface-900">Project</Text>
@@ -188,7 +188,7 @@
         </VStack>
       </Card>
 
-      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack gap="$space-3" width="100%">
           <Text fontWeight="500" color="$color-surface-900">Time</Text>
           <HStack gap="$space-3" width="100%" verticalAlignment="end">
@@ -252,7 +252,7 @@
         </VStack>
       </Card>
 
-      <Card padding="$space-4" borderRadius="16px" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack width="100%" gap="$space-3">
           <VStack gap="$space-2" width="100%">
             <Text fontWeight="500" color="$color-surface-900">Date</Text>
