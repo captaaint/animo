@@ -36,12 +36,11 @@ NODE_VERSION = "20"
 # Disable Netlify's auto-trigger for production deploys. Netlify's
 # production branch is `main` (set in the Netlify dashboard, not here);
 # pushes to main from PR merges therefore do not auto-deploy. The only
-# legitimate production deploy path is the build hook fired by
-# .github/workflows/release-published.yml when a GitHub release is
-# published — that step refreshes the /download page with the new release
-# artifacts. Build hooks bypass `ignore` per Netlify docs, so they still
-# trigger normally. Deploy Previews (PRs) are unaffected — they run in
-# the deploy-preview context, which has no ignore override.
+# legitimate production deploy path is `.github/workflows/release.yml`'s
+# `publish-manifest` job, which builds with the release version and
+# GitHub token so `/download` metadata is regenerated from the release
+# assets. Deploy Previews (PRs) are unaffected — they run in the
+# deploy-preview context, which has no ignore override.
 [context.production.build]
   ignore = "exit 0"
 
