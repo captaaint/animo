@@ -9,7 +9,7 @@
   var.lastChecked="{window.animoUpdateLastChecked ? window.animoUpdateLastChecked() : null}"
   var.checkingForUpdates="{false}"
   var.updateStatusMessage="{''}"
-  var.updateStatusIsError="{false}"
+  var.updateStatusTone="{'ok'}"
   var.updateAvailable="{false}"
   var.updateLatestVersion="{''}"
   var.updateReleaseNotes="{''}"
@@ -220,12 +220,12 @@
               onClick="() => {
                 if (!window.animoUpdateCheck) {
                   updateStatusMessage = 'Updater is only available in the desktop app.';
-                  updateStatusIsError = true;
+                  updateStatusTone = 'error';
                   return;
                 }
                 checkingForUpdates = true;
                 updateStatusMessage = '';
-                updateStatusIsError = false;
+                updateStatusTone = 'ok';
                 updateAvailable = false;
                 updateReadyToInstall = false;
                 window.animoUpdateCheck(
@@ -239,16 +239,16 @@
                       updateStatusMessage = '';
                     } else if (info && info.error) {
                       updateStatusMessage = info.error;
-                      updateStatusIsError = true;
+                      updateStatusTone = info.status || 'error';
                     } else {
                       updateStatusMessage = 'Animo is up to date.';
-                      updateStatusIsError = false;
+                      updateStatusTone = 'ok';
                     }
                   },
                   (message) => {
                     checkingForUpdates = false;
                     updateStatusMessage = message || 'Update check failed.';
-                    updateStatusIsError = true;
+                    updateStatusTone = 'error';
                   }
                 );
               }"
@@ -257,7 +257,7 @@
 
           <Text
             when="{updateStatusMessage}"
-            color="{updateStatusIsError ? '$color-danger-700' : '$color-success-700'}"
+            color="{updateStatusTone === 'error' ? '$color-danger-700' : (updateStatusTone === 'warning' ? '$color-surface-700' : '$color-success-700')}"
             fontSize="$fontSize-small"
           >
             {updateStatusMessage}
@@ -288,7 +288,7 @@
                   onClick="() => {
                     if (!window.animoUpdateDownload) {
                       updateStatusMessage = 'Updater is only available in the desktop app.';
-                      updateStatusIsError = true;
+                      updateStatusTone = 'error';
                       return;
                     }
                     updateDownloading = true;
@@ -302,7 +302,7 @@
                           updateReadyToInstall = true;
                         } else {
                           updateStatusMessage = result && result.error ? result.error : 'Download failed';
-                          updateStatusIsError = true;
+                          updateStatusTone = 'error';
                         }
                       }
                     );

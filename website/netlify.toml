@@ -45,14 +45,45 @@ NODE_VERSION = "20"
 [context.production.build]
   ignore = "exit 0"
 
+# HTML shells should revalidate on every visit so SSG pages do not keep
+# stale release/version markup after a production deploy.
+[[headers]]
+for = "/*.html"
+  [headers.values]
+  Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/"
+  [headers.values]
+  Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/download"
+  [headers.values]
+  Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+for = "/downloads/manifest.json"
+  [headers.values]
+  Access-Control-Allow-Origin = "*"
+  Cache-Control = "no-store"
+  Content-Type = "application/json; charset=utf-8"
+
 # Tauri updater manifest. Cache for 5 minutes so a fresh release reaches
 # desktop clients within one polling window without hammering the CDN.
 # `must-revalidate` keeps stale manifests from being served after expiry.
 [[headers]]
 for = "/updates/*.json"
   [headers.values]
+  Access-Control-Allow-Origin = "*"
   Cache-Control = "public, max-age=300, must-revalidate"
   Content-Type = "application/json; charset=utf-8"
+
+# Feedback API endpoint used by the desktop app.
+[[redirects]]
+from = "/api/feedback"
+status = 200
+to = "/.netlify/functions/feedback"
 
 # SPA fallback for website routes.
 [[redirects]]

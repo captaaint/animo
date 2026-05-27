@@ -21,6 +21,7 @@ export type UpdateInfo = {
   currentVersion: string;
   latestVersion?: string;
   releaseNotes?: string;
+  status?: "ok" | "warning" | "error";
   error?: string;
 };
 
@@ -112,6 +113,7 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
         return {
           available: false,
           currentVersion,
+          status: "warning",
           error: manifestRead.message,
         };
       }
@@ -137,6 +139,7 @@ export async function checkForUpdates(): Promise<UpdateInfo> {
   return {
     available: false,
     currentVersion,
+    status: errorStatus(lastError),
     error: errorMessage(lastError, "Update check failed."),
   };
 }
@@ -192,10 +195,16 @@ function errorMessage(error: unknown, fallback: string): string {
   const message =
     error instanceof Error && error.message ? error.message : typeof error === "string" ? error : "";
   if (message.includes("None of the fallback platforms")) {
-    return "No signed desktop update is published for this Mac yet. The installed version can still be current.";
+    return "No installable desktop update is published for this Mac. Animo may already be up to date.";
   }
   if (message) return message;
   return fallback;
+}
+
+function errorStatus(error: unknown): "warning" | "error" {
+  const message =
+    error instanceof Error && error.message ? error.message : typeof error === "string" ? error : "";
+  return message.includes("None of the fallback platforms") ? "warning" : "error";
 }
 
 async function readManifestStatus(

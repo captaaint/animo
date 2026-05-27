@@ -110,6 +110,15 @@ function joinUrl(base: string, file: string): string {
   return `${trimmed}${suffix}`;
 }
 
+function cacheBustedUrl(url: string): string {
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}v=${Date.now()}`;
+}
+
+function manifestBaseUrl(url: string): string {
+  return url.replace(/[?#].*$/, "").replace(/\/manifest\.json$/i, "");
+}
+
 function cx(...classes: Array<string | false | null | undefined>): string {
   return classes.filter(Boolean).join(" ");
 }
@@ -152,7 +161,7 @@ export function DownloadGrid({ manifestUrl = "/downloads/manifest.json", classNa
 
   useEffect(() => {
     let cancelled = false;
-    fetch(manifestUrl, { cache: "no-cache" })
+    fetch(cacheBustedUrl(manifestUrl), { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return (await res.json()) as Manifest;
@@ -170,7 +179,7 @@ export function DownloadGrid({ manifestUrl = "/downloads/manifest.json", classNa
 
   const baseHref = useMemo(() => {
     if (!manifest) return null;
-    return manifestUrl.replace(/\/manifest\.json$/i, "");
+    return manifestBaseUrl(manifestUrl);
   }, [manifest, manifestUrl]);
 
   const version = manifest?.version ?? null;
@@ -253,7 +262,7 @@ export function ReleaseVersion({
 
   useEffect(() => {
     let cancelled = false;
-    fetch(manifestUrl, { cache: "no-cache" })
+    fetch(cacheBustedUrl(manifestUrl), { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return (await res.json()) as Manifest;
