@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.2.7] - 2026-05-27
+
 ### Added
 
 - feat(app): drop contact-email field from feedback form (5d68173)
@@ -215,7 +219,8 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - No code signing yet; macOS install requires manual Gatekeeper approval.
 - Single-user only at this stage; multi-tenant work deferred to a later release.
 
-[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.6...HEAD
+[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.7...HEAD
+[0.2.7]: https://github.com/captaaint/animo/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/captaaint/animo/compare/v0.2.5...v0.2.6
 [0.2.5]: https://github.com/captaaint/animo/compare/v0.2.4...v0.2.5
 [0.2.4]: https://github.com/captaaint/animo/compare/v0.2.3...v0.2.4
