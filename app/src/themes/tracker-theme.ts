@@ -252,6 +252,15 @@ export const TrackerTheme: ThemeDefinition = {
 
     // --- Drawer
     "maxWidth-Drawer": "100%",
+    // Size drawers against the *visible* viewport (dvh), not the large
+    // viewport (vh). On iOS Safari vh ignores the dynamic browser chrome, so a
+    // bottom drawer sized in vh overflows the visible area and its pinned
+    // header (with the save/delete buttons) gets pushed off-screen. dvh tracks
+    // the currently-visible height; while a modal drawer is open the page
+    // behind it is locked, so the toolbar doesn't toggle and dvh stays stable.
+    // Set here once so every current and future Drawer inherits the cap.
+    "height-Drawer": "auto",
+    "maxHeight-Drawer": "92dvh",
     "top-CloseButton": "$space-3",
     "right-CloseButton": "$space-3",
 

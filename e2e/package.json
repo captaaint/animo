@@ -8,7 +8,7 @@
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
     "report": "playwright show-report",
-    "install-browsers": "playwright install --with-deps chromium",
+    "install-browsers": "playwright install --with-deps chromium webkit",
     "watch-traces": "node scripts/watch-traces.mjs"
   },
   "devDependencies": {

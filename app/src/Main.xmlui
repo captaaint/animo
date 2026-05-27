@@ -105,7 +105,10 @@
 
   <NavPanel when="{localUser.value && localUser.value.kind === 'ready'}">
     <property name="footerTemplate">
-      <Stack width="100%">
+      <!-- Desktop only: the DropdownMenu popover renders behind the mobile nav
+           drawer (both portal to body at z-index auto, drawer mounts later), so
+           on mobile we expose Settings as a first-class NavLink instead. -->
+      <Stack width="100%" when="{!appVp.value || !appVp.value.isMobile}">
       <Theme
         textColor-Button-secondary-ghost="$textColor-NavLink"
         textColor-Button-secondary-ghost--hover="$textColor-NavLink--hover"
@@ -164,6 +167,17 @@
       <NavLink to="/clients" label="Clients" icon="users" />
       <NavLink to="/tags" label="Tags" icon="hash" />
       <NavLink to="/import" label="Import" icon="upload" />
+    </NavGroup>
+
+    <!-- Mobile only: Settings lives in the footer dropdown on desktop, but that
+         popover is hidden behind the nav drawer on mobile, so surface it here as
+         a direct, one-tap navigation item. -->
+    <NavGroup
+      label="Account"
+      initiallyExpanded="true"
+      when="{appVp.value && appVp.value.isMobile}"
+    >
+      <NavLink to="/settings" label="Settings" icon="cog" />
     </NavGroup>
   </NavPanel>
 

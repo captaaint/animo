@@ -7,8 +7,10 @@
       "Bash(cargo test:*)",
       "Bash(cargo fmt:*)",
       "mcp__task-master-ai__*",
+      "mcp__mempalace__*",
       "mcp__xmlui__*",
       "mcp__chrome__*",
+      "mcp__playwright__*",
       "mcp__context7__*"
     ]
   }

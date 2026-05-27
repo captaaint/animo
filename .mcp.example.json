@@ -19,6 +19,11 @@
 				"AZURE_OPENAI_API_KEY": "YOUR_AZURE_KEY_HERE",
 				"OLLAMA_API_KEY": "YOUR_OLLAMA_API_KEY_HERE"
 			}
+		},
+		"mempalace": {
+			"type": "stdio",
+			"command": "./scripts/mempalace-mcp.sh",
+			"args": []
 		}
 	}
 }

@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Fixed
+
+- fix(app): expose Settings as a mobile NavLink (dropdown hid behind nav drawer) (9d01906)
+- fix(app): stack Settings cards vertically on mobile so they don't overflow (fec428e)
+- fix(app): bump input font-size to 16px on touch devices to stop iOS auto-zoom (d26c04b)
+- fix(app): size drawers with dvh so mobile browser chrome can't hide the header (24dc214)
 
 ## [0.2.3] - 2026-05-27
 

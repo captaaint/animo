@@ -103,6 +103,16 @@ The web app is built with [XMLUI](https://xmlui.org). When touching `.xmlui` fil
 - **No raw browser JS** in event handlers (no `setTimeout`, `fetch` outside
   `DataSource`, no `async/await`) — stay within XMLUI abstractions
 
+## Mobile web UX
+
+The web UI ships to phones, where iOS Safari has its own quirks. Before changing
+inputs, drawers, navigation, or the viewport meta, read
+[docs/mobile-ux.md](docs/mobile-ux.md) — it documents the mobile fixes and the
+do/don't guidelines (≥16px inputs, `dvh`-sized drawers, no `user-scalable=no`,
+`Viewport`-based responsive `when`). Test mobile changes with the
+`mobile-safari` Playwright project and the manual checklist in
+[docs/mobile-testing.md](docs/mobile-testing.md).
+
 ## Coding style
 
 - **Rust** (`api/`, `desktop/`): `cargo fmt`, `cargo clippy -- -D warnings`
