@@ -596,17 +596,22 @@ jobs:
 
       - name: Publish website + manifest to Netlify
         if: steps.gate.outputs.skip != 'true'
-        working-directory: website
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
           npm install --no-audit --no-fund --silent --global netlify-cli@17
-          test -f dist-ssg/index.html
-          test -f dist-ssg/updates/latest.json
+          # `netlify deploy --filter` resolves --dir relative to the monorepo
+          # root (it loads website/netlify.toml via the filter, but the
+          # publish path is taken from the repo root), so --dir and the
+          # pre-flight checks must use the repo-root-relative path. Running
+          # from website/ with --dir=dist-ssg makes Netlify look for
+          # <root>/dist-ssg, which does not exist.
+          test -f website/dist-ssg/index.html
+          test -f website/dist-ssg/updates/latest.json
           netlify deploy --prod \
             --filter=animo-website \
-            --dir=dist-ssg \
+            --dir=website/dist-ssg \
             --site="$NETLIFY_SITE_ID" \
             --auth="$NETLIFY_AUTH_TOKEN" \
             --message="updater manifest for ${TAG}"
