@@ -5,6 +5,10 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
+# Local AI assistant / agent config (personal, not shared)
+.claude/
+.continue/
+
 # Env / secrets
 .env
 .env.*
