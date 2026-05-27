@@ -19,7 +19,8 @@
 //   }
 //
 // Supported targets (match Tauri target triples):
-//   darwin-aarch64, darwin-x86_64, linux-x86_64, windows-x86_64
+//   darwin-aarch64, darwin-aarch64-app, darwin-x86_64,
+//   darwin-x86_64-app, linux-x86_64, windows-x86_64
 //
 // Usage:
 //   node scripts/generate-update-manifest.mjs \
@@ -38,7 +39,9 @@ import { dirname, resolve } from "node:path";
 
 const SUPPORTED_TARGETS = new Set([
   "darwin-aarch64",
+  "darwin-aarch64-app",
   "darwin-x86_64",
+  "darwin-x86_64-app",
   "linux-x86_64",
   "windows-x86_64",
 ]);
