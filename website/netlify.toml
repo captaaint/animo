@@ -54,6 +54,12 @@ for = "/updates/*.json"
   Cache-Control = "public, max-age=300, must-revalidate"
   Content-Type = "application/json; charset=utf-8"
 
+# Feedback API endpoint used by the desktop app.
+[[redirects]]
+from = "/api/feedback"
+status = 200
+to = "/.netlify/functions/feedback"
+
 # SPA fallback for website routes.
 [[redirects]]
 from = "/*"
