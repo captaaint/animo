@@ -36,7 +36,7 @@ jobs:
       !github.event.forced &&
       github.actor != 'github-actions[bot]'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: dev
           fetch-depth: 0

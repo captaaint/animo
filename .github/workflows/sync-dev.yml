@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: dev
           fetch-depth: 0
@@ -29,7 +29,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # Re-embed the bot token into the remote URL. actions/checkout@v4
+          # Re-embed the bot token into the remote URL. actions/checkout@v5
           # sets this up by default, but it can get lost after fetches or
           # in certain runner configurations — producing "could not read
           # Username for github.com" when the persisted credential isn't
