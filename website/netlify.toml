@@ -51,6 +51,7 @@ NODE_VERSION = "20"
 [[headers]]
 for = "/updates/*.json"
   [headers.values]
+  Access-Control-Allow-Origin = "*"
   Cache-Control = "public, max-age=300, must-revalidate"
   Content-Type = "application/json; charset=utf-8"
 
