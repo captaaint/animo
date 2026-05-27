@@ -17,6 +17,7 @@ It guards the deterministic half of each fix:
 | Settings reachable | hamburger → `Settings` NavLink → `/settings` loads | Settings nav fix |
 | Input font-size | first `input` computes to ≥ 16px | iOS auto-zoom fix |
 | Drawer fits viewport | drawer panel stays within the viewport and the header close/save buttons are on screen | drawer height (dvh) fix |
+| Settings scrolls | the bottom card (Appearance) can be scrolled into view on a phone viewport | Settings mobile layout / page scroll |
 
 Run it locally (starts the API + app automatically via Playwright's `webServer`):
 
@@ -42,6 +43,10 @@ on the LAN.
 - [ ] An **Account → Settings** entry is visible inside the drawer.
 - [ ] Tapping it navigates to Settings in one gesture (no dropdown that opens
       behind the drawer).
+- [ ] On Settings, the cards stack vertically (Local profile → Profile →
+      Appearance) and the page **scrolls** to the bottom card — confirm in
+      landscape / on a short viewport where the content exceeds the screen, and
+      with the keyboard open while editing a field. The header stays pinned.
 - [ ] Portrait **and** landscape.
 
 ### 2. Input focus — no auto-zoom

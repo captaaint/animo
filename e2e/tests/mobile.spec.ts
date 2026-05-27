@@ -80,4 +80,20 @@ test.describe('mobile', () => {
       ).toBeLessThanOrEqual(vh + 1);
     }
   });
+
+  test('Settings scrolls so the bottom card is reachable on mobile', async ({
+    page,
+  }) => {
+    await page.goto('/settings');
+
+    // On a phone the Settings cards stack vertically and exceed the viewport,
+    // so the bottom card (Appearance) is only reachable by scrolling. The Theme
+    // picker is the only combobox on Settings. If the page were clipped instead
+    // of scrollable, scrollIntoViewIfNeeded couldn't reveal it and the
+    // toBeInViewport assertion would fail.
+    const themePicker = page.getByRole('combobox');
+    await expect(themePicker).toBeVisible();
+    await themePicker.scrollIntoViewIfNeeded();
+    await expect(themePicker).toBeInViewport();
+  });
 });

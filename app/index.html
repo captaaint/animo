@@ -3,7 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/resources/logo.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Mobile viewport. Deliberate choices:
+       - width=device-width, initial-scale=1: standard responsive baseline.
+       - NO user-scalable=no / maximum-scale: pinch-zoom stays available for
+         accessibility (the 16px input rule in the <style> below is what stops
+         iOS focus auto-zoom, not a locked viewport).
+       - interactive-widget=resizes-content: when the on-screen keyboard opens,
+         the layout viewport (and our dvh-sized drawers) shrinks, keeping a
+         focused field inside a drawer above the keyboard on supporting browsers
+         (no-op where unsupported, e.g. current iOS Safari).
+       - viewport-fit is intentionally left at the default (NOT cover): edge-to-
+         edge would push bottom-drawer content under the iOS home indicator
+         unless every surface added safe-area insets. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
   <title>Animo</title>
   <style>
     /* DatePicker / Select dropdown popovers shouldn't shrink to anchor width */
