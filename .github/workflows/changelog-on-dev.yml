@@ -8,8 +8,8 @@ name: Update CHANGELOG on dev
 #
 # Note: this workflow no longer triggers a Netlify deploy. Netlify's
 # production branch is `main`, and the only production deploy path is
-# `release-published.yml` firing the build hook when a GitHub release is
-# published — keeps deploy cadence tied to releases, not every dev push.
+# `release.yml`'s publish-manifest job after a versioned release build —
+# keeps deploy cadence tied to releases, not every dev push.
 
 on:
   push:
