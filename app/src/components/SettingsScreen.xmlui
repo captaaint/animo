@@ -37,15 +37,21 @@
   }"
   var.canSaveProfile="{!nameError && !usernameErrorMsg && profileDirty && !savingProfile}"
 >
-  <HStack
+  <Viewport id="vp" />
+
+  <!-- Two columns on desktop; on mobile the columns stack vertically so the
+       cards read top-to-bottom (Local profile -> Profile -> Appearance -> …)
+       instead of being squeezed side by side and overflowing. -->
+  <Stack
+    orientation="{vp.value && vp.value.isMobile ? 'vertical' : 'horizontal'}"
     width="*"
-    height="*"
+    height="{vp.value && vp.value.isMobile ? null : '*'}"
     gap="$space-4"
     padding="$space-4"
   >
 
     <!-- Left column: identity (Local profile + Profile) -->
-    <VStack width="*" height="*" gap="$space-4">
+    <VStack width="*" height="{vp.value && vp.value.isMobile ? null : '*'}" gap="$space-4">
 
       <Card padding="$space-4">
         <VStack gap="$space-3">
@@ -74,8 +80,8 @@
         </VStack>
       </Card>
 
-      <Card padding="$space-4" height="*">
-        <VStack gap="$space-3" height="*">
+      <Card padding="$space-4" height="{vp.value && vp.value.isMobile ? null : '*'}">
+        <VStack gap="$space-3" height="{vp.value && vp.value.isMobile ? null : '*'}">
           <Text variant="secondary" fontSize="$fontSize-small">Profile</Text>
           <ContentSeparator />
 
@@ -153,7 +159,7 @@
     </VStack>
 
     <!-- Right column: preferences (Appearance + Updates + Help & feedback) -->
-    <VStack width="*" height="*" gap="$space-4">
+    <VStack width="*" height="{vp.value && vp.value.isMobile ? null : '*'}" gap="$space-4">
 
       <Card padding="$space-4">
         <VStack gap="$space-3">
@@ -186,8 +192,8 @@
         </VStack>
       </Card>
 
-      <Card when="{isTauri && !isDemoMode}" padding="$space-4" height="*">
-        <VStack gap="$space-3" height="*">
+      <Card when="{isTauri && !isDemoMode}" padding="$space-4" height="{vp.value && vp.value.isMobile ? null : '*'}">
+        <VStack gap="$space-3" height="{vp.value && vp.value.isMobile ? null : '*'}">
           <HStack verticalAlignment="center" gap="$space-2">
             <Icon name="refresh" size="18px" />
             <Text variant="secondary" fontSize="$fontSize-small">Updates</Text>
@@ -370,6 +376,6 @@
 
     </VStack>
 
-  </HStack>
+  </Stack>
   <FeedbackModal id="feedbackModal" when="{!isDemoMode}" />
 </Component>
