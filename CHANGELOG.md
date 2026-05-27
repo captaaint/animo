@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.2.4] - 2026-05-27
+
 ### Fixed
 
 - fix(app): expose Settings as a mobile NavLink (dropdown hid behind nav drawer) (9d01906)
@@ -191,7 +195,8 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - No code signing yet; macOS install requires manual Gatekeeper approval.
 - Single-user only at this stage; multi-tenant work deferred to a later release.
 
-[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.3...HEAD
+[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.4...HEAD
+[0.2.4]: https://github.com/captaaint/animo/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/captaaint/animo/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/captaaint/animo/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/captaaint/animo/compare/v0.2.0...v0.2.1
