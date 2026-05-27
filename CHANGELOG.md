@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Fixed
+
+- fix(app): use whole-page scroll so the desktop list renders correctly
 
 ## [0.2.7] - 2026-05-27
 
