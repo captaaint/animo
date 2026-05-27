@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed feedback submission routing, updater status messaging, and stale website release metadata.
+- fix(app): refresh updater and website release metadata handling (e2b19ea)
 
 ## [0.2.5] - 2026-05-27
 
