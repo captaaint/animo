@@ -153,5 +153,16 @@
     ],
     "before": "Ignored local env files exist, including at least one real-looking provider API key and development secrets that should not survive a public-readiness pass.",
     "after": "Local env files are either removed from the working tree or reduced to safe placeholders, .gitignore continues to protect env material, and any exposed-looking keys are rotated outside the repo."
+  },
+  {
+    "id": "website-version-and-demo-link-refresh",
+    "files": [
+      "website/src/Main.xmlui",
+      "website/src/extensions/DownloadGrid/DownloadGrid.tsx",
+      "website/src/extensions/DownloadGrid/index.tsx",
+      "resources/worklist.json"
+    ],
+    "before": "The landing page hero shows a hard-coded version separate from the downloads manifest, and demo links navigate in the current tab.",
+    "after": "Landing and download pages read the displayed release version from the same downloads manifest, and all demo links open in a new browser tab."
   }
 ]

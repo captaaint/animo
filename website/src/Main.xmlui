@@ -21,7 +21,7 @@
             </Link>
             <SpaceFiller />
             <HStack when-md="true" gap="$space-7" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
             <Button
               label="Download"
@@ -103,7 +103,7 @@
                 size="md"
                 onClick="Actions.navigate('/download')"
               />
-              <Link to="https://demo.getanimo.app">
+              <Link to="https://demo.getanimo.app" target="_blank">
                 <Button
                   label="View Demo"
                   icon="external"
@@ -116,7 +116,7 @@
             </CenterRow>
 
             <CenterRow gap="$space-2" verticalAlignment="center">
-              <Text fontSize="12px" color="$color-subtle">v0.2.2</Text>
+              <Text fontSize="12px" color="$color-subtle"><ReleaseVersion /></Text>
               <Text fontSize="12px" color="$color-subtle">Open Source</Text>
               <Text fontSize="12px" color="$color-subtle">MIT License</Text>
             </CenterRow>
@@ -305,7 +305,7 @@
             </VStack>
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </HStack>
           </HStack>
@@ -320,7 +320,7 @@
             horizontalAlignment="center"
           >
             <VStack gap="$space-3" horizontalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
@@ -352,7 +352,7 @@
             </Link>
             <SpaceFiller />
             <HStack when-md="true" gap="$space-7" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text fontSize="14px" color="$color-muted">Demo</Text></Link>
             </HStack>
           </HStack>
         </Stack>
@@ -398,7 +398,7 @@
             </VStack>
             <SpaceFiller />
             <HStack gap="$space-6" verticalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </HStack>
           </HStack>
@@ -413,7 +413,7 @@
             horizontalAlignment="center"
           >
             <VStack gap="$space-3" horizontalAlignment="center">
-              <Link to="https://demo.getanimo.app"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
+              <Link to="https://demo.getanimo.app" target="_blank"><Text color="$color-muted" fontSize="13px">Demo</Text></Link>
               <Link to="/download"><Text color="$color-muted" fontSize="13px">Download</Text></Link>
             </VStack>
             <VStack gap="$space-2" horizontalAlignment="center">
