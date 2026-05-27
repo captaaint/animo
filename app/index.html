@@ -11,6 +11,22 @@
       min-width: 280px !important;
     }
 
+    /* iOS Safari auto-zooms the page whenever a focused form control has a
+       computed font-size below 16px. Our theme base is 13px (see
+       tracker-theme.ts), so every text input/textarea/select triggers that
+       zoom on focus. Bump the underlying native controls to 16px on touch
+       devices only — desktop keeps the 13px look, and because we don't touch
+       the viewport meta tag, pinch-zoom stays available. Checkbox/radio/range
+       are excluded (they don't trigger the zoom and font-size can affect their
+       sizing). */
+    @media (pointer: coarse) {
+      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+      textarea,
+      select {
+        font-size: 16px !important;
+      }
+    }
+
     /* Mobile: hide the brand logo (Animo) in the AppHeader.
        It still appears inside the mobile drawer (NavPanel), which is rendered
        outside [role="banner"], so it remains unaffected. */
