@@ -144,8 +144,12 @@ export async function submitFeedback(draft: FeedbackDraft): Promise<FeedbackResu
     return { ok: false, error: "Title and description are required." };
   }
 
+  // Web submissions need a Turnstile token. Skip it for the desktop app
+  // (the function exempts the bundled desktop origin) and for dev builds,
+  // where the request is answered by the local feedback sink (see
+  // app/src/helpers/feedbackDevSink.ts) rather than the real endpoint.
   let turnstileToken: string | undefined;
-  if (!isDesktopRuntime()) {
+  if (!isDesktopRuntime() && !import.meta.env.DEV) {
     try {
       turnstileToken = await getTurnstileToken();
     } catch (error) {

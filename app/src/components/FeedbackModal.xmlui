@@ -60,8 +60,8 @@
   }"
 >
   <ModalDialog id="modal"
-    title="Send feedback"
-    maxWidth="720px"
+
+    maxWidth="460px"
     padding="$space-4"
     borderRadius="16px"
     closeButtonVisible="true"
@@ -180,14 +180,56 @@
         </Text>
       </VStack>
 
-      <VStack when="{successIssueUrl}" gap="$space-3" width="100%">
-        <Text fontWeight="600" color="$color-success-700">Feedback sent</Text>
-        <Text variant="secondary">
-          Thanks. The issue was created successfully.
-        </Text>
-        <Text when="{successIssueUrl}" fontSize="$fontSize-small">
-          {successIssueUrl}
-        </Text>
+      <VStack
+        when="{successIssueUrl}"
+        gap="$space-5"
+        width="100%"
+        horizontalAlignment="center"
+        paddingVertical="$space-6"
+      >
+        <Stack
+          width="72px"
+          height="72px"
+          borderRadius="50%"
+          backgroundColor="$color-success-100"
+          color="$color-success-600"
+          horizontalAlignment="center"
+          verticalAlignment="center"
+        >
+          <Icon name="checkmark" size="lg" />
+        </Stack>
+
+        <VStack gap="$space-1" width="100%" horizontalAlignment="center">
+          <Text
+            fontSize="$fontSize-2xl"
+            fontWeight="700"
+            color="$color-success-700"
+            textAlign="center"
+          >
+            Feedback sent
+          </Text>
+          <Text color="$color-surface-500" textAlign="center">
+            Thanks — your issue was created successfully.
+          </Text>
+        </VStack>
+
+        <HStack
+          width="100%"
+          gap="$space-3"
+          verticalAlignment="center"
+          padding="$space-3"
+          backgroundColor="$color-surface-50"
+          border="1px solid $color-surface-200"
+          borderRadius="10px"
+        >
+          <Icon name="github" size="sm" color="$color-surface-900" />
+          <Text width="*" maxLines="1" color="$color-surface-700">
+            {successIssueUrl}
+          </Text>
+          <Link to="{successIssueUrl}" target="_blank">
+            <Icon name="hyperlink" size="sm" color="$color-success-600" />
+          </Link>
+        </HStack>
       </VStack>
 
       <HStack width="100%" verticalAlignment="center" gap="$space-3">
@@ -202,7 +244,7 @@
         <SpaceFiller />
         <Button
           when="{successIssueUrl}"
-          label="Close"
+          label="Done"
           themeColor="primary"
           onClick="modal.close()"
         />
