@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): show feedback form in demo mode (2728659)
+
+### Fixed
+
+- fix(desktop): never seed the installed app DB during dev runs (44e356b)
 
 ## [0.2.8] - 2026-05-27
 
