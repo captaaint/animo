@@ -1,6 +1,6 @@
 [package]
 name = "animo-desktop"
-version = "0.2.8"
+version = "0.2.9"
 edition = "2021"
 description = "Animo desktop shell (Tauri 2 + embedded axum)"
 

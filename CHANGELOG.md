@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.2.9] - 2026-05-29
+
 ### Added
 
 - feat(app): show feedback form in demo mode (2728659)
@@ -232,7 +236,8 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - No code signing yet; macOS install requires manual Gatekeeper approval.
 - Single-user only at this stage; multi-tenant work deferred to a later release.
 
-[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.8...HEAD
+[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.9...HEAD
+[0.2.9]: https://github.com/captaaint/animo/compare/v0.2.8...v0.2.9
 [0.2.8]: https://github.com/captaaint/animo/compare/v0.2.7...v0.2.8
 [0.2.7]: https://github.com/captaaint/animo/compare/v0.2.6...v0.2.7
 [0.2.6]: https://github.com/captaaint/animo/compare/v0.2.5...v0.2.6
