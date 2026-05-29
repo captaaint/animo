@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): redesign feedback result modal and add a local dev feedback sink (7769dc5)
 
 ## [0.2.9] - 2026-05-29
 
