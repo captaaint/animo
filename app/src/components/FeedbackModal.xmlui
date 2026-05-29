@@ -164,7 +164,7 @@
               width="100%"
               rows="12"
               readOnly="true"
-              value="{diagnosticsPreview || 'Collecting diagnostics...'}"
+              initialValue="{diagnosticsPreview || 'Collecting diagnostics...'}"
               fontFamily="monospace"
               fontSize="$fontSize-xs"
             />
