@@ -296,6 +296,7 @@ export const TrackerTheme: ThemeDefinition = {
         "projects-empty-list": "resources/projects-empty-list-light.svg",
         "tags-empty-list": "resources/tags-empty-list-light.svg",
         "time-entries-empty-list": "resources/time-entries-empty-list-light.svg",
+        "feedback-success": "resources/feedback-success-light.svg",
       },
       themeVars: {
         // Header picker popovers (project + tag) sit on Mist so they
@@ -311,6 +312,7 @@ export const TrackerTheme: ThemeDefinition = {
         "projects-empty-list": "resources/projects-empty-list-dark.svg",
         "tags-empty-list": "resources/tags-empty-list.svg",
         "time-entries-empty-list": "resources/time-entries-empty-list.svg",
+        "feedback-success": "resources/feedback-success-dark.svg",
       },
       themeVars: {
         backgroundColor: "#0A0C0F",
@@ -400,6 +402,7 @@ export const TrackerTheme: ThemeDefinition = {
   },
   resources: {
     "time-entries-empty-list": "resources/time-entries-empty-list.svg",
+    "feedback-success": "resources/feedback-success-light.svg",
   },
 };
 

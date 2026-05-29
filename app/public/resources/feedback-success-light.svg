@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <!-- Transparent background -->
+  <circle cx="128" cy="128" r="84" fill="#EAF3F1" fill-opacity="0.92"/>
+  <circle cx="128" cy="128" r="52" stroke="#3F8F8C" stroke-width="3"/>
+  <path d="M104 128.5L120.5 145L152 113.5" stroke="#3F8F8C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Sparkles -->
+  <path d="M47 148 L51 152 L55 148 L51 144 Z" fill="#D5E7E3"/>
+  <path d="M51 141 V155" stroke="#D5E7E3" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M44 148 H58" stroke="#D5E7E3" stroke-width="2.4" stroke-linecap="round"/>
+
+  <path d="M74 108 L77 111 L80 108 L77 105 Z" fill="#DDEFEA"/>
+  <path d="M77 101 V115" stroke="#DDEFEA" stroke-width="2.1" stroke-linecap="round"/>
+  <path d="M70 108 H84" stroke="#DDEFEA" stroke-width="2.1" stroke-linecap="round"/>
+
+  <path d="M205 99 L209 103 L213 99 L209 95 Z" fill="#D5E7E3"/>
+  <path d="M209 92 V106" stroke="#D5E7E3" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M202 99 H216" stroke="#D5E7E3" stroke-width="2.4" stroke-linecap="round"/>
+
+  <path d="M223 121 L226 124 L229 121 L226 118 Z" fill="#E4F3EF"/>
+  <path d="M226 115 V127" stroke="#E4F3EF" stroke-width="1.9" stroke-linecap="round"/>
+  <path d="M220 121 H232" stroke="#E4F3EF" stroke-width="1.9" stroke-linecap="round"/>
+</svg>

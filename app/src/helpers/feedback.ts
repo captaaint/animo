@@ -1,5 +1,5 @@
 import { FEEDBACK_ENDPOINT, TURNSTILE_SITE_KEY } from "../config";
-import { collectDiagnostics, type Diagnostics } from "./diagnostics";
+import { collectDiagnostics, collectDiagnosticsSync, type Diagnostics } from "./diagnostics";
 
 export type FeedbackCategory = "bug" | "feature" | "question";
 
@@ -50,7 +50,7 @@ declare global {
     animoFeedbackLoadDraft?: () => FeedbackDraft | null;
     animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
     animoFeedbackCollectDiagnostics?: () => Promise<Diagnostics>;
-    animoFeedbackBuildPreview?: (draft: FeedbackDraft) => Promise<string>;
+    animoFeedbackBuildPreview?: (draft: FeedbackDraft) => string;
     animoFeedbackSubmit?: (
       draft: FeedbackDraft,
       onSuccess: (result: FeedbackResult) => void,
@@ -127,15 +127,12 @@ export async function buildFeedbackPayload(
   return payload;
 }
 
-export async function buildFeedbackPreview(draft: FeedbackDraft): Promise<string> {
-  const payload = await buildFeedbackPayload(
-    {
-      ...draft,
-      diagnostics_opt_in: true,
-    },
-    undefined,
-  );
-  return JSON.stringify(payload.diagnostics || {}, null, 2);
+// Synchronous so the XMLUI caller can assign the result to reactive state
+// directly (an awaited/Promise result only updates state from an event
+// handler, not from a method). The preview only needs the diagnostics block,
+// which collectDiagnosticsSync produces without any async work.
+export function buildFeedbackPreview(_draft: FeedbackDraft): string {
+  return JSON.stringify(collectDiagnosticsSync(), null, 2);
 }
 
 export async function submitFeedback(draft: FeedbackDraft): Promise<FeedbackResult> {
@@ -144,8 +141,12 @@ export async function submitFeedback(draft: FeedbackDraft): Promise<FeedbackResu
     return { ok: false, error: "Title and description are required." };
   }
 
+  // Web submissions need a Turnstile token. Skip it for the desktop app
+  // (the function exempts the bundled desktop origin) and for dev builds,
+  // where the request is answered by the local feedback sink (see
+  // app/src/helpers/feedbackDevSink.ts) rather than the real endpoint.
   let turnstileToken: string | undefined;
-  if (!isDesktopRuntime()) {
+  if (!isDesktopRuntime() && !import.meta.env.DEV) {
     try {
       turnstileToken = await getTurnstileToken();
     } catch (error) {

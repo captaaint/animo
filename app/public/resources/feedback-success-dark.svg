@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none">
+  <!-- transparent background -->
+
+  <!-- soft halo -->
+  <circle cx="128" cy="128" r="72" fill="#3F8F8C" fill-opacity="0.14"/>
+
+  <!-- main badge without black -->
+  <circle cx="128" cy="128" r="48" fill="#1F4744" fill-opacity="0.96"/>
+  <circle cx="128" cy="128" r="47" stroke="#A7D0C9" stroke-opacity="0.98" stroke-width="2.5"/>
+
+  <!-- check -->
+  <path d="M108 128L122.5 142.5L149 116" stroke="#A7D0C9" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- sparkles -->
+  <g opacity="0.82">
+    <path d="M60 150C60 144.477 64.477 140 70 140C64.477 140 60 135.523 60 130C60 135.523 55.523 140 50 140C55.523 140 60 144.477 60 150Z" fill="#3F8F8C"/>
+  </g>
+  <g opacity="0.44">
+    <path d="M84 94C84 90.134 87.134 87 91 87C87.134 87 84 83.866 84 80C84 83.866 80.866 87 77 87C80.866 87 84 90.134 84 94Z" fill="#A7D0C9"/>
+  </g>
+  <g opacity="0.82">
+    <path d="M204 101C204 96.582 207.582 93 212 93C207.582 93 204 89.418 204 85C204 89.418 200.418 93 196 93C200.418 93 204 96.582 204 101Z" fill="#3F8F8C"/>
+  </g>
+  <g opacity="0.34">
+    <path d="M219 130C219 126.687 221.687 124 225 124C221.687 124 219 121.313 219 118C219 121.313 216.313 124 213 124C216.313 124 219 126.687 219 130Z" fill="#A7D0C9"/>
+  </g>
+</svg>

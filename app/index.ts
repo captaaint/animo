@@ -45,6 +45,14 @@ async function resolveApiBase(): Promise<string> {
 }
 
 async function boot() {
+  // Dev builds: install the local feedback sink BEFORE the demo API so the
+  // feedback POST is captured locally instead of hitting the production
+  // function (which blocks localhost origins via CORS) — no real GitHub
+  // issues from local testing. No-op in production/preview builds.
+  if (import.meta.env.DEV) {
+    const { installFeedbackDevSink } = await import("./src/helpers/feedbackDevSink");
+    installFeedbackDevSink();
+  }
   // Demo build: install the in-browser /api/* fetch handler BEFORE startApp.
   if (import.meta.env.VITE_ANIMO_DEMO === "true") {
     const { installDemoApi } = await import("./src/demoApi");
