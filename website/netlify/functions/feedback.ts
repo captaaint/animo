@@ -34,6 +34,10 @@ type ValidFeedbackPayload = {
 
 const ALLOWED_ORIGINS = new Set([
   "https://getanimo.app",
+  // The public demo runs on its own subdomain and posts feedback here
+  // cross-origin, so it must be allowlisted or the browser blocks the
+  // request with a CORS error before it ever reaches this function.
+  "https://demo.getanimo.app",
   "tauri://localhost",
   "http://tauri.localhost",
   "https://tauri.localhost",

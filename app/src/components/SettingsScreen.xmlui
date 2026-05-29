@@ -348,7 +348,7 @@
         </VStack>
       </Card>
 
-      <Card when="{!isDemoMode}" padding="$space-4">
+      <Card padding="$space-4">
         <VStack gap="$space-3">
           <HStack verticalAlignment="center" gap="$space-2">
             <Icon name="mail" size="18px" />
@@ -377,5 +377,5 @@
     </VStack>
 
   </Stack>
-  <FeedbackModal id="feedbackModal" when="{!isDemoMode}" />
+  <FeedbackModal id="feedbackModal" />
 </Component>

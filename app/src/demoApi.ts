@@ -824,7 +824,11 @@ export function installDemoApi() {
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     // Match relative `/api/...` and the absolute form some XMLUI internals use.
     const looksLikeApi = /(?:^|\/\/[^/]+)\/api\//.test(url);
-    if (!looksLikeApi) {
+    // Feedback must reach the real Netlify function even in the demo — reports
+    // from people clicking around the demo are valuable, so let the feedback
+    // POST bypass the mock and hit getanimo.app/api/feedback for real.
+    const isFeedback = /\/api\/feedback(?:[/?]|$)/.test(url);
+    if (!looksLikeApi || isFeedback) {
       return origFetch(input, init);
     }
     const method = (
