@@ -27,7 +27,6 @@ const App: StandaloneAppDescription = {
       "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap",
     "icon.clock": "resources/clock.svg",
     "icon.credit-card": "resources/credit-card.svg",
-    "icon.feedback-success": "resources/feedback-success.svg",
     "icon.file-text": "resources/file-text.svg",
     "icon.github": "resources/github.svg",
     "icon.timer": "resources/timer.svg",

@@ -151,7 +151,13 @@
         horizontalAlignment="center"
         paddingVertical="$space-6"
       >
-        <Icon name="feedback-success" width="120px" height="120px" />
+        <Image
+          src="resource:feedback-success"
+          alt="Feedback sent"
+          width="120px"
+          height="120px"
+          fit="contain"
+        />
 
         <VStack gap="$space-1" width="100%" horizontalAlignment="center">
           <Text
@@ -166,24 +172,6 @@
             Thanks — your issue was created successfully.
           </Text>
         </VStack>
-
-        <HStack
-          width="100%"
-          gap="$space-3"
-          verticalAlignment="center"
-          padding="$space-3"
-          backgroundColor="$color-surface-50"
-          border="1px solid $color-surface-200"
-          borderRadius="10px"
-          cursor="pointer"
-          onClick="() => { if (window.animoOpenExternal) window.animoOpenExternal(successIssueUrl); }"
-        >
-          <Icon name="github" size="sm" color="$color-surface-900" />
-          <Text width="*" maxLines="1" color="$color-surface-700">
-            {successIssueUrl}
-          </Text>
-          <Icon name="hyperlink" size="sm" color="$color-success-600" />
-        </HStack>
       </VStack>
 
       <HStack width="100%" verticalAlignment="center" gap="$space-3">
