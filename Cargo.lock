@@ -62,7 +62,7 @@ dependencies = [
 
 [[package]]
 name = "animo-api"
-version = "0.2.9"
+version = "0.2.10"
 dependencies = [
  "anyhow",
  "axum",
@@ -88,7 +88,7 @@ dependencies = [
 
 [[package]]
 name = "animo-desktop"
-version = "0.2.9"
+version = "0.2.10"
 dependencies = [
  "animo-api",
  "anyhow",
