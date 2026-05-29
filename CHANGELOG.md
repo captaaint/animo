@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - feat(app): redesign feedback result modal and add a local dev feedback sink (7769dc5)
+- feat(app): add a dark-tone variant of the feedback success icon (6b38c50)
 
 ## [0.2.9] - 2026-05-29
 
