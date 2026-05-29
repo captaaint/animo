@@ -617,19 +617,27 @@ jobs:
           # from website/ with --dir=dist-ssg makes Netlify look for
           # <root>/dist-ssg, which does not exist.
           #
-          # --functions must be passed explicitly for the same reason: this is
-          # a prebuilt "direct" deploy (Netlify's own build is disabled for the
-          # production context via netlify.toml's `ignore = "exit 0"`), so the
-          # CLI never auto-detects website/netlify/functions. Without this flag
-          # the feedback function is not uploaded, /api/feedback 404s, and the
-          # desktop app's POST fails CORS preflight → "Network error".
+          # --functions must be passed explicitly because this is a prebuilt
+          # "direct" deploy (Netlify's own build is disabled for the production
+          # context via netlify.toml's `ignore = "exit 0"`), so the CLI never
+          # auto-detects the functions folder. Without it the feedback function
+          # is not uploaded, /api/feedback 404s, and the desktop app's POST
+          # fails CORS preflight → "Network error".
+          #
+          # CAUTION: --dir and --functions are resolved against *different*
+          # bases when --filter is used. --dir is taken from the repo root
+          # (hence website/dist-ssg), but --functions is resolved relative to
+          # the filtered package's path (website/). Passing
+          # website/netlify/functions here yields website/website/netlify/...,
+          # which doesn't exist and the CLI silently skips functions. The
+          # correct value is therefore netlify/functions (package-relative).
           test -f website/dist-ssg/index.html
           test -f website/dist-ssg/updates/latest.json
           test -f website/netlify/functions/feedback.ts
           netlify deploy --prod \
             --filter=animo-website \
             --dir=website/dist-ssg \
-            --functions=website/netlify/functions \
+            --functions=netlify/functions \
             --site="$NETLIFY_SITE_ID" \
             --auth="$NETLIFY_AUTH_TOKEN" \
             --message="updater manifest for ${TAG}"
