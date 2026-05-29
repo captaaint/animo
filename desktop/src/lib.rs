@@ -113,6 +113,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
+        // Lets the frontend open external URLs (e.g. the created feedback
+        // issue) in the user's default browser instead of the app webview.
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             #[cfg(desktop)]
             {

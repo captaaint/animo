@@ -187,17 +187,7 @@
         horizontalAlignment="center"
         paddingVertical="$space-6"
       >
-        <Stack
-          width="72px"
-          height="72px"
-          borderRadius="50%"
-          backgroundColor="$color-success-100"
-          color="$color-success-600"
-          horizontalAlignment="center"
-          verticalAlignment="center"
-        >
-          <Icon name="checkmark" size="lg" />
-        </Stack>
+        <Icon name="feedback-success" width="120px" height="120px" />
 
         <VStack gap="$space-1" width="100%" horizontalAlignment="center">
           <Text
@@ -221,14 +211,14 @@
           backgroundColor="$color-surface-50"
           border="1px solid $color-surface-200"
           borderRadius="10px"
+          cursor="pointer"
+          onClick="() => { if (window.animoOpenExternal) window.animoOpenExternal(successIssueUrl); }"
         >
           <Icon name="github" size="sm" color="$color-surface-900" />
           <Text width="*" maxLines="1" color="$color-surface-700">
             {successIssueUrl}
           </Text>
-          <Link to="{successIssueUrl}" target="_blank">
-            <Icon name="hyperlink" size="sm" color="$color-success-600" />
-          </Link>
+          <Icon name="hyperlink" size="sm" color="$color-success-600" />
         </HStack>
       </VStack>
 
