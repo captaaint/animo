@@ -5,6 +5,7 @@
   global.pageTitle="{pageTitleFromPath(window.location.pathname)}"
   global.entriesTick="{0}"
   onDidNavigate="(to) => pageTitle = pageTitleFromPath(to)"
+  title="Animo - Time tracking for creatives"
 >
   <LocalUserGate id="localUser" apiBase="{apiBase}" />
   <Viewport id="appVp" />

@@ -6,9 +6,10 @@
   var.searchText="{''}"
   var.projectFilter="{[]}"
   var.tagFilter="{[]}"
+  var.filteredEntries="{applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)}"
   var.sliceBy="{'billable'}"
   var.exportFormat="{(window.localStorage && window.localStorage.getItem('animo:exportFormat')) || 'pdf'}"
-  var.distData="{((fe) => sliceBy === 'project' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const key = p ? String(p.id) : '__none__'; if (!acc[key]) acc[key] = { label: p ? p.name : 'No project', seconds: 0, color: p ? p.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'client' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const c = p ? (clientsDs.value || []).find(cc => cc.id === p.clientId) : null; const key = c ? String(c.id) : '__none__'; if (!acc[key]) acc[key] = { label: c ? c.name : 'No client', seconds: 0, color: c ? c.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'tag' ? fe.reduce((acc, e) => { const tags = tagsForIds(e.tagIds || [], tagsDs.value || []); if (tags.length === 0) { const ex = acc.find(a => a.label === 'No tag'); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: 'No tag', seconds: e.durationSeconds || 0, color: '#C2BDB7' }); } else { tags.forEach(t => { const ex = acc.find(a => a.label === t.name); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: t.name, seconds: e.durationSeconds || 0, color: t.color }); }); } return acc; }, []) : [{ label: 'Billable', seconds: sumBillableSeconds(fe) }, { label: 'Non-billable', seconds: sumDurationSeconds(fe) - sumBillableSeconds(fe) }])(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter))}"
+  var.distData="{((fe) => sliceBy === 'project' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const key = p ? String(p.id) : '__none__'; if (!acc[key]) acc[key] = { label: p ? p.name : 'No project', seconds: 0, color: p ? p.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'client' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const c = p ? (clientsDs.value || []).find(cc => cc.id === p.clientId) : null; const key = c ? String(c.id) : '__none__'; if (!acc[key]) acc[key] = { label: c ? c.name : 'No client', seconds: 0, color: c ? c.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'tag' ? fe.reduce((acc, e) => { const tags = tagsForIds(e.tagIds || [], tagsDs.value || []); if (tags.length === 0) { const ex = acc.find(a => a.label === 'No tag'); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: 'No tag', seconds: e.durationSeconds || 0, color: '#C2BDB7' }); } else { tags.forEach(t => { const ex = acc.find(a => a.label === t.name); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: t.name, seconds: e.durationSeconds || 0, color: t.color }); }); } return acc; }, []) : [{ label: 'Billable', seconds: sumBillableSeconds(fe) }, { label: 'Non-billable', seconds: sumDurationSeconds(fe) - sumBillableSeconds(fe) }])(filteredEntries)}"
 >
   <Viewport id="vp" />
 
@@ -151,8 +152,7 @@
     onMessage="() => {
       progress = 0;
       progressModal.open();
-      const allEntries = ((summaryDs.value || {}).entries) || [];
-      const filtered = applyReportFilters(allEntries, projectFilter, tagFilter);
+      const filtered = filteredEntries;
       const projects = projectsDs.value || [];
       const clients = clientsDs.value || [];
       const allTags = tagsDs.value || [];
@@ -363,7 +363,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(filteredEntries))}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -374,7 +374,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0 ? '—' : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(filteredEntries) === 0 ? '—' : formatDuration(sumBillableSeconds(filteredEntries))}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -385,7 +385,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0 ? '—' : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(filteredEntries).length === 0 ? '—' : amountsFromEntries(filteredEntries).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -396,7 +396,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(filteredEntries, fromDate, toDate)))}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -411,7 +411,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(filteredEntries))}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -422,7 +422,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)) === 0 ? '—' : formatDuration(sumBillableSeconds(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)))}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(filteredEntries) === 0 ? '—' : formatDuration(sumBillableSeconds(filteredEntries))}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -435,7 +435,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).length === 0 ? '—' : amountsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter)).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(filteredEntries).length === 0 ? '—' : amountsFromEntries(filteredEntries).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -446,7 +446,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate)))}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(filteredEntries, fromDate, toDate)))}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -467,7 +467,7 @@
         <Stack height="280px" width="*">
           <BarChart
             orientation="vertical"
-            data="{dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+            data="{dailyTotalsFromEntries(filteredEntries, fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
             dataKeys="{['hours']}"
             nameKey="day"
           />
@@ -517,7 +517,7 @@
         <Stack height="280px" width="*">
           <BarChart
             orientation="vertical"
-            data="{dailyTotalsFromEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+            data="{dailyTotalsFromEntries(filteredEntries, fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
             dataKeys="{['hours']}"
             nameKey="day"
           />
@@ -568,7 +568,7 @@
 
     <Card height="*" when-xs="false" when-sm="true">
       <TimeEntriesEmptyState
-        when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
+        when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
         title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
           ? 'No entries match your filters'
           : 'No entries in this date range'}"
@@ -579,7 +579,7 @@
       <VStack
         when-xs="false"
         when-sm="true"
-        when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
+        when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
         gap="0"
       >
         <Theme
@@ -589,7 +589,7 @@
           backgroundColor-summary-ExpandableItem="$color-surface-50"
         >
           <Items
-            data="{groupEntriesByDay(entriesForListTable(filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
+            data="{groupEntriesByDay(entriesForListTable(filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
           >
             <ExpandableItem fullWidthSummary="true" initiallyExpanded="true">
               <property name="summary">
@@ -723,7 +723,7 @@
           onDidChange="(v) => searchText = v || ''"
         />
       </Card>
-      <Card when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
+      <Card when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
         <TimeEntriesEmptyState
           title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
             ? 'No entries match your filters'
@@ -740,7 +740,7 @@
         />
       </Card>
       <VStack
-        when="{filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
+        when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
         gap="$space-4"
       >
         <Theme
@@ -752,7 +752,7 @@
           backgroundColor-summary-ExpandableItem--hover="transparent"
         >
           <Items
-            data="{groupEntriesByDay(entriesForListTable(filterEntries(applyReportFilters(((summaryDs.value || {}).entries) || [], projectFilter, tagFilter), searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
+            data="{groupEntriesByDay(entriesForListTable(filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
           >
             <ExpandableItem
               fullWidthSummary="true"
