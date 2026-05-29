@@ -55,6 +55,40 @@ export async function collectDiagnostics(): Promise<Diagnostics> {
   }
 }
 
+// Synchronous twin of collectDiagnostics for the previewable, on-screen
+// summary. Every field is available synchronously in both browser and Tauri;
+// the only async path in collectDiagnostics is Tauri's getVersion(), whose
+// build-time fallback (VITE_ANIMO_VERSION / window.__ANIMO_VERSION__) resolves
+// to the same value. Keeping this sync lets XMLUI assign the result reactively
+// from a method (an awaited call only updates state from an event handler).
+export function collectDiagnosticsSync(): Diagnostics {
+  try {
+    return stripEmpty({
+      app_version: resolveAppVersionSync(),
+      platform: resolvePlatform(),
+      os_version: resolveOsVersion(),
+      locale: resolveLocale(),
+      tauri: isTauriRuntime(),
+      recent_log_tail: resolveLogTailSync(),
+    });
+  } catch (error) {
+    return fallbackDiagnostics(error);
+  }
+}
+
+function resolveAppVersionSync(): string {
+  return normalize(
+    import.meta.env.VITE_ANIMO_VERSION ||
+      import.meta.env.VITE_APP_VERSION ||
+      (typeof window !== "undefined" ? window.__ANIMO_VERSION__ : undefined),
+  );
+}
+
+function resolveLogTailSync(): string | undefined {
+  if (typeof window === "undefined" || !window.__ANIMO_LOG_TAIL__) return undefined;
+  return truncateUtf8(window.__ANIMO_LOG_TAIL__, MAX_LOG_TAIL_BYTES);
+}
+
 async function resolveAppVersion(tauri: boolean): Promise<string> {
   if (tauri) {
     try {

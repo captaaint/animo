@@ -3,7 +3,6 @@
   var.titleInput="{''}"
   var.bodyInput="{''}"
   var.diagnosticsOptIn="{false}"
-  var.diagnosticsPreview="{''}"
   var.submitting="{false}"
   var.successIssueUrl="{''}"
   var.errorMessage="{''}"
@@ -20,30 +19,6 @@
       diagnostics_opt_in: diagnosticsOptIn
     });
   }"
-  method.refreshDiagnostics="(optIn) => {
-    const wantDiagnostics = optIn === undefined ? diagnosticsOptIn : optIn;
-    if (!wantDiagnostics) {
-      diagnosticsPreview = '';
-      return;
-    }
-    diagnosticsPreview = 'Collecting diagnostics...';
-    if (!window.animoFeedbackBuildPreview) {
-      diagnosticsPreview = 'Diagnostics preview is unavailable.';
-      return;
-    }
-    window.animoFeedbackBuildPreview({
-      category: category,
-      title: titleInput,
-      body: bodyInput,
-      diagnostics_opt_in: true
-    })
-      .then((preview) => {
-        diagnosticsPreview = preview || 'Diagnostics preview is unavailable.';
-      })
-      .catch(() => {
-        diagnosticsPreview = 'Diagnostics preview is unavailable.';
-      });
-  }"
   method.open="() => {
     const draft = window.animoFeedbackLoadDraft ? window.animoFeedbackLoadDraft() : null;
     const wantsDiagnostics = !!(draft && draft.diagnostics_opt_in);
@@ -55,12 +30,11 @@
     successIssueUrl = '';
     errorMessage = '';
     modalOpen = true;
-    refreshDiagnostics(wantsDiagnostics);
     modal.open();
   }"
 >
   <ModalDialog id="modal"
-
+    paddingTop="$space-6"
     maxWidth="460px"
     padding="$space-4"
     borderRadius="16px"
@@ -139,7 +113,6 @@
             onDidChange="(v) => {
               diagnosticsOptIn = !!v;
               saveDraft();
-              refreshDiagnostics(!!v);
             }"
           />
         </HStack>
@@ -150,23 +123,14 @@
           backgroundColor="$color-surface-50"
         >
           <VStack gap="$space-2" width="100%">
-            <HStack width="100%" verticalAlignment="center">
-              <Text fontWeight="600" fontSize="$fontSize-small">Diagnostics preview</Text>
-              <SpaceFiller />
-              <Button
-                label="Refresh"
-                variant="ghost"
-                themeColor="secondary"
-                onClick="refreshDiagnostics()"
-              />
-            </HStack>
+            <Text fontWeight="600" fontSize="$fontSize-small">Diagnostics preview</Text>
             <TextArea
               width="100%"
-              rows="12"
+              rows="8"
               readOnly="true"
-              initialValue="{diagnosticsPreview || 'Collecting diagnostics...'}"
               fontFamily="monospace"
               fontSize="$fontSize-xs"
+              initialValue="{window.animoFeedbackBuildPreview ? window.animoFeedbackBuildPreview({ category: category, title: titleInput, body: bodyInput, diagnostics_opt_in: true }) : 'Diagnostics preview is unavailable.'}"
             />
           </VStack>
         </Card>
