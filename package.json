@@ -33,7 +33,7 @@
     "website:dev": "concurrently -k -n app,site -c cyan,magenta \"npm:app:demo\" \"VITE_ANIMO_DEMO_URL=http://localhost:5173 npm run website\"",
     "website:preview": "cd website && npm run preview",
     "//tauri": "Desktop shell",
-    "tauri:dev": "cd desktop && tauri dev",
+    "tauri:dev": "cd desktop && DATABASE_URL=\"sqlite:../dev.db?mode=rwc\" tauri dev",
     "tauri:dev:demo": "cd desktop && DATABASE_URL=\"sqlite:../demo.db?mode=rwc\" tauri dev",
     "tauri:build": "cd desktop && tauri build",
     "//e2e": "Playwright tests",

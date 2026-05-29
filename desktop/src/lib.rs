@@ -42,6 +42,11 @@ struct ApiPort(u16);
 /// existing dev `api/data.db` so contributors don't lose their local users.
 ///
 /// Behavior:
+///   - If `DATABASE_URL` is set → no-op. Dev runs (`npm run tauri:dev`) point
+///     the API at a separate DB and never open `app_data_dir/data.db`. Since
+///     dev and release share the same identifier (and thus the same app-data
+///     dir), seeding here would write into the installed app's live DB — which
+///     dev must never touch.
 ///   - If `data_dir/data.db` already exists → no-op (avoids clobbering data
 ///     once the desktop shell has its own DB).
 ///   - Release builds (`cfg!(debug_assertions) == false`) → no-op. End users
@@ -51,6 +56,12 @@ struct ApiPort(u16);
 ///     baked in at compile time. If present, copy it across. This path only
 ///     resolves on the developer's own machine.
 fn bootstrap_data_dir(data_dir: &std::path::Path) -> anyhow::Result<()> {
+    if std::env::var("DATABASE_URL")
+        .map(|v| !v.is_empty())
+        .unwrap_or(false)
+    {
+        return Ok(());
+    }
     let target = data_dir.join("data.db");
     if target.exists() {
         return Ok(());
