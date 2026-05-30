@@ -14,6 +14,7 @@ import {
 } from "react";
 
 import styles from "./DatePicker.module.scss";
+import { useIsMobile } from "./useIsMobile";
 
 type Mode = "single" | "range";
 type ValidationStatus = "none" | "error" | "warning" | "valid";
@@ -421,6 +422,8 @@ export function DatePicker(props: DatePickerProps) {
 
   const mode = toMode(rawMode);
   const isControlled = controlledValue !== undefined;
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const focusedWithinRef = useRef(false);
@@ -511,6 +514,7 @@ export function DatePicker(props: DatePickerProps) {
       id={id}
       value={values}
       onValueChange={(details) => emitValue(details.value)}
+      onOpenChange={(details) => setIsOpen(details.open)}
       selectionMode={mode}
       disabled={!enabled}
       readOnly={readOnly}
@@ -537,6 +541,8 @@ export function DatePicker(props: DatePickerProps) {
         data-mode={mode}
         data-validation-status={validationStatus}
         data-inline={inline ? "" : undefined}
+        data-mobile={isMobile ? "" : undefined}
+        data-open={isOpen ? "" : undefined}
         data-testid={testId}
         onFocusCapture={handleFocusCapture}
         onBlurCapture={handleBlurCapture}
