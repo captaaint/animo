@@ -96,4 +96,73 @@ test.describe('mobile', () => {
     await themePicker.scrollIntoViewIfNeeded();
     await expect(themePicker).toBeInViewport();
   });
+
+  test('the date-range DatePicker opens as a scrollable bottom sheet', async ({
+    page,
+  }) => {
+    await page.goto('/reports');
+
+    // Open the Reports date-range picker via its calendar adornment.
+    await page.getByRole('button', { name: 'Open calendar' }).first().click();
+
+    // On mobile the calendar is a bottom-sheet drawer, not an anchored popover.
+    const sheet = page.getByTestId('datepicker-sheet');
+    await expect(sheet).toBeVisible();
+
+    const viewport = page.viewportSize();
+    expect(viewport).not.toBeNull();
+    const vh = viewport!.height;
+
+    // The sheet is pinned to the bottom edge of the screen.
+    const sheetBox = await sheet.boundingBox();
+    expect(sheetBox, 'sheet has a layout box').not.toBeNull();
+    expect(sheetBox!.y + sheetBox!.height).toBeGreaterThanOrEqual(vh - 2);
+
+    // The pinned header's close button stays on screen while the body scrolls.
+    const close = sheet.getByRole('button', { name: 'close' });
+    await expect(close).toBeVisible();
+    const closeBox = await close.boundingBox();
+    expect(closeBox!.y).toBeGreaterThanOrEqual(-1);
+    expect(closeBox!.y + closeBox!.height).toBeLessThanOrEqual(vh + 1);
+
+    // Months are stacked vertically — each rendered month is a day-grid table
+    // (id="month-N"). Desktop range shows two; the mobile stack renders many
+    // more, which is what makes scroll-based navigation work.
+    const monthTables = sheet.locator('[id^="month-"]');
+    expect(await monthTables.count()).toBeGreaterThanOrEqual(3);
+
+    // Navigation is by scrolling: the calendar body has overflowing content in a
+    // scrollable container (no prev/next chevrons on mobile).
+    const isScrollable = await sheet.evaluate((el) => {
+      for (const node of Array.from(el.querySelectorAll<HTMLElement>('*'))) {
+        const overflowY = getComputedStyle(node).overflowY;
+        if (
+          (overflowY === 'auto' || overflowY === 'scroll') &&
+          node.scrollHeight > node.clientHeight + 4
+        ) {
+          return true;
+        }
+      }
+      return false;
+    });
+    expect(isScrollable).toBe(true);
+
+    // Selecting dates updates the live summary. Reports opens with an initial
+    // range, so capture it first, then pick a fresh range and assert it changed.
+    const summary = sheet.getByTestId('datepicker-summary');
+    await expect(summary).toBeVisible();
+    const before = (await summary.textContent())?.trim();
+
+    const dayCells = sheet.getByRole('button', { name: /day, .*20\d\d/ });
+    await dayCells.nth(10).click();
+    await dayCells.nth(17).click();
+
+    await expect
+      .poll(async () => (await summary.textContent())?.trim())
+      .not.toBe(before);
+
+    // The close button dismisses the sheet.
+    await close.click();
+    await expect(sheet).toBeHidden();
+  });
 });
