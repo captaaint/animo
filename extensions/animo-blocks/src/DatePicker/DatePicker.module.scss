@@ -551,21 +551,33 @@
     font-size: 15px;
   }
 
-  // Presets sit in a pinned row at the bottom of the sheet (refined later).
+  // Presets sit in a pinned, horizontally scrollable row at the bottom of the
+  // sheet (range mode only — single mode resolves to no presets). The sheet's
+  // own padding-bottom carries the safe-area inset below this row.
   .quickPresets {
     order: 3;
     flex: 0 0 auto;
     flex-direction: row;
+    flex-wrap: nowrap;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 12px 16px;
     border-right: 0;
     border-top: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
     overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .preset {
     flex: 0 0 auto;
     min-width: 0;
+    min-height: 40px;
+    padding: 8px 16px;
+    border-radius: 999px;
+    white-space: nowrap;
   }
 }
 
