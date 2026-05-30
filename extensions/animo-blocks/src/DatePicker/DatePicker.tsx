@@ -557,6 +557,17 @@ export function DatePicker(props: DatePickerProps) {
     return () => cancelAnimationFrame(frame);
   }, [isMobile, isOpen]);
 
+  // Lock background page scroll while the mobile sheet is open so the page
+  // behind the backdrop doesn't move under the user's finger.
+  useEffect(() => {
+    if (!isMobile || !isOpen || typeof document === "undefined") return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [isMobile, isOpen]);
+
   // Mobile drawer header: live title, selection summary, and day count.
   const sheetTitle = mode === "range" ? "Select date range" : "Select date";
   const sheetSummaryEmpty = !values[0];
