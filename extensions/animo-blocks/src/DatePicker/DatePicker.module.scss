@@ -538,6 +538,19 @@
     }
   }
 
+  // Comfortable touch targets for day cells. The existing selection styling
+  // ([data-selected] / [data-range-start] / [data-range-end] / [data-in-range])
+  // is reused unchanged — only the cell size grows for touch.
+  .weekday {
+    height: 30px;
+    font-size: 13px;
+  }
+
+  .cellTrigger {
+    height: 40px;
+    font-size: 15px;
+  }
+
   // Presets sit in a pinned row at the bottom of the sheet (refined later).
   .quickPresets {
     order: 3;
