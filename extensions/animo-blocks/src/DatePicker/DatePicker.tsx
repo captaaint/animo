@@ -83,6 +83,12 @@ const DEFAULT_DATE_FORMAT = "MM/dd/yyyy";
 const DEFAULT_LOCALE = "en-US";
 const DEFAULT_TIME_ZONE = "UTC";
 
+// On mobile the calendar is a scrollable stack of months around the focused
+// month, navigated by scrolling instead of prev/next buttons. Presets cover
+// longer spans, so a half-year window each way is plenty for manual scrolling.
+const MOBILE_MONTHS_BEFORE = 6;
+const MOBILE_MONTHS_AFTER = 6;
+
 const PRESET_LABELS: Record<PresetValue, string> = {
   thisWeek: "This week",
   lastWeek: "Last week",
@@ -448,6 +454,7 @@ export function DatePicker(props: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const monthZeroRef = useRef<HTMLDivElement>(null);
   const focusedWithinRef = useRef(false);
 
   const [internalValue, setInternalValue] = useState<DateValue[]>(() =>
@@ -531,6 +538,25 @@ export function DatePicker(props: DatePickerProps) {
   const hasAdornment = !!startText || !!endText || !!startIcon || !!endIcon;
   const visibleMonthCount = toNumber(numOfMonths, mode === "range" ? 2 : 1);
 
+  // Day-view month offsets: a single side-by-side desktop row, or a vertical
+  // scrollable window centered on the focused month on mobile.
+  const dayMonthOffsets = isMobile
+    ? Array.from(
+        { length: MOBILE_MONTHS_BEFORE + MOBILE_MONTHS_AFTER + 1 },
+        (_, i) => i - MOBILE_MONTHS_BEFORE,
+      )
+    : Array.from({ length: visibleMonthCount }, (_, i) => i);
+
+  // When the mobile sheet opens, bring the focused month to the top of the
+  // scroll area so past months are reachable by scrolling up.
+  useEffect(() => {
+    if (!isMobile || !isOpen) return;
+    const frame = requestAnimationFrame(() => {
+      monthZeroRef.current?.scrollIntoView({ block: "start" });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isMobile, isOpen]);
+
   // Mobile drawer header: live title, selection summary, and day count.
   const sheetTitle = mode === "range" ? "Select date range" : "Select date";
   const sheetSummaryEmpty = !values[0];
@@ -567,7 +593,7 @@ export function DatePicker(props: DatePickerProps) {
       showWeekNumbers={showWeekNumber ?? showWeekNumbers ?? false}
       min={minDate}
       max={maxDate}
-      numOfMonths={visibleMonthCount}
+      numOfMonths={isMobile ? 1 : visibleMonthCount}
       openOnClick
       closeOnSelect={mode !== "range"}
       placeholder={placeholder}
@@ -703,36 +729,42 @@ export function DatePicker(props: DatePickerProps) {
               <ArkDatePicker.Context>
                 {(api) => (
                   <div className={styles.calendarMonths}>
-                    {Array.from({ length: visibleMonthCount }, (_, monthIndex) => {
+                    {dayMonthOffsets.map((offset, monthIndex) => {
                       const month =
-                        monthIndex === 0
+                        offset === 0
                           ? {
                               weeks: api.weeks,
                               visibleRange: api.visibleRange,
                               visibleRangeText: api.visibleRangeText,
                             }
-                          : api.getOffset({ months: monthIndex });
+                          : api.getOffset({ months: offset });
 
                       return (
-                        <div className={styles.calendarMonth} key={monthIndex}>
+                        <div
+                          className={styles.calendarMonth}
+                          key={offset}
+                          ref={offset === 0 ? monthZeroRef : undefined}
+                        >
                           <ArkDatePicker.ViewControl className={styles.viewControl}>
-                            {monthIndex === 0 ? (
-                              <ArkDatePicker.PrevTrigger className={styles.nav}>
-                                <ChevronLeftGlyph />
-                              </ArkDatePicker.PrevTrigger>
-                            ) : (
-                              <span className={styles.navSpacer} />
-                            )}
+                            {!isMobile &&
+                              (monthIndex === 0 ? (
+                                <ArkDatePicker.PrevTrigger className={styles.nav}>
+                                  <ChevronLeftGlyph />
+                                </ArkDatePicker.PrevTrigger>
+                              ) : (
+                                <span className={styles.navSpacer} />
+                              ))}
                             <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
                               {month.visibleRangeText.start}
                             </ArkDatePicker.ViewTrigger>
-                            {monthIndex === visibleMonthCount - 1 ? (
-                              <ArkDatePicker.NextTrigger className={styles.nav}>
-                                <ChevronRightGlyph />
-                              </ArkDatePicker.NextTrigger>
-                            ) : (
-                              <span className={styles.navSpacer} />
-                            )}
+                            {!isMobile &&
+                              (monthIndex === dayMonthOffsets.length - 1 ? (
+                                <ArkDatePicker.NextTrigger className={styles.nav}>
+                                  <ChevronRightGlyph />
+                                </ArkDatePicker.NextTrigger>
+                              ) : (
+                                <span className={styles.navSpacer} />
+                              ))}
                           </ArkDatePicker.ViewControl>
 
                           <ArkDatePicker.Table

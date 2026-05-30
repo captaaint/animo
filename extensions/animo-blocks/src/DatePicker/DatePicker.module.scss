@@ -522,6 +522,20 @@
   .calendarMonth {
     flex: 0 0 auto;
     width: 100%;
+    scroll-margin-top: 8px;
+  }
+
+  // No chevron nav on mobile — months are navigated by scrolling, so the
+  // chevron-less day-view heading takes the full width. The month/year picker
+  // views still carry .nav chevrons and keep their three-column layout.
+  .viewControl:not(:has(.nav)) {
+    grid-template-columns: 1fr;
+    margin: 10px 0 6px;
+
+    .viewTrigger {
+      text-align: left;
+      font-size: 15px;
+    }
   }
 
   // Presets sit in a pinned row at the bottom of the sheet (refined later).
