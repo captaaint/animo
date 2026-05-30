@@ -17,6 +17,10 @@
       max-width: none;
       flex: 1 1 auto;
     }
+
+    .input {
+      width: 100%;
+    }
   }
 
   &[data-validation-status="error"] .control {
@@ -106,6 +110,7 @@
 
   &[data-open="true"],
   &:focus,
+  &:focus-within,
   &:focus-visible {
     outline: var(--xmlui-outlineWidth-TimePicker--focus, 2px)
       var(--xmlui-outlineStyle-TimePicker--focus, solid)
@@ -113,11 +118,8 @@
     outline-offset: var(--xmlui-outlineOffset-TimePicker--focus, 1px);
   }
 
-  &[data-empty="true"] .triggerValue {
-    color: var(--xmlui-textColor-placeholder-TimePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
-  }
-
-  &:disabled {
+  &:disabled,
+  &[data-disabled] {
     opacity: 0.55;
     cursor: default;
   }
@@ -126,6 +128,53 @@
 .triggerValue {
   display: inline-block;
   text-align: center;
+}
+
+// Editable time field. Borderless/transparent so the surrounding `.trigger`
+// box supplies the visible chrome; the box owns focus styling via :focus-within.
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--xmlui-fontSize-TimePicker, var(--xmlui-fontSize-Input, inherit));
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+  appearance: none;
+
+  &::placeholder {
+    color: var(--xmlui-textColor-placeholder-TimePicker, var(--xmlui-textColor-secondary, rgb(100, 116, 139)));
+    opacity: 1;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// Clock/timer glyph rendered as the popover trigger button.
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+
+  &:disabled {
+    cursor: default;
+  }
 }
 
 .triggerIcon {

@@ -18,8 +18,9 @@ const COMP = "TimePicker";
 const metadata = createMetadata({
   status: "experimental",
   description:
-    "Native HTML5 time input wrapped to match the animo input styling. Supports a single " +
-    "`HH:mm` value or a `{ from, to }` range.",
+    "A time field matching the animo input styling. Set the value by typing `HH:mm` " +
+    "(or `HH:mm:ss` when `step` < 60) directly in the field, or pick from the dropdown " +
+    "wheel. Supports a single `HH:mm` value or a `{ from, to }` range.",
   props: {
     initialValue: dInitialValue(),
     value: {
