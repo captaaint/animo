@@ -438,6 +438,66 @@
     background: var(--xmlui-color-surface-300, rgb(203, 213, 225));
   }
 
+  // Pinned header: title, live selection summary, day count, close button.
+  .sheetHeader {
+    order: 1;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 16px 12px;
+    border-bottom: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+  }
+
+  .sheetHeaderText {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .sheetTitle {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--xmlui-textColor-secondary, rgb(100, 116, 139));
+  }
+
+  .sheetSummary {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--xmlui-textColor-primary, inherit);
+  }
+
+  .sheetSummary[data-empty] {
+    font-weight: 600;
+    color: var(--xmlui-textColor-secondary, rgb(148, 163, 184));
+  }
+
+  .sheetCount {
+    font-size: 13px;
+    color: var(--xmlui-textColor-secondary, rgb(100, 116, 139));
+  }
+
+  .sheetClose {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--xmlui-textColor-secondary, rgb(100, 116, 139));
+    cursor: pointer;
+
+    &:hover {
+      background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+    }
+  }
+
   // The active calendar view becomes the scrollable region of the sheet.
   .view {
     order: 2;

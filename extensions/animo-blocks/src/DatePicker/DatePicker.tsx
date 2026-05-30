@@ -211,6 +211,28 @@ const toIsoFromDate = (value: Date): string => {
   return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
 };
 
+// Human-friendly label for the mobile sheet header, e.g. "May 25, 2026".
+const friendlyDate = (value: DateValue, locale: string): string => {
+  try {
+    const date = new Date(Date.UTC(value.year, value.month - 1, value.day));
+    return new Intl.DateTimeFormat(locale || DEFAULT_LOCALE, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(date);
+  } catch {
+    return dateValueToIso(value);
+  }
+};
+
+// Inclusive day count between two dates (e.g. Mon–Sun = 7).
+const daysInclusive = (a: DateValue, b: DateValue): number => {
+  const start = Date.UTC(a.year, a.month - 1, a.day);
+  const end = Date.UTC(b.year, b.month - 1, b.day);
+  return Math.round(Math.abs(end - start) / 86_400_000) + 1;
+};
+
 const datePartsFromString = (
   raw: string,
   dateFormat: string,
@@ -509,6 +531,24 @@ export function DatePicker(props: DatePickerProps) {
   const hasAdornment = !!startText || !!endText || !!startIcon || !!endIcon;
   const visibleMonthCount = toNumber(numOfMonths, mode === "range" ? 2 : 1);
 
+  // Mobile drawer header: live title, selection summary, and day count.
+  const sheetTitle = mode === "range" ? "Select date range" : "Select date";
+  const sheetSummaryEmpty = !values[0];
+  const sheetSummary = (() => {
+    if (mode === "range") {
+      const from = values[0] ? friendlyDate(values[0], locale) : undefined;
+      const to = values[1] ? friendlyDate(values[1], locale) : undefined;
+      if (from && to) return `${from} – ${to}`;
+      if (from) return `${from} – …`;
+      return placeholder || "Select dates";
+    }
+    return values[0] ? friendlyDate(values[0], locale) : placeholder || "Select a date";
+  })();
+  const rangeDays =
+    mode === "range" && values[0] && values[1]
+      ? daysInclusive(values[0], values[1])
+      : undefined;
+
   return (
     <ArkDatePicker.Root
       id={id}
@@ -613,6 +653,37 @@ export function DatePicker(props: DatePickerProps) {
         <ArkDatePicker.Positioner className={styles.positioner}>
           <ArkDatePicker.Content className={styles.content}>
             {isMobile && <div className={styles.grabHandle} aria-hidden="true" />}
+
+            {isMobile && (
+              <div className={styles.sheetHeader}>
+                <div className={styles.sheetHeaderText}>
+                  <span className={styles.sheetTitle}>{sheetTitle}</span>
+                  <span
+                    className={styles.sheetSummary}
+                    data-empty={sheetSummaryEmpty ? "" : undefined}
+                  >
+                    {sheetSummary}
+                  </span>
+                  {rangeDays != null && (
+                    <span className={styles.sheetCount}>
+                      {rangeDays} {rangeDays === 1 ? "day" : "days"}
+                    </span>
+                  )}
+                </div>
+                <ArkDatePicker.Context>
+                  {(api) => (
+                    <button
+                      type="button"
+                      className={styles.sheetClose}
+                      aria-label="close"
+                      onClick={() => api.setOpen(false)}
+                    >
+                      <CloseGlyph />
+                    </button>
+                  )}
+                </ArkDatePicker.Context>
+              </div>
+            )}
 
             {presetItems.length > 0 && (
               <div className={styles.quickPresets}>
