@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): let the time picker accept typed keyboard input (#48) (52e138d)
+- feat(app): start/stop the timer with the T keyboard shortcut (#47) (d073646)
 
 ## [0.2.10] - 2026-05-29
 
