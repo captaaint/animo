@@ -24,6 +24,14 @@ const metadata = createMetadata({
       valueType: "boolean",
       defaultValue: true,
     },
+    ignoreInInputs: {
+      description:
+        "Ignore the key when focus is in an editable element (input, textarea, " +
+        "select, contenteditable). Use for app-wide single-key shortcuts so they " +
+        "never hijack normal typing.",
+      valueType: "boolean",
+      defaultValue: false,
+    },
   },
   events: {
     key: { description: "Fired for any watched key. Payload: { key }." },
@@ -42,6 +50,7 @@ export const keyListenerRenderer = createComponentRenderer(
         keys={extractValue.asOptionalString(node.props.keys)}
         enabled={extractValue.asOptionalBoolean(node.props.enabled)}
         ignoreWithModifiers={extractValue.asOptionalBoolean(node.props.ignoreWithModifiers)}
+        ignoreInInputs={extractValue.asOptionalBoolean(node.props.ignoreInInputs)}
         onKey={lookupEventHandler("key")}
         onEnter={lookupEventHandler("enter")}
         onEscape={lookupEventHandler("escape")}

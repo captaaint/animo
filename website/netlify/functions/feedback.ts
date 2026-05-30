@@ -169,6 +169,29 @@ function isCategory(value: unknown): value is FeedbackCategory {
   return value === "bug" || value === "feature" || value === "question";
 }
 
+// Maps the in-app feedback category to a standard GitHub label so issues can be
+// filtered/triaged by type in the label view. Single source of truth — extend
+// here if categories change. `feature` deliberately maps to GitHub's built-in
+// `enhancement` label rather than a bespoke `feature` one.
+const CATEGORY_LABELS: Record<FeedbackCategory, string> = {
+  bug: "bug",
+  feature: "enhancement",
+  question: "question",
+};
+
+// Builds the label set for a feedback issue: always `feedback` + `from-app`,
+// plus the category label when one is known. Guards against an unmapped
+// category so we never push `undefined` into the array (which GitHub rejects).
+// Exported for unit testing.
+export function buildIssueLabels(category: FeedbackCategory): string[] {
+  const labels = ["feedback", "from-app"];
+  const categoryLabel = CATEGORY_LABELS[category];
+  if (categoryLabel) {
+    labels.push(categoryLabel);
+  }
+  return labels;
+}
+
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
@@ -246,7 +269,7 @@ async function createGithubIssue(
       body: JSON.stringify({
         title: `[${payload.category}] ${payload.title}`,
         body: issueBody(payload),
-        labels: ["feedback", "from-app"],
+        labels: buildIssueLabels(payload.category),
       }),
     });
     const result = (await response.json()) as { html_url?: string; message?: string };
