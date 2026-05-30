@@ -612,6 +612,8 @@ export function DatePicker(props: DatePickerProps) {
 
         <ArkDatePicker.Positioner className={styles.positioner}>
           <ArkDatePicker.Content className={styles.content}>
+            {isMobile && <div className={styles.grabHandle} aria-hidden="true" />}
+
             {presetItems.length > 0 && (
               <div className={styles.quickPresets}>
                 {presetItems.map((preset) => (

@@ -364,6 +364,7 @@
 }
 
 @media (max-width: 640px) {
+  // --- Trigger input row: full width, stacked range inputs ---
   .root,
   .root[data-mode="range"],
   .pickerRow,
@@ -380,25 +381,121 @@
     flex-basis: auto;
   }
 
+  // --- Popover becomes a bottom-sheet drawer ---
+  // Ark portals the positioner to <body> and anchors it to the trigger with an
+  // inline transform. Override that so the positioner fills the screen and acts
+  // as the dimmed backdrop, with the sheet pinned to the bottom edge. The
+  // transform reset is required: a transformed ancestor would otherwise become
+  // the containing block for the sheet's positioning.
+  .positioner {
+    position: fixed !important;
+    inset: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    height: 100dvh;
+    z-index: 1000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: stretch;
+    background: var(--xmlui-backgroundColor-backdrop-DatePicker, rgba(15, 23, 42, 0.45));
+    animation: datepicker-backdrop-in 0.2s ease-out;
+  }
+
+  // Closed state: Ark keeps the positioner mounted with a hidden content. Don't
+  // let the full-screen backdrop cover the app while the picker is closed.
+  .positioner:has(.content[hidden]) {
+    background: transparent;
+    pointer-events: none;
+    animation: none;
+  }
+
   .content {
     flex-direction: column;
-    max-width: calc(100vw - 24px);
+    align-items: stretch;
+    width: 100%;
+    max-width: 100%;
+    max-height: 92dvh;
+    gap: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: datepicker-sheet-up 0.24s ease-out;
+  }
+
+  // Drag affordance at the top of the sheet.
+  .grabHandle {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 36px;
+    height: 4px;
+    margin: 10px 0 6px;
+    border-radius: 999px;
+    background: var(--xmlui-color-surface-300, rgb(203, 213, 225));
+  }
+
+  // The active calendar view becomes the scrollable region of the sheet.
+  .view {
+    order: 2;
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 16px;
+  }
+
+  .view > .table {
+    width: 100%;
   }
 
   .calendarMonths {
     flex-direction: column;
+    gap: 8px;
   }
 
+  .calendarMonth {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+
+  // Presets sit in a pinned row at the bottom of the sheet (refined later).
   .quickPresets {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    padding-right: 0;
-    padding-bottom: 10px;
+    order: 3;
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+    padding: 10px 16px;
     border-right: 0;
-    border-bottom: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+    border-top: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+    overflow-x: auto;
   }
 
   .preset {
+    flex: 0 0 auto;
     min-width: 0;
+  }
+}
+
+@keyframes datepicker-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes datepicker-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
   }
 }
