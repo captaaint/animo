@@ -4,9 +4,11 @@ import {
   type DatePickerDateRangePreset,
   type DateValue,
 } from "@ark-ui/react/date-picker";
+import { Portal } from "@ark-ui/react/portal";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -232,6 +234,19 @@ const friendlyDate = (value: DateValue, locale: string): string => {
   }
 };
 
+const monthLabel = (value: DateValue, locale: string): string => {
+  try {
+    const date = new Date(Date.UTC(value.year, value.month - 1, 1));
+    return new Intl.DateTimeFormat(locale || DEFAULT_LOCALE, {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(date);
+  } catch {
+    return `${value.year}-${pad(value.month)}`;
+  }
+};
+
 // Inclusive day count between two dates (e.g. Mon–Sun = 7).
 const daysInclusive = (a: DateValue, b: DateValue): number => {
   const start = Date.UTC(a.year, a.month - 1, a.day);
@@ -369,6 +384,16 @@ const toPayload = (
   return values[0] ? formatDateValue(values[0], dateFormat) : undefined;
 };
 
+const shouldPublishValue = (
+  values: DateValue[],
+  mode: Mode,
+  initial: boolean | undefined,
+): boolean => {
+  if (initial || mode !== "range") return true;
+  if (values.length === 0) return true;
+  return !!values[0] && !!values[1];
+};
+
 const resolvePresetValue = (raw: string): PresetValue | undefined => {
   const compact = raw.trim().replace(/[-_]+/g, " ");
   const key = compact.replace(/\s+/g, "").toLowerCase();
@@ -452,9 +477,14 @@ export function DatePicker(props: DatePickerProps) {
   const isControlled = controlledValue !== undefined;
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [mobileFocusedValue, setMobileFocusedValue] = useState<DateValue | undefined>();
+  const [desktopFocusedValue, setDesktopFocusedValue] = useState<DateValue | undefined>();
   const rootRef = useRef<HTMLDivElement>(null);
+  const positionerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dayViewRef = useRef<HTMLDivElement>(null);
   const monthZeroRef = useRef<HTMLDivElement>(null);
+  const pendingMobileScrollTopRef = useRef<number | null>(null);
   const focusedWithinRef = useRef(false);
 
   const [internalValue, setInternalValue] = useState<DateValue[]>(() =>
@@ -491,6 +521,7 @@ export function DatePicker(props: DatePickerProps) {
       if (!isControlled) setInternalValue(next);
       const payload = toPayload(next, mode, dateFormat);
       latestPayloadRef.current = payload;
+      if (!shouldPublishValue(next, mode, options?.initial)) return;
       updateState?.({ value: payload }, options?.initial ? { initial: true } : undefined);
       if (!options?.initial) onDidChange?.(payload);
     },
@@ -503,6 +534,63 @@ export function DatePicker(props: DatePickerProps) {
     },
     [dateFormat, emitValue, mode],
   );
+
+  const createFallbackFocusedValue = useCallback(() => {
+    try {
+      return parseDate(toIsoFromDate(new Date()));
+    } catch {
+      return undefined;
+    }
+  }, []);
+
+  const handleOpenChange = useCallback(
+    (details: { open: boolean }) => {
+      setIsOpen(details.open);
+      if (!details.open) {
+        setMobileFocusedValue(undefined);
+        setDesktopFocusedValue(undefined);
+        pendingMobileScrollTopRef.current = null;
+        return;
+      }
+      if (isMobile) {
+        setMobileFocusedValue(values[0] ?? createFallbackFocusedValue());
+      } else {
+        setDesktopFocusedValue(values[0] ?? createFallbackFocusedValue());
+      }
+    },
+    [createFallbackFocusedValue, isMobile, values],
+  );
+
+  const rememberMobileScrollTop = useCallback(() => {
+    if (!isMobile || !isOpen) return;
+    if (pendingMobileScrollTopRef.current != null) return;
+    pendingMobileScrollTopRef.current = dayViewRef.current?.scrollTop ?? null;
+  }, [isMobile, isOpen]);
+
+  useLayoutEffect(() => {
+    if (!isMobile || !isOpen || pendingMobileScrollTopRef.current == null) return;
+    const scrollTop = pendingMobileScrollTopRef.current;
+    pendingMobileScrollTopRef.current = null;
+    const restore = () => {
+      if (dayViewRef.current) {
+        dayViewRef.current.scrollTop = scrollTop;
+      }
+    };
+    restore();
+    let secondFrame = 0;
+    const firstFrame = requestAnimationFrame(() => {
+      restore();
+      secondFrame = requestAnimationFrame(restore);
+    });
+    const timeouts = [80, 180, 320].map((delay) =>
+      window.setTimeout(restore, delay),
+    );
+    return () => {
+      cancelAnimationFrame(firstFrame);
+      cancelAnimationFrame(secondFrame);
+      timeouts.forEach((timeout) => window.clearTimeout(timeout));
+    };
+  }, [isMobile, isOpen, values]);
 
   useEffect(() => {
     updateState?.({ value: latestPayloadRef.current }, { initial: true });
@@ -529,6 +617,7 @@ export function DatePicker(props: DatePickerProps) {
     (event: FocusEvent<HTMLDivElement>) => {
       const next = event.relatedTarget as Node | null;
       if (next && rootRef.current?.contains(next)) return;
+      if (next && positionerRef.current?.contains(next)) return;
       focusedWithinRef.current = false;
       onBlur?.();
     },
@@ -590,8 +679,12 @@ export function DatePicker(props: DatePickerProps) {
     <ArkDatePicker.Root
       id={id}
       value={values}
-      onValueChange={(details) => emitValue(details.value)}
-      onOpenChange={(details) => setIsOpen(details.open)}
+      focusedValue={isMobile && isOpen ? mobileFocusedValue : undefined}
+      onValueChange={(details) => {
+        rememberMobileScrollTop();
+        emitValue(details.value);
+      }}
+      onOpenChange={handleOpenChange}
       selectionMode={mode}
       disabled={!enabled}
       readOnly={readOnly}
@@ -687,233 +780,292 @@ export function DatePicker(props: DatePickerProps) {
           </ArkDatePicker.Control>
         </div>
 
-        <ArkDatePicker.Positioner className={styles.positioner}>
-          <ArkDatePicker.Content className={styles.content}>
-            {isMobile && <div className={styles.grabHandle} aria-hidden="true" />}
+        <Portal>
+          <ArkDatePicker.Positioner
+            ref={positionerRef}
+            className={styles.positioner}
+          >
+            <ArkDatePicker.Content
+              className={styles.content}
+              data-testid={isMobile ? "datepicker-sheet" : undefined}
+            >
+              {isMobile && <div className={styles.grabHandle} aria-hidden="true" />}
 
-            {isMobile && (
-              <div className={styles.sheetHeader}>
-                <div className={styles.sheetHeaderText}>
-                  <span className={styles.sheetTitle}>{sheetTitle}</span>
-                  <span
-                    className={styles.sheetSummary}
-                    data-empty={sheetSummaryEmpty ? "" : undefined}
-                  >
-                    {sheetSummary}
-                  </span>
-                  {rangeDays != null && (
-                    <span className={styles.sheetCount}>
-                      {rangeDays} {rangeDays === 1 ? "day" : "days"}
+              {isMobile && (
+                <div className={styles.sheetHeader}>
+                  <div className={styles.sheetHeaderText}>
+                    <span className={styles.sheetTitle}>{sheetTitle}</span>
+                    <span
+                      className={styles.sheetSummary}
+                      data-testid="datepicker-summary"
+                      data-empty={sheetSummaryEmpty ? "" : undefined}
+                    >
+                      {sheetSummary}
                     </span>
-                  )}
+                    {mode === "range" && (
+                      <span
+                        className={styles.sheetCount}
+                        data-empty={rangeDays == null ? "" : undefined}
+                      >
+                        {rangeDays != null
+                          ? `${rangeDays} ${rangeDays === 1 ? "day" : "days"}`
+                          : "\u00a0"}
+                      </span>
+                    )}
+                  </div>
+                  <ArkDatePicker.Context>
+                    {(api) => (
+                      <button
+                        type="button"
+                        className={styles.sheetClose}
+                        aria-label="close"
+                        onClick={() => api.setOpen(false)}
+                      >
+                        <CloseGlyph />
+                      </button>
+                    )}
+                  </ArkDatePicker.Context>
                 </div>
+              )}
+
+              {presetItems.length > 0 && (
+                <div className={styles.quickPresets}>
+                  {presetItems.map((preset) => (
+                    <ArkDatePicker.PresetTrigger
+                      key={preset.value}
+                      value={preset.value}
+                      className={styles.preset}
+                    >
+                      {preset.label}
+                    </ArkDatePicker.PresetTrigger>
+                  ))}
+                </div>
+              )}
+
+              <ArkDatePicker.View
+                ref={dayViewRef}
+                view="day"
+                className={styles.view}
+                onPointerDownCapture={rememberMobileScrollTop}
+                onTouchStartCapture={rememberMobileScrollTop}
+              >
                 <ArkDatePicker.Context>
                   {(api) => (
-                    <button
-                      type="button"
-                      className={styles.sheetClose}
-                      aria-label="close"
-                      onClick={() => api.setOpen(false)}
-                    >
-                      <CloseGlyph />
-                    </button>
-                  )}
-                </ArkDatePicker.Context>
-              </div>
-            )}
-
-            {presetItems.length > 0 && (
-              <div className={styles.quickPresets}>
-                {presetItems.map((preset) => (
-                  <ArkDatePicker.PresetTrigger
-                    key={preset.value}
-                    value={preset.value}
-                    className={styles.preset}
-                  >
-                    {preset.label}
-                  </ArkDatePicker.PresetTrigger>
-                ))}
-              </div>
-            )}
-
-            <ArkDatePicker.View view="day" className={styles.view}>
-              <ArkDatePicker.Context>
-                {(api) => (
-                  <div className={styles.calendarMonths}>
-                    {dayMonthOffsets.map((offset, monthIndex) => {
-                      const month =
-                        offset === 0
+                    <div className={styles.calendarMonths}>
+                      {dayMonthOffsets.map((offset, monthIndex) => {
+                        const anchoredMonthStart =
+                          isMobile && mobileFocusedValue
+                            ? mobileFocusedValue.set({ day: 1 }).add({ months: offset })
+                            : !isMobile && desktopFocusedValue
+                              ? desktopFocusedValue.set({ day: 1 }).add({ months: offset })
+                              : undefined;
+                        const shiftDesktopMonth = (months: number) => {
+                          if (isMobile) return;
+                          const base = desktopFocusedValue ?? api.visibleRange.start;
+                          const next = base.set({ day: 1 }).add({ months });
+                          setDesktopFocusedValue(next);
+                          api.setFocusedValue(next);
+                        };
+                        const month = anchoredMonthStart
                           ? {
-                              weeks: api.weeks,
-                              visibleRange: api.visibleRange,
-                              visibleRangeText: api.visibleRangeText,
+                              weeks: api.getMonthWeeks(anchoredMonthStart),
+                              visibleRange: {
+                                start: anchoredMonthStart,
+                                end: anchoredMonthStart
+                                  .add({ months: 1 })
+                                  .subtract({ days: 1 }),
+                              },
+                              visibleRangeText: {
+                                start: monthLabel(anchoredMonthStart, locale),
+                                end: monthLabel(anchoredMonthStart, locale),
+                              },
                             }
-                          : api.getOffset({ months: offset });
+                          : offset === 0
+                            ? {
+                                weeks: api.weeks,
+                                visibleRange: api.visibleRange,
+                                visibleRangeText: api.visibleRangeText,
+                              }
+                            : api.getOffset({ months: offset });
+                        const monthKey = anchoredMonthStart
+                          ? `${anchoredMonthStart.year}-${anchoredMonthStart.month}`
+                          : offset;
 
-                      return (
-                        <div
-                          className={styles.calendarMonth}
-                          key={offset}
-                          ref={offset === 0 ? monthZeroRef : undefined}
-                        >
-                          <ArkDatePicker.ViewControl className={styles.viewControl}>
-                            {!isMobile &&
-                              (monthIndex === 0 ? (
-                                <ArkDatePicker.PrevTrigger className={styles.nav}>
-                                  <ChevronLeftGlyph />
-                                </ArkDatePicker.PrevTrigger>
-                              ) : (
-                                <span className={styles.navSpacer} />
-                              ))}
-                            <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
-                              {month.visibleRangeText.start}
-                            </ArkDatePicker.ViewTrigger>
-                            {!isMobile &&
-                              (monthIndex === dayMonthOffsets.length - 1 ? (
-                                <ArkDatePicker.NextTrigger className={styles.nav}>
-                                  <ChevronRightGlyph />
-                                </ArkDatePicker.NextTrigger>
-                              ) : (
-                                <span className={styles.navSpacer} />
-                              ))}
-                          </ArkDatePicker.ViewControl>
-
-                          <ArkDatePicker.Table
-                            className={styles.table}
-                            id={`month-${monthIndex}`}
+                        return (
+                          <div
+                            className={styles.calendarMonth}
+                            key={monthKey}
+                            ref={offset === 0 ? monthZeroRef : undefined}
                           >
-                            <ArkDatePicker.TableHead>
-                              <ArkDatePicker.TableRow>
-                                {api.showWeekNumbers && (
-                                  <ArkDatePicker.WeekNumberHeaderCell
-                                    className={cx(styles.weekday, styles.weekNumber)}
-                                  />
-                                )}
-                                {api.weekDays.map((day) => (
-                                  <ArkDatePicker.TableHeader
-                                    key={day.value.toString()}
-                                    className={styles.weekday}
+                            <ArkDatePicker.ViewControl className={styles.viewControl}>
+                              {!isMobile &&
+                                (monthIndex === 0 ? (
+                                  <button
+                                    type="button"
+                                    className={styles.nav}
+                                    aria-label="Previous month"
+                                    onClick={() => shiftDesktopMonth(-1)}
                                   >
-                                    {day.short}
-                                  </ArkDatePicker.TableHeader>
+                                    <ChevronLeftGlyph />
+                                  </button>
+                                ) : (
+                                  <span className={styles.navSpacer} />
                                 ))}
-                              </ArkDatePicker.TableRow>
-                            </ArkDatePicker.TableHead>
-                            <ArkDatePicker.TableBody>
-                              {month.weeks.map((week, weekIndex) => (
-                                <ArkDatePicker.TableRow key={weekIndex}>
+                              <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
+                                {month.visibleRangeText.start}
+                              </ArkDatePicker.ViewTrigger>
+                              {!isMobile &&
+                                (monthIndex === dayMonthOffsets.length - 1 ? (
+                                  <button
+                                    type="button"
+                                    className={styles.nav}
+                                    aria-label="Next month"
+                                    onClick={() => shiftDesktopMonth(1)}
+                                  >
+                                    <ChevronRightGlyph />
+                                  </button>
+                                ) : (
+                                  <span className={styles.navSpacer} />
+                                ))}
+                            </ArkDatePicker.ViewControl>
+
+                            <ArkDatePicker.Table
+                              className={styles.table}
+                              id={`month-${monthIndex}`}
+                            >
+                              <ArkDatePicker.TableHead>
+                                <ArkDatePicker.TableRow>
                                   {api.showWeekNumbers && (
-                                    <ArkDatePicker.WeekNumberCell
-                                      week={week}
-                                      weekIndex={weekIndex}
-                                      className={styles.weekNumber}
-                                    >
-                                      {api.getWeekNumber(week)}
-                                    </ArkDatePicker.WeekNumberCell>
+                                    <ArkDatePicker.WeekNumberHeaderCell
+                                      className={cx(styles.weekday, styles.weekNumber)}
+                                    />
                                   )}
-                                  {week.map((day) => (
-                                    <ArkDatePicker.TableCell
-                                      key={day.toString()}
-                                      value={day}
-                                      visibleRange={month.visibleRange}
-                                      className={styles.cell}
+                                  {api.weekDays.map((day) => (
+                                    <ArkDatePicker.TableHeader
+                                      key={day.value.toString()}
+                                      className={styles.weekday}
                                     >
-                                      <ArkDatePicker.TableCellTrigger
-                                        className={styles.cellTrigger}
-                                      >
-                                        {day.day}
-                                      </ArkDatePicker.TableCellTrigger>
-                                    </ArkDatePicker.TableCell>
+                                      {day.short}
+                                    </ArkDatePicker.TableHeader>
                                   ))}
                                 </ArkDatePicker.TableRow>
-                              ))}
-                            </ArkDatePicker.TableBody>
-                          </ArkDatePicker.Table>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </ArkDatePicker.Context>
-            </ArkDatePicker.View>
+                              </ArkDatePicker.TableHead>
+                              <ArkDatePicker.TableBody>
+                                {month.weeks.map((week, weekIndex) => (
+                                  <ArkDatePicker.TableRow key={weekIndex}>
+                                    {api.showWeekNumbers && (
+                                      <ArkDatePicker.WeekNumberCell
+                                        week={week}
+                                        weekIndex={weekIndex}
+                                        className={styles.weekNumber}
+                                      >
+                                        {api.getWeekNumber(week)}
+                                      </ArkDatePicker.WeekNumberCell>
+                                    )}
+                                    {week.map((day) => (
+                                      <ArkDatePicker.TableCell
+                                        key={day.toString()}
+                                        value={day}
+                                        visibleRange={month.visibleRange}
+                                        className={styles.cell}
+                                      >
+                                        <ArkDatePicker.TableCellTrigger
+                                          className={styles.cellTrigger}
+                                        >
+                                          {day.day}
+                                        </ArkDatePicker.TableCellTrigger>
+                                      </ArkDatePicker.TableCell>
+                                    ))}
+                                  </ArkDatePicker.TableRow>
+                                ))}
+                              </ArkDatePicker.TableBody>
+                            </ArkDatePicker.Table>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </ArkDatePicker.Context>
+              </ArkDatePicker.View>
 
-            <ArkDatePicker.View view="month" className={styles.view}>
-              <ArkDatePicker.ViewControl className={styles.viewControl}>
-                <ArkDatePicker.PrevTrigger className={styles.nav}>
-                  <ChevronLeftGlyph />
-                </ArkDatePicker.PrevTrigger>
-                <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
-                  <ArkDatePicker.RangeText />
-                </ArkDatePicker.ViewTrigger>
-                <ArkDatePicker.NextTrigger className={styles.nav}>
-                  <ChevronRightGlyph />
-                </ArkDatePicker.NextTrigger>
-              </ArkDatePicker.ViewControl>
+              <ArkDatePicker.View view="month" className={styles.view}>
+                <ArkDatePicker.ViewControl className={styles.viewControl}>
+                  <ArkDatePicker.PrevTrigger className={styles.nav}>
+                    <ChevronLeftGlyph />
+                  </ArkDatePicker.PrevTrigger>
+                  <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
+                    <ArkDatePicker.RangeText />
+                  </ArkDatePicker.ViewTrigger>
+                  <ArkDatePicker.NextTrigger className={styles.nav}>
+                    <ChevronRightGlyph />
+                  </ArkDatePicker.NextTrigger>
+                </ArkDatePicker.ViewControl>
 
-              <ArkDatePicker.Context>
-                {(api) => (
-                  <ArkDatePicker.Table columns={4} className={styles.table}>
-                    <ArkDatePicker.TableBody>
-                      {api.getMonthsGrid({ columns: 4, format: "short" }).map((months, rowIndex) => (
-                        <ArkDatePicker.TableRow key={rowIndex}>
-                          {months.map((month) => (
-                            <ArkDatePicker.TableCell
-                              key={month.value}
-                              value={month.value}
-                              className={styles.cell}
-                            >
-                              <ArkDatePicker.TableCellTrigger className={styles.cellTrigger}>
-                                {month.label}
-                              </ArkDatePicker.TableCellTrigger>
-                            </ArkDatePicker.TableCell>
-                          ))}
-                        </ArkDatePicker.TableRow>
-                      ))}
-                    </ArkDatePicker.TableBody>
-                  </ArkDatePicker.Table>
-                )}
-              </ArkDatePicker.Context>
-            </ArkDatePicker.View>
+                <ArkDatePicker.Context>
+                  {(api) => (
+                    <ArkDatePicker.Table columns={4} className={styles.table}>
+                      <ArkDatePicker.TableBody>
+                        {api.getMonthsGrid({ columns: 4, format: "short" }).map((months, rowIndex) => (
+                          <ArkDatePicker.TableRow key={rowIndex}>
+                            {months.map((month) => (
+                              <ArkDatePicker.TableCell
+                                key={month.value}
+                                value={month.value}
+                                className={styles.cell}
+                              >
+                                <ArkDatePicker.TableCellTrigger className={styles.cellTrigger}>
+                                  {month.label}
+                                </ArkDatePicker.TableCellTrigger>
+                              </ArkDatePicker.TableCell>
+                            ))}
+                          </ArkDatePicker.TableRow>
+                        ))}
+                      </ArkDatePicker.TableBody>
+                    </ArkDatePicker.Table>
+                  )}
+                </ArkDatePicker.Context>
+              </ArkDatePicker.View>
 
-            <ArkDatePicker.View view="year" className={styles.view}>
-              <ArkDatePicker.ViewControl className={styles.viewControl}>
-                <ArkDatePicker.PrevTrigger className={styles.nav}>
-                  <ChevronLeftGlyph />
-                </ArkDatePicker.PrevTrigger>
-                <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
-                  <ArkDatePicker.RangeText />
-                </ArkDatePicker.ViewTrigger>
-                <ArkDatePicker.NextTrigger className={styles.nav}>
-                  <ChevronRightGlyph />
-                </ArkDatePicker.NextTrigger>
-              </ArkDatePicker.ViewControl>
+              <ArkDatePicker.View view="year" className={styles.view}>
+                <ArkDatePicker.ViewControl className={styles.viewControl}>
+                  <ArkDatePicker.PrevTrigger className={styles.nav}>
+                    <ChevronLeftGlyph />
+                  </ArkDatePicker.PrevTrigger>
+                  <ArkDatePicker.ViewTrigger className={styles.viewTrigger}>
+                    <ArkDatePicker.RangeText />
+                  </ArkDatePicker.ViewTrigger>
+                  <ArkDatePicker.NextTrigger className={styles.nav}>
+                    <ChevronRightGlyph />
+                  </ArkDatePicker.NextTrigger>
+                </ArkDatePicker.ViewControl>
 
-              <ArkDatePicker.Context>
-                {(api) => (
-                  <ArkDatePicker.Table columns={4} className={styles.table}>
-                    <ArkDatePicker.TableBody>
-                      {api.getYearsGrid({ columns: 4 }).map((years, rowIndex) => (
-                        <ArkDatePicker.TableRow key={rowIndex}>
-                          {years.map((year) => (
-                            <ArkDatePicker.TableCell
-                              key={year.value}
-                              value={year.value}
-                              className={styles.cell}
-                            >
-                              <ArkDatePicker.TableCellTrigger className={styles.cellTrigger}>
-                                {year.label}
-                              </ArkDatePicker.TableCellTrigger>
-                            </ArkDatePicker.TableCell>
-                          ))}
-                        </ArkDatePicker.TableRow>
-                      ))}
-                    </ArkDatePicker.TableBody>
-                  </ArkDatePicker.Table>
-                )}
-              </ArkDatePicker.Context>
-            </ArkDatePicker.View>
-          </ArkDatePicker.Content>
-        </ArkDatePicker.Positioner>
+                <ArkDatePicker.Context>
+                  {(api) => (
+                    <ArkDatePicker.Table columns={4} className={styles.table}>
+                      <ArkDatePicker.TableBody>
+                        {api.getYearsGrid({ columns: 4 }).map((years, rowIndex) => (
+                          <ArkDatePicker.TableRow key={rowIndex}>
+                            {years.map((year) => (
+                              <ArkDatePicker.TableCell
+                                key={year.value}
+                                value={year.value}
+                                className={styles.cell}
+                              >
+                                <ArkDatePicker.TableCellTrigger className={styles.cellTrigger}>
+                                  {year.label}
+                                </ArkDatePicker.TableCellTrigger>
+                              </ArkDatePicker.TableCell>
+                            ))}
+                          </ArkDatePicker.TableRow>
+                        ))}
+                      </ArkDatePicker.TableBody>
+                    </ArkDatePicker.Table>
+                  )}
+                </ArkDatePicker.Context>
+              </ArkDatePicker.View>
+            </ArkDatePicker.Content>
+          </ArkDatePicker.Positioner>
+        </Portal>
       </div>
     </ArkDatePicker.Root>
   );

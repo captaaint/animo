@@ -468,6 +468,7 @@
     font-weight: 700;
     line-height: 1.2;
     color: var(--xmlui-textColor-primary, inherit);
+    min-height: 2.4em;
   }
 
   .sheetSummary[data-empty] {
@@ -478,6 +479,11 @@
   .sheetCount {
     font-size: 13px;
     color: var(--xmlui-textColor-secondary, rgb(100, 116, 139));
+    min-height: 1.2em;
+  }
+
+  .sheetCount[data-empty] {
+    visibility: hidden;
   }
 
   .sheetClose {

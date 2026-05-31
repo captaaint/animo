@@ -108,6 +108,13 @@ test.describe('mobile', () => {
     // On mobile the calendar is a bottom-sheet drawer, not an anchored popover.
     const sheet = page.getByTestId('datepicker-sheet');
     await expect(sheet).toBeVisible();
+    await sheet.evaluate(async (el) => {
+      await Promise.all(
+        el.getAnimations({ subtree: true }).map((animation) =>
+          animation.finished.catch(() => undefined),
+        ),
+      );
+    });
 
     const viewport = page.viewportSize();
     expect(viewport).not.toBeNull();
@@ -149,17 +156,69 @@ test.describe('mobile', () => {
 
     // Selecting dates updates the live summary. Reports opens with an initial
     // range, so capture it first, then pick a fresh range and assert it changed.
+    // Use DOM click here instead of locator.click(): Playwright scrolls the
+    // target into view before a locator click, which would mask the app's own
+    // scroll stability in this drawer.
     const summary = sheet.getByTestId('datepicker-summary');
     await expect(summary).toBeVisible();
     const before = (await summary.textContent())?.trim();
+    const calendarBodyMetrics = async () =>
+      sheet.evaluate((el) => {
+        const currentMonth = el.querySelector<HTMLElement>('#month-6');
+        let node = currentMonth?.parentElement;
+        while (node) {
+          const overflowY = getComputedStyle(node).overflowY;
+          if (
+            (overflowY === 'auto' || overflowY === 'scroll') &&
+            node.scrollHeight > node.clientHeight + 4
+          ) {
+            const box = node.getBoundingClientRect();
+            return {
+              top: box.top,
+              height: box.height,
+              scrollTop: node.scrollTop,
+            };
+          }
+          node = node.parentElement;
+        }
+        throw new Error('DatePicker calendar body was not scrollable');
+      });
+    await sheet.evaluate((el) => {
+      const view = el.querySelector<HTMLElement>('#month-6')?.closest<HTMLElement>('div[class*="_view"]');
+      const march = Array.from(el.querySelectorAll<HTMLElement>('[id^="month-"]')).find(
+        (table) =>
+          table
+            .closest<HTMLElement>('div[class*="_calendarMonth"]')
+            ?.querySelector('button')
+            ?.textContent?.trim() === 'March 2026',
+      );
+      const marchMonth = march?.closest<HTMLElement>('div[class*="_calendarMonth"]');
+      if (!view || !marchMonth) throw new Error('March 2026 month was not rendered');
+      view.scrollTop = marchMonth.offsetTop;
+    });
+    const bodyAtMarch = await calendarBodyMetrics();
 
-    const dayCells = sheet.getByRole('button', { name: /day, .*20\d\d/ });
-    await dayCells.nth(10).click();
-    await dayCells.nth(17).click();
+    await sheet
+      .getByRole('button', { name: 'Choose Monday, March 9, 2026' })
+      .evaluate((button: HTMLButtonElement) => button.click());
+    const bodyAfterStart = await calendarBodyMetrics();
+    expect(Math.abs(bodyAfterStart.top - bodyAtMarch.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(bodyAfterStart.height - bodyAtMarch.height)).toBeLessThanOrEqual(1);
+    expect(bodyAfterStart.scrollTop).toBe(bodyAtMarch.scrollTop);
+
+    await sheet
+      .getByRole('button', { name: 'Choose Sunday, March 22, 2026' })
+      .evaluate((button: HTMLButtonElement) => button.click());
+    const bodyAfterEnd = await calendarBodyMetrics();
+    expect(Math.abs(bodyAfterEnd.top - bodyAtMarch.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(bodyAfterEnd.height - bodyAtMarch.height)).toBeLessThanOrEqual(1);
+    expect(bodyAfterEnd.scrollTop).toBe(bodyAtMarch.scrollTop);
 
     await expect
       .poll(async () => (await summary.textContent())?.trim())
       .not.toBe(before);
+    await expect(summary).toContainText('Mar 9, 2026');
+    await expect(summary).toContainText('Mar 22, 2026');
 
     // The close button dismisses the sheet.
     await close.click();
