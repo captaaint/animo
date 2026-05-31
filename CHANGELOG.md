@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): stabilize the DatePicker drawer and add month-pair navigation (a78e814)
 - feat(app): tidy up the mobile DatePicker drawer and Reports actions (995f672)
 
+### Changed
+
+- perf(app): memoize and paginate the Reports screen to stop load jank (7fd39a7)
+
 ## [0.2.11] - 2026-05-30
 
 ### Added
