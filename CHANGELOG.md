@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - perf(app): memoize and paginate the Reports screen to stop load jank (7fd39a7)
+- perf(app): memoize the List screen's filtered entries (a173f7d)
 
 ## [0.2.11] - 2026-05-30
 
