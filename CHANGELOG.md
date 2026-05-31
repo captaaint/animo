@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): detect mobile viewport in DatePicker (a6fe1c8)
+- feat(app): show DatePicker as a mobile bottom sheet (422b9a3)
+- feat(app): add a pinned header to the mobile DatePicker sheet (4ca379d)
+- feat(app): scroll through stacked months in the mobile DatePicker (54decaa)
+- feat(app): enlarge DatePicker day cells for mobile touch targets (7db633a)
+- feat(app): pin a scrollable preset row in the mobile DatePicker (e91b3d8)
+- feat(app): lock background scroll while the mobile DatePicker is open (8e999fb)
 
 ## [0.2.11] - 2026-05-30
 
