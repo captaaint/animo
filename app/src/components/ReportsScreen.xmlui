@@ -215,7 +215,6 @@
           id="rangePicker"
           mode="range"
           weekStartsOn="1"
-          showWeekNumber="true"
           dateFormat="yyyy-MM-dd"
           initialValue="{{ from: fromDate, to: toDate }}"
           onDidChange="(v) => {
@@ -297,7 +296,7 @@
           </Items>
         </AutoComplete>
       </HStack>
-      <HStack width="100%" verticalAlignment="center">
+      <HStack width="100%" verticalAlignment="center" wrapContent gap="$space-2">
         <Button
           label="Clear filters"
           variant="ghost"

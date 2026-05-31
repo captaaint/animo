@@ -427,32 +427,25 @@
     animation: datepicker-sheet-up 0.24s ease-out;
   }
 
-  // Drag affordance at the top of the sheet.
-  .grabHandle {
-    flex: 0 0 auto;
-    align-self: center;
-    width: 36px;
-    height: 4px;
-    margin: 10px 0 6px;
-    border-radius: 999px;
-    background: var(--xmlui-color-surface-300, rgb(203, 213, 225));
-  }
-
   // Pinned header: title, live selection summary, day count, close button.
+  // The summary block is centred across the full width; the close button is
+  // pinned to the top-right corner so it never pulls the label off-centre.
   .sheetHeader {
     order: 1;
+    position: relative;
     flex: 0 0 auto;
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
+    justify-content: center;
     gap: 12px;
-    padding: 2px 16px 12px;
+    padding: 14px 48px 12px;
     border-bottom: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
   }
 
   .sheetHeaderText {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center;
     gap: 2px;
     min-width: 0;
   }
@@ -464,11 +457,12 @@
   }
 
   .sheetSummary {
-    font-size: 22px;
+    font-size: 16px;
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.3;
+    white-space: nowrap;
     color: var(--xmlui-textColor-primary, inherit);
-    min-height: 2.4em;
+    min-height: 1.3em;
   }
 
   .sheetSummary[data-empty] {
@@ -487,6 +481,9 @@
   }
 
   .sheetClose {
+    position: absolute;
+    top: 8px;
+    right: 12px;
     flex: 0 0 auto;
     display: inline-flex;
     align-items: center;
@@ -506,7 +503,7 @@
 
   // The active calendar view becomes the scrollable region of the sheet.
   .view {
-    order: 2;
+    order: 3;
     flex: 1 1 auto;
     width: 100%;
     min-width: 0;
@@ -557,18 +554,17 @@
     font-size: 15px;
   }
 
-  // Presets sit in a pinned, horizontally scrollable row at the bottom of the
-  // sheet (range mode only — single mode resolves to no presets). The sheet's
-  // own padding-bottom carries the safe-area inset below this row.
+  // Presets sit in a pinned, horizontally scrollable row directly beneath the
+  // selection summary (range mode only — single mode resolves to no presets).
   .quickPresets {
-    order: 3;
+    order: 2;
     flex: 0 0 auto;
     flex-direction: row;
     flex-wrap: nowrap;
     gap: 8px;
     padding: 12px 16px;
     border-right: 0;
-    border-top: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+    border-bottom: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
     overflow-x: auto;
     scrollbar-width: none;
 
@@ -584,6 +580,49 @@
     padding: 8px 16px;
     border-radius: 999px;
     white-space: nowrap;
+  }
+
+  // Pinned action row beneath the calendar: clear the selection or apply it
+  // and dismiss the sheet. The sheet's padding-bottom carries the safe-area
+  // inset below these buttons.
+  .sheetFooter {
+    order: 4;
+    flex: 0 0 auto;
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    border-top: 1px solid var(--xmlui-borderColor-menu-DatePicker, var(--xmlui-borderColor, rgb(229, 231, 235)));
+  }
+
+  .sheetClear,
+  .sheetApply {
+    flex: 1 1 0;
+    min-height: 36px;
+    padding: 8px 16px;
+    border-radius: var(--xmlui-borderRadius-Button, 6px);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .sheetClear {
+    border: 1px solid var(--xmlui-borderColor-DatePicker, var(--xmlui-borderColor-Input, var(--xmlui-borderColor, rgb(229, 231, 235))));
+    background: transparent;
+    color: var(--xmlui-textColor-primary, inherit);
+
+    &:hover {
+      background: var(--xmlui-backgroundColor-item-DatePicker--hover, var(--xmlui-color-surface-100, rgb(241, 245, 249)));
+    }
+  }
+
+  .sheetApply {
+    border: 0;
+    background: var(--xmlui-color-primary-500, #3f8f8c);
+    color: var(--xmlui-textColor-primary--active, white);
+
+    &:hover {
+      background: var(--xmlui-color-primary-600, #347f7c);
+    }
   }
 }
 

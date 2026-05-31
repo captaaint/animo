@@ -762,12 +762,14 @@ export function DatePicker(props: DatePickerProps) {
               <span className={styles.adornment}>{endText}</span>
             )}
 
-            <ArkDatePicker.ClearTrigger
-              className={styles.clear}
-              aria-label="Clear date"
-            >
-              <CloseGlyph />
-            </ArkDatePicker.ClearTrigger>
+            {!isMobile && (
+              <ArkDatePicker.ClearTrigger
+                className={styles.clear}
+                aria-label="Clear date"
+              >
+                <CloseGlyph />
+              </ArkDatePicker.ClearTrigger>
+            )}
             {endIcon && (
               <ArkDatePicker.Trigger
                 className={styles.trigger}
@@ -789,8 +791,6 @@ export function DatePicker(props: DatePickerProps) {
               className={styles.content}
               data-testid={isMobile ? "datepicker-sheet" : undefined}
             >
-              {isMobile && <div className={styles.grabHandle} aria-hidden="true" />}
-
               {isMobile && (
                 <div className={styles.sheetHeader}>
                   <div className={styles.sheetHeaderText}>
@@ -1063,6 +1063,29 @@ export function DatePicker(props: DatePickerProps) {
                   )}
                 </ArkDatePicker.Context>
               </ArkDatePicker.View>
+
+              {isMobile && (
+                <ArkDatePicker.Context>
+                  {(api) => (
+                    <div className={styles.sheetFooter}>
+                      <button
+                        type="button"
+                        className={styles.sheetClear}
+                        onClick={() => api.clearValue()}
+                      >
+                        Clear
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.sheetApply}
+                        onClick={() => api.setOpen(false)}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  )}
+                </ArkDatePicker.Context>
+              )}
             </ArkDatePicker.Content>
           </ArkDatePicker.Positioner>
         </Portal>
