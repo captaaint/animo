@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): pin a scrollable preset row in the mobile DatePicker (e91b3d8)
 - feat(app): lock background scroll while the mobile DatePicker is open (8e999fb)
 - feat(app): stabilize the DatePicker drawer and add month-pair navigation (a78e814)
+- feat(app): tidy up the mobile DatePicker drawer and Reports actions (995f672)
 
 ## [0.2.11] - 2026-05-30
 
