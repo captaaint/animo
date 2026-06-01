@@ -334,7 +334,7 @@
             <VStack width="*" gap="$space-0">
               <Text>Check for updates automatically</Text>
               <Text variant="secondary" fontSize="$fontSize-small">
-                Animo checks for new versions in the background once a day.
+                Animo checks for new versions on startup and then once a day.
               </Text>
             </VStack>
             <Switch
