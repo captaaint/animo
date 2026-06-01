@@ -351,7 +351,7 @@
     when="{vp.value && vp.value.isMobile && step !== 'select'}"
     initiallyOpen="true"
     position="bottom"
-    closeButtonVisible="true"
+    closeButtonVisible="false"
     onClose="() => {
       step = 'select';
       previewData = null;
@@ -359,10 +359,50 @@
       commitError = null;
     }"
   >
+    <!-- Header carries the actions, mirroring TagDrawer/EntryDrawer: a round
+         close (cancel) on the left, the title centered, and the round primary
+         confirm (import) on the right. The confirm only appears on the preview
+         step; a matching spacer keeps the title centered on the other steps. -->
     <property name="headerTemplate">
-      <Text fontWeight="700" fontSize="$fontSize-large">
-        {step === 'summary' ? 'Import complete' : 'Preview import'}
-      </Text>
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="step = 'select'; previewData = null; summaryData = null; commitError = null;"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {step === 'summary' ? 'Import complete' : 'Preview import'}
+        </Text>
+        <SpaceFiller />
+        <Button
+          when="{step === 'preview' && previewData}"
+          icon="checkmark"
+          themeColor="primary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          enabled="{previewData && previewData.validRows > 0}"
+          onClick="() => {
+            step = 'loading';
+            commitError = null;
+            window.animoImportCommit(
+              previewData.sessionId,
+              isXlsx,
+              (data) => { summaryData = data; step = 'summary'; },
+              (msg) => { commitError = msg; step = 'preview'; }
+            );
+          }"
+        />
+        <Stack when="{!(step === 'preview' && previewData)}" width="48px" height="48px" />
+      </HStack>
     </property>
 
     <Fragment when="{step === 'loading'}">
@@ -373,9 +413,9 @@
     </Fragment>
 
     <Fragment when="{step === 'preview' && previewData}">
-      <VStack gap="$space-4">
-        <!-- File info -->
-        <HStack gap="$space-3" verticalAlignment="center">
+      <VStack gap="$space-4" width="100%">
+        <!-- File info: filename wraps to its own line under the label -->
+        <HStack gap="$space-3" verticalAlignment="center" width="100%">
           <Stack
             width="44px" height="44px" borderRadius="50%"
             backgroundColor="$color-primary-50"
@@ -383,75 +423,124 @@
           >
             <Icon name="file-text" color="$color-primary-500" />
           </Stack>
-          <VStack gap="$space-0_5">
+          <VStack gap="$space-1" width="*">
             <HStack gap="$space-2" verticalAlignment="center">
               <Text variant="secondary" fontSize="$fontSize-small">Detected format:</Text>
               <Text fontWeight="700" color="$color-primary-600" fontSize="$fontSize-small">{previewData.format}</Text>
             </HStack>
-            <HStack gap="$space-2" verticalAlignment="center">
+            <VStack gap="$space-0_5">
               <Text variant="secondary" fontSize="$fontSize-small">File name:</Text>
               <Text fontWeight="700" color="$color-primary-600" fontSize="$fontSize-small">{fileName}</Text>
-            </HStack>
+            </VStack>
           </VStack>
         </HStack>
 
-        <!-- KPI cards -->
-        <HStack gap="$space-3" wrapContent="true">
-          <Card padding="$space-3" width="*" minWidth="150px">
-            <HStack gap="$space-3" verticalAlignment="center">
-              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
-                     horizontalAlignment="center" verticalAlignment="center">
-                <Icon name="database" color="$color-surface-600" />
-              </Stack>
-              <VStack gap="$space-0_5">
-                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Total rows</Text>
-                <Text fontWeight="700" fontSize="1.25rem">{previewData.totalRows}</Text>
+        <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+        <!-- KPI cards: 2×2 grid, big number below the icon + label row -->
+        <VStack gap="$space-3" width="100%">
+          <HStack gap="$space-3" width="100%">
+            <Card padding="$space-3" width="*">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="database" color="$color-surface-600" />
+                  </Stack>
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="600">Total rows</Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem">{previewData.totalRows}</Text>
               </VStack>
-            </HStack>
-          </Card>
-          <Card padding="$space-3" width="*" minWidth="150px"
-                backgroundColor="$color-primary-50" border="1px solid $color-primary-200">
-            <HStack gap="$space-3" verticalAlignment="center">
-              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-primary-100"
-                     horizontalAlignment="center" verticalAlignment="center">
-                <Icon name="checkmark" color="$color-primary-600" />
-              </Stack>
-              <VStack gap="$space-0_5">
-                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Will import</Text>
-                <Text fontWeight="700" fontSize="1.25rem" color="$color-primary-600">{previewData.validRows}</Text>
+            </Card>
+            <Card padding="$space-3" width="*"
+                  backgroundColor="{previewData.validRows > 0 ? '$color-primary-50' : '$color-warn-50'}"
+                  border="{previewData.validRows > 0 ? '1px solid $color-primary-200' : '1px solid $color-warn-200'}">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%"
+                         backgroundColor="{previewData.validRows > 0 ? '$color-primary-100' : '$color-warn-100'}"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="{previewData.validRows > 0 ? 'checkmark' : 'warning'}"
+                          color="{previewData.validRows > 0 ? '$color-primary-600' : '$color-warn-600'}" />
+                  </Stack>
+                  <Text width="*" variant="secondary" fontSize="$fontSize-small" fontWeight="600">
+                    {previewData.validRows > 0 ? 'Will import' : 'Nothing to import'}
+                  </Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem"
+                      color="{previewData.validRows > 0 ? '$color-primary-600' : '$color-warn-700'}">
+                  {previewData.validRows}
+                </Text>
               </VStack>
-            </HStack>
-          </Card>
-          <Card padding="$space-3" width="*" minWidth="150px">
-            <HStack gap="$space-3" verticalAlignment="center">
-              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
-                     horizontalAlignment="center" verticalAlignment="center">
-                <Icon name="copy" color="$color-surface-600" />
-              </Stack>
-              <VStack gap="$space-0_5">
-                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Duplicates</Text>
-                <Text fontWeight="700" fontSize="1.25rem">{previewData.duplicateWarnings}</Text>
+            </Card>
+          </HStack>
+          <HStack gap="$space-3" width="100%">
+            <Card padding="$space-3" width="*">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="copy" color="$color-surface-600" />
+                  </Stack>
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="600">Duplicates</Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem">{previewData.duplicateWarnings}</Text>
               </VStack>
-            </HStack>
-          </Card>
-          <Card padding="$space-3" width="*" minWidth="150px">
-            <HStack gap="$space-3" verticalAlignment="center">
-              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
-                     horizontalAlignment="center" verticalAlignment="center">
-                <Icon name="warning" color="{previewData.errorRows.length > 0 ? '$color-danger-500' : '$color-surface-600'}" />
-              </Stack>
-              <VStack gap="$space-0_5">
-                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Errors</Text>
-                <Text fontWeight="700" fontSize="1.25rem"
+            </Card>
+            <Card padding="$space-3" width="*">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="warning" color="{previewData.errorRows.length > 0 ? '$color-danger-500' : '$color-surface-600'}" />
+                  </Stack>
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="600">Errors</Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem"
                   color="{previewData.errorRows.length > 0 ? '$color-danger-600' : '$color-surface-900'}">
                   {previewData.errorRows.length}
                 </Text>
               </VStack>
-            </HStack>
-          </Card>
-        </HStack>
+            </Card>
+          </HStack>
+        </VStack>
 
-        <VStack when="{previewData.errorRows.length > 0}" gap="$space-2">
+        <!-- Why nothing imports: when validRows is 0, explain the blocker
+             (all duplicates / all errors / a mix) instead of the generic note. -->
+        <Card when="{previewData.validRows === 0}"
+              backgroundColor="$color-warn-50" border="0" padding="$space-3" width="100%">
+          <HStack gap="$space-3" verticalAlignment="start">
+            <Icon name="warning" color="$color-warn-600" />
+            <VStack gap="$space-1" width="*">
+              <Text fontWeight="700" color="$color-warn-700">Nothing will be imported</Text>
+              <Text variant="secondary" fontSize="$fontSize-small">
+                {previewData.errorRows.length === 0
+                  ? 'All ' + previewData.totalRows + ' rows are duplicates of entries you already have, so there is nothing new to add.'
+                  : (previewData.duplicateWarnings === 0
+                      ? 'All ' + previewData.totalRows + ' rows have errors, so none can be imported. See the problems listed below.'
+                      : 'Every row is either a duplicate or contains an error, so none can be imported.')}
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
+
+        <!-- About this import (when there is something to import) -->
+        <Card when="{previewData.validRows > 0}"
+              backgroundColor="$color-primary-50" border="0" padding="$space-3" width="100%">
+          <HStack gap="$space-3" verticalAlignment="start">
+            <Icon name="info" color="$color-primary-600" />
+            <VStack gap="$space-1" width="*">
+              <Text fontWeight="700" color="$color-primary-700">About this import</Text>
+              <Text variant="secondary" fontSize="$fontSize-small">
+                Duplicate rows (same date, time range, and description) will be
+                skipped automatically. New clients, projects, and tags will be
+                created as needed.
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
+
+        <VStack when="{previewData.errorRows.length > 0}" gap="$space-2" width="100%">
           <Text fontWeight="600">Rows with problems:</Text>
           <Table data="{previewData.errorRows}">
             <Column bindTo="row" header="Row" width="80px" />
@@ -460,32 +549,6 @@
         </VStack>
 
         <Text when="{commitError}" color="$color-danger-600" fontSize="$fontSize-small">{commitError}</Text>
-
-        <!-- Footer -->
-        <HStack
-          gap="$space-2"
-          verticalAlignment="center"
-          paddingTop="$space-3"
-          borderTop="1px solid $color-surface-200"
-        >
-          <SpaceFiller />
-          <Button label="Cancel" variant="ghost" onClick="step = 'select'; previewData = null; summaryData = null; commitError = null;" />
-          <Button
-            label="Import {previewData.validRows} entries"
-            themeColor="primary"
-            enabled="{previewData.validRows > 0}"
-            onClick="() => {
-              step = 'loading';
-              commitError = null;
-              window.animoImportCommit(
-                previewData.sessionId,
-                isXlsx,
-                (data) => { summaryData = data; step = 'summary'; },
-                (msg) => { commitError = msg; step = 'preview'; }
-              );
-            }"
-          />
-        </HStack>
       </VStack>
     </Fragment>
 
