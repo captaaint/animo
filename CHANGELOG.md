@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): redesign the import flow with a dropzone and step modal (03c416d)
 - feat(app): refine the mobile import preview drawer (c580de1)
 - feat(app): polish the mobile import page and preview drawer (2b31da9)
+- feat(app): type-to-edit the date picker with a masked segmented field (ee17d02)
 
 ### Changed
 
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - fix(app): stop the Reports action row wrapping on desktop (863d1a7)
+- fix(app): keep mobile input text at the desktop size (e1a8142)
 
 ## [0.2.11] - 2026-05-30
 
