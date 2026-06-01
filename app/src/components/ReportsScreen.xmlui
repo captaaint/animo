@@ -225,6 +225,7 @@
         <DatePicker
           label="Date range"
           id="rangePicker"
+          width="{vp.value &amp;&amp; vp.value.isMobile ? '100%' : null}"
           mode="range"
           weekStartsOn="1"
           dateFormat="yyyy-MM-dd"

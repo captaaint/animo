@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
   type FocusEvent,
+  type RefObject,
 } from "react";
 
 import styles from "./DatePicker.module.scss";
@@ -312,6 +313,119 @@ const datePartsFromString = (
   }
 };
 
+const fieldForLetter = (letter: string): "year" | "month" | "day" | "other" => {
+  if (letter === "y" || letter === "Y") return "year";
+  if (letter === "M") return "month";
+  if (letter === "d" || letter === "D") return "day";
+  return "other";
+};
+
+// Real number of days in a month. The year is used so February respects leap
+// years; when the year isn't known yet (formats where the day precedes it) we
+// fall back to a leap year so the 29th stays reachable.
+const daysInMonth = (year: number | undefined, month: number | undefined): number => {
+  if (!month || month < 1 || month > 12) return 31;
+  const safeYear = year && year > 0 ? year : 2000;
+  return new Date(Date.UTC(safeYear, month, 0)).getUTCDate();
+};
+
+type DateSegment = {
+  field: "year" | "month" | "day" | "other";
+  start: number;
+  end: number;
+  capacity: number;
+};
+
+// Splits the format into its fixed-position segments, e.g. "yyyy-MM-dd" ->
+// year[0,4) month[5,7) day[8,10). The masked value uses the same positions.
+const buildDateSegments = (dateFormat: string): DateSegment[] => {
+  const segments: DateSegment[] = [];
+  let i = 0;
+  while (i < dateFormat.length) {
+    const ch = dateFormat[i];
+    if (/[A-Za-z]/.test(ch)) {
+      let j = i;
+      while (j < dateFormat.length && dateFormat[j] === ch) j += 1;
+      segments.push({ field: fieldForLetter(ch), start: i, end: j, capacity: j - i });
+      i = j;
+    } else {
+      i += 1;
+    }
+  }
+  return segments;
+};
+
+// Per-segment digit strings read out of a value, e.g. "2026-06-07" ->
+// ["2026","06","07"]. Placeholder letters (an in-progress template) count as 0.
+const readSegmentDigits = (value: string, segments: DateSegment[]): string[] =>
+  segments.map((seg) => value.slice(seg.start, seg.end).replace(/\D/g, ""));
+
+// Renders the editing value: a segment with typed digits shows just those
+// digits (no placeholder filler for the part being typed), an untyped segment
+// shows its lowercase placeholder letters, and the separators are always there.
+// Segments are therefore variable-width, so the [start, end] character range of
+// each one in the produced string is returned alongside it.
+// e.g. ["2","06",""] -> "2-06-dd".
+const buildDisplay = (
+  segDigits: string[],
+  segments: DateSegment[],
+  dateFormat: string,
+): { value: string; positions: Array<[number, number]> } => {
+  let value = "";
+  const positions: Array<[number, number]> = [];
+  let cursor = 0;
+  segments.forEach((seg, k) => {
+    value += dateFormat.slice(cursor, seg.start); // separators / literals before
+    const start = value.length;
+    const digits = segDigits[k] || "";
+    value +=
+      digits.length > 0
+        ? digits
+        : dateFormat.slice(seg.start, seg.end).toLowerCase();
+    positions.push([start, value.length]);
+    cursor = seg.end;
+  });
+  value += dateFormat.slice(cursor);
+  return { value, positions };
+};
+
+// Adds one digit to a single segment's running value, validating as it goes.
+// Returns the new digit string + whether the segment is now complete, or null
+// when the digit is impossible (month > 12, day past the month's length). A
+// leading digit too big to begin a two-digit value is auto-padded ("9" -> "09").
+const addDigitToSegment = (
+  field: DateSegment["field"],
+  capacity: number,
+  current: string,
+  digit: string,
+  year: number | undefined,
+  month: number | undefined,
+): { digits: string; complete: boolean } | null => {
+  if (field === "month") {
+    if (current.length === 0) {
+      if (Number(digit) > 1) return { digits: `0${digit}`, complete: true };
+      return { digits: digit, complete: false };
+    }
+    const value = Number(current + digit);
+    if (value < 1 || value > 12) return null;
+    return { digits: current + digit, complete: true };
+  }
+  if (field === "day") {
+    const maxDay = daysInMonth(year, month);
+    if (current.length === 0) {
+      if (Number(digit) > Math.floor(maxDay / 10)) {
+        return { digits: `0${digit}`, complete: true };
+      }
+      return { digits: digit, complete: false };
+    }
+    const value = Number(current + digit);
+    if (value < 1 || value > maxDay) return null;
+    return { digits: current + digit, complete: true };
+  }
+  const next = current + digit;
+  return { digits: next, complete: next.length >= capacity };
+};
+
 const parseDateValue = (
   raw: unknown,
   dateFormat: string,
@@ -434,6 +548,257 @@ const resolvePresets = (
   return resolved.length ? resolved : DEFAULT_PRESETS;
 };
 
+type DateFieldProps = {
+  value: DateValue | undefined;
+  dateFormat: string;
+  placeholder: string;
+  className?: string;
+  ariaLabel?: string;
+  autoFocus?: boolean;
+  readOnly?: boolean;
+  fieldRef?: RefObject<HTMLInputElement | null>;
+  onCommit: (value: DateValue | null) => void;
+};
+
+// A self-owned segmented date input. Ark never controls this element — we only
+// push complete, valid dates back into Ark's value via `onCommit`, and mirror
+// Ark's value here when not mid-edit. Typing fills the year/month/day part the
+// caret is on, that part is highlighted (selected) so it's clear which one
+// you're entering, and completing a part auto-advances to the next. Month is
+// clamped to 01-12 and day to the real length of the month (see maskToFormat).
+function DateField({
+  value,
+  dateFormat,
+  placeholder,
+  className,
+  ariaLabel,
+  autoFocus,
+  readOnly,
+  fieldRef,
+  onCommit,
+}: DateFieldProps) {
+  const ownRef = useRef<HTMLInputElement>(null);
+  const segments = useMemo(() => buildDateSegments(dateFormat), [dateFormat]);
+  const editingRef = useRef(false);
+  const activeRef = useRef(0);
+  const freshRef = useRef(true);
+  // Per-segment digits typed so far while editing (the rest render as the
+  // placeholder template), and each segment's character range in the current
+  // (variable-width) display string.
+  const segDigitsRef = useRef<string[]>([]);
+  const segPositionsRef = useRef<Array<[number, number]>>([]);
+
+  const display = value ? formatDateValue(value, dateFormat) : "";
+  // Refs keep the native handlers fresh without re-attaching every render.
+  const displayRef = useRef(display);
+  displayRef.current = display;
+  const commitRef = useRef(onCommit);
+  commitRef.current = onCommit;
+
+  // Mirror the committed value (clean date, no template) whenever we aren't
+  // actively editing (calendar selection, clear, or post-blur normalization).
+  useEffect(() => {
+    const el = fieldRef?.current ?? ownRef.current;
+    if (el && !editingRef.current) el.value = display;
+  }, [display, fieldRef]);
+
+  // All editing runs through native listeners (React's synthetic onBeforeInput
+  // isn't reliable for programmatic input, and this element is ours to drive).
+  // The value always carries the full template — typed digits + placeholder
+  // letters + separators — so the structure never disappears while typing.
+  useEffect(() => {
+    const el = fieldRef?.current ?? ownRef.current;
+    if (!el || readOnly) return;
+
+    const render = () => {
+      const { value, positions } = buildDisplay(
+        segDigitsRef.current,
+        segments,
+        dateFormat,
+      );
+      el.value = value;
+      segPositionsRef.current = positions;
+    };
+    // Highlight the active segment (its typed digits, or its placeholder when
+    // empty), so it's clear which part you're entering and the caret sits on it.
+    const select = () => {
+      const pos = segPositionsRef.current[activeRef.current];
+      if (!pos) return;
+      try {
+        el.setSelectionRange(pos[0], pos[1]);
+      } catch {
+        /* setSelectionRange can throw for some input states; ignore */
+      }
+    };
+    const allComplete = () =>
+      segments.every(
+        (seg, i) => (segDigitsRef.current[i] || "").length === seg.capacity,
+      );
+    const firstIncomplete = () => {
+      const idx = segments.findIndex(
+        (seg, i) => (segDigitsRef.current[i] || "").length < seg.capacity,
+      );
+      return idx < 0 ? 0 : idx;
+    };
+    // Map a caret position in the (variable-width) display to a segment.
+    const segmentAtCaret = (caret: number) => {
+      const positions = segPositionsRef.current;
+      let best = 0;
+      positions.forEach((range, k) => {
+        if (caret >= range[0] && caret <= range[1]) best = k;
+        else if (range[0] <= caret) best = k;
+      });
+      return best;
+    };
+    const knownYearMonth = () => ({
+      year:
+        (segDigitsRef.current[0] || "").length === 4
+          ? Number(segDigitsRef.current[0])
+          : undefined,
+      month:
+        (segDigitsRef.current[1] || "").length === 2
+          ? Number(segDigitsRef.current[1])
+          : undefined,
+    });
+    const onBeforeInput = (event: Event) => {
+      const e = event as InputEvent;
+      e.preventDefault();
+      editingRef.current = true;
+      const type = e.inputType || "";
+      if (type.startsWith("history")) return;
+
+      if (type.startsWith("delete")) {
+        const current = segDigitsRef.current[activeRef.current] || "";
+        if (current.length > 0) {
+          segDigitsRef.current[activeRef.current] = current.slice(0, -1);
+        } else if (activeRef.current > 0) {
+          activeRef.current -= 1;
+          const prev = segDigitsRef.current[activeRef.current] || "";
+          segDigitsRef.current[activeRef.current] = prev.slice(0, -1);
+        }
+        freshRef.current = false;
+        render();
+        select();
+        return;
+      }
+
+      const data = (e.data ?? "").replace(/\D/g, "");
+      if (!data) {
+        select(); // non-digit — blocked, structure stays
+        return;
+      }
+      for (const digit of data) {
+        // Re-entering a segment clears just that segment (its placeholders come
+        // back); the other segments keep their digits.
+        if (freshRef.current) {
+          segDigitsRef.current[activeRef.current] = "";
+          freshRef.current = false;
+        }
+        const seg = segments[activeRef.current];
+        const { year, month } = knownYearMonth();
+        const res = addDigitToSegment(
+          seg.field,
+          seg.capacity,
+          segDigitsRef.current[activeRef.current] || "",
+          digit,
+          year,
+          month,
+        );
+        if (!res) continue; // impossible value — ignore the keystroke
+        segDigitsRef.current[activeRef.current] = res.digits;
+        if (res.complete && activeRef.current < segments.length - 1) {
+          activeRef.current += 1;
+          freshRef.current = true;
+        }
+      }
+      render();
+      select();
+    };
+
+    const onPointerUp = () => {
+      const caret = el.selectionStart ?? 0;
+      requestAnimationFrame(() => {
+        activeRef.current = segmentAtCaret(caret);
+        freshRef.current = true;
+        select();
+      });
+    };
+
+    const onFocus = () => {
+      editingRef.current = true;
+      // el.value here is the committed (fixed-width) date or empty, so reading
+      // by the format's fixed positions is correct.
+      segDigitsRef.current = readSegmentDigits(el.value, segments);
+      activeRef.current = allComplete() ? 0 : firstIncomplete();
+      freshRef.current = true;
+      render();
+      requestAnimationFrame(() => select());
+    };
+
+    const onKeyDown = (event: Event) => {
+      const e = event as KeyboardEvent;
+      // Enter applies the typed date (commit happens on blur).
+      if (e.key === "Enter") {
+        e.preventDefault();
+        el.blur();
+        return;
+      }
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      e.preventDefault();
+      const delta = e.key === "ArrowLeft" ? -1 : 1;
+      activeRef.current = Math.max(
+        0,
+        Math.min(segments.length - 1, activeRef.current + delta),
+      );
+      freshRef.current = true;
+      select();
+    };
+
+    const onBlur = () => {
+      editingRef.current = false;
+      if (allComplete()) {
+        const parsed = parseDateValue(el.value, dateFormat);
+        if (parsed) {
+          commitRef.current(parsed);
+          el.value = formatDateValue(parsed, dateFormat);
+          return;
+        }
+      }
+      // Incomplete: drop the template and fall back to the committed value.
+      el.value = displayRef.current;
+      if (displayRef.current === "") commitRef.current(null);
+    };
+
+    el.addEventListener("beforeinput", onBeforeInput);
+    el.addEventListener("pointerup", onPointerUp);
+    el.addEventListener("focus", onFocus);
+    el.addEventListener("keydown", onKeyDown);
+    el.addEventListener("blur", onBlur);
+    return () => {
+      el.removeEventListener("beforeinput", onBeforeInput);
+      el.removeEventListener("pointerup", onPointerUp);
+      el.removeEventListener("focus", onFocus);
+      el.removeEventListener("keydown", onKeyDown);
+      el.removeEventListener("blur", onBlur);
+    };
+  }, [segments, dateFormat, readOnly, fieldRef]);
+
+  return (
+    <input
+      ref={fieldRef ?? ownRef}
+      className={className}
+      placeholder={placeholder}
+      aria-label={ariaLabel}
+      defaultValue={display}
+      autoFocus={autoFocus}
+      readOnly={readOnly}
+      inputMode="numeric"
+      autoComplete="off"
+      spellCheck={false}
+    />
+  );
+}
+
 export function DatePicker(props: DatePickerProps) {
   const {
     id,
@@ -482,6 +847,9 @@ export function DatePicker(props: DatePickerProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const positionerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Captured from Ark's context so a click on the control's non-value area can
+  // open the calendar programmatically (desktop).
+  const apiRef = useRef<{ setOpen: (open: boolean) => void } | null>(null);
   const dayViewRef = useRef<HTMLDivElement>(null);
   const monthZeroRef = useRef<HTMLDivElement>(null);
   const pendingMobileScrollTopRef = useRef<number | null>(null);
@@ -533,6 +901,29 @@ export function DatePicker(props: DatePickerProps) {
       emitValue(toDateValues(next, mode, dateFormat));
     },
     [dateFormat, emitValue, mode],
+  );
+
+  // A single typed field (start/end) committed a value. Merge it into the value
+  // array by position and push it back through Ark's state. Range keeps both
+  // slots so the other field is preserved.
+  const commitField = useCallback(
+    (index: number, date: DateValue | null) => {
+      if (mode === "range") {
+        const slots: (DateValue | undefined)[] = [values[0], values[1]];
+        slots[index] = date ?? undefined;
+        emitValue(slots as DateValue[]);
+      } else {
+        emitValue(date ? [date] : []);
+      }
+    },
+    [emitValue, mode, values],
+  );
+
+  // Ark's value must be a dense array (no holes); the typed fields read the
+  // positional `values` instead.
+  const arkValue = useMemo(
+    () => values.filter((item): item is DateValue => !!item),
+    [values],
   );
 
   const createFallbackFocusedValue = useCallback(() => {
@@ -624,6 +1015,7 @@ export function DatePicker(props: DatePickerProps) {
     [onBlur],
   );
 
+
   const hasAdornment = !!startText || !!endText || !!startIcon || !!endIcon;
   const visibleMonthCount = toNumber(numOfMonths, mode === "range" ? 2 : 1);
 
@@ -678,7 +1070,7 @@ export function DatePicker(props: DatePickerProps) {
   return (
     <ArkDatePicker.Root
       id={id}
-      value={values}
+      value={arkValue}
       focusedValue={isMobile && isOpen ? mobileFocusedValue : undefined}
       onValueChange={(details) => {
         rememberMobileScrollTop();
@@ -698,7 +1090,7 @@ export function DatePicker(props: DatePickerProps) {
       min={minDate}
       max={maxDate}
       numOfMonths={isMobile ? 1 : visibleMonthCount}
-      openOnClick
+      openOnClick={false}
       closeOnSelect={mode !== "range"}
       placeholder={placeholder}
       format={(date) => formatDateValue(date, dateFormat)}
@@ -724,9 +1116,30 @@ export function DatePicker(props: DatePickerProps) {
         )}
 
         <div className={styles.pickerRow}>
+          {/* Capture Ark's api so a click on the control's non-value area can
+              open the calendar (desktop). */}
+          <ArkDatePicker.Context>
+            {(api) => {
+              apiRef.current = api;
+              return null;
+            }}
+          </ArkDatePicker.Context>
           <ArkDatePicker.Control
             className={styles.control}
             data-has-adornment={hasAdornment ? "" : undefined}
+            onClick={(event) => {
+              // Mobile: tapping anywhere in the field opens the sheet (the
+              // inputs are read-only there). Desktop: clicking the value is for
+              // typing and the calendar/clear buttons handle their own clicks;
+              // a click anywhere else in the control opens the calendar.
+              if (isMobile) {
+                apiRef.current?.setOpen(true);
+                return;
+              }
+              const target = event.target as HTMLElement;
+              if (target.closest("input") || target.closest("button")) return;
+              apiRef.current?.setOpen(true);
+            }}
           >
             {!endIcon && (
               <ArkDatePicker.Trigger
@@ -741,19 +1154,29 @@ export function DatePicker(props: DatePickerProps) {
               <span className={styles.adornment}>{startText}</span>
             )}
 
-            <ArkDatePicker.Input
-              ref={inputRef}
-              index={0}
-              autoFocus={autoFocus}
+            <DateField
+              fieldRef={inputRef}
+              value={values[0]}
+              dateFormat={dateFormat}
+              placeholder={dateFormat.replace(/[A-Za-z]/g, (ch) => ch.toLowerCase())}
               className={styles.input}
+              ariaLabel={label || "Date"}
+              autoFocus={autoFocus}
+              readOnly={isMobile || readOnly}
+              onCommit={(date) => commitField(0, date)}
             />
 
             {mode === "range" && (
               <>
                 <span className={styles.rangeSeparator}>-</span>
-                <ArkDatePicker.Input
-                  index={1}
+                <DateField
+                  value={values[1]}
+                  dateFormat={dateFormat}
+                  placeholder={dateFormat.replace(/[A-Za-z]/g, (ch) => ch.toLowerCase())}
                   className={styles.input}
+                  ariaLabel="End date"
+                  readOnly={isMobile || readOnly}
+                  onCommit={(date) => commitField(1, date)}
                 />
               </>
             )}

@@ -7,7 +7,10 @@
   min-width: 0;
   color: var(--xmlui-textColor-primary, inherit);
 
-  &[data-mode="range"] {
+  // Range pickers hug their content by default, but an explicit full-width
+  // request (width="100%"/"*"/"full" → .fullWidth) must still win — otherwise
+  // this higher-specificity rule would pin the root to max-content.
+  &[data-mode="range"]:not(.fullWidth) {
     width: max-content;
     max-width: 100%;
   }
@@ -53,6 +56,22 @@
 
 .autoWidth {
   width: auto;
+}
+
+// A full-width range picker centers its date group rather than letting the two
+// inputs stretch and left-align (which leaves the dates hugging the left edge).
+// Scoped to range mode so single-date full-width pickers stay left-aligned.
+.root[data-mode="range"].fullWidth {
+  .control {
+    justify-content: center;
+  }
+
+  .input {
+    flex: 0 0 auto;
+    width: 11ch;
+    min-width: 11ch;
+    text-align: center;
+  }
 }
 
 .label {
