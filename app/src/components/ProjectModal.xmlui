@@ -34,7 +34,7 @@
   }"
 >
   <APICall id="saveCall"
-    method="{editItem ? 'PATCH' : 'POST'}"
+    method="{editItem ? 'patch' : 'post'}"
     url="{editItem ? apiBase + '/projects/' + editItem.id : apiBase + '/projects'}"
     credentials="include"
     body="{{

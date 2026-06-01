@@ -66,6 +66,7 @@
     initiallyOpen="true"
     position="bottom"
     closeButtonVisible="false"
+    closeOnClickAway="false"
     onClose="() => { drawerOpen = false; emitEvent('closed'); }">
     <property name="headerTemplate">
       <HStack width="100%" verticalAlignment="center">
@@ -79,7 +80,18 @@
           borderRadius="50%"
           borderColor="$color-surface-400"
           borderWidth="1px"
-          onClick="drawerOpen = false; emitEvent('closed')"
+          onClick="
+            const hasContent = titleInput.trim() || bodyInput.trim();
+            if (!hasContent || confirm(
+              'Close feedback?',
+              'Your feedback has not been sent yet. Are you sure you want to close this form?',
+              'Close',
+              'Keep editing'
+            )) {
+              drawerOpen = false;
+              emitEvent('closed');
+            }
+          "
         />
         <SpaceFiller />
         <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">

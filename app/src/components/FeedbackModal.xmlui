@@ -40,7 +40,25 @@
     padding="$space-4"
     borderRadius="16px"
     closeButtonVisible="true"
-    onClose="() => { modalOpen = false; emitEvent('closed'); }">
+    onClose="() => {
+      const hasContent = titleInput.trim() || bodyInput.trim();
+      if (successIssueUrl || !hasContent) {
+        modalOpen = false;
+        emitEvent('closed');
+        return;
+      }
+      const shouldClose = confirm(
+        'Close feedback?',
+        'Your feedback has not been sent yet. Are you sure you want to close this form?',
+        'Close',
+        'Keep editing'
+      );
+      if (!shouldClose) {
+        return false;
+      }
+      modalOpen = false;
+      emitEvent('closed');
+    }">
     <VStack gap="$space-4" width="100%">
 
       <HStack when="{!successIssueUrl}" gap="$space-3" verticalAlignment="center" width="100%">

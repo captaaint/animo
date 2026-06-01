@@ -47,7 +47,7 @@
 
   <APICall
     id="deleteCall"
-    method="DELETE"
+    method="delete"
     url="{apiBase + '/projects/' + $param}"
     credentials="include"
     onSuccess="() => { toast.success('Project deleted'); projectsDs.refetch(); }"

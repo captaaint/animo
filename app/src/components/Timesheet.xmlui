@@ -61,7 +61,7 @@
   />
 
   <APICall id="duplicateCall"
-    method="POST"
+    method="post"
     url="{apiBase + '/time-entries'}"
     credentials="include"
     body="{duplicatePayload}"
@@ -69,7 +69,7 @@
     onError="() => toast.error('Duplicate failed')" />
 
   <APICall id="deleteCall"
-    method="DELETE"
+    method="delete"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
     onSuccess="() => { toast.success('Entry deleted'); entriesDs.refetch(); }"

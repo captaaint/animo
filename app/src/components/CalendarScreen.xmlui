@@ -6,7 +6,7 @@
 >
   <APICall
     id="updateCall"
-    method="PATCH"
+    method="patch"
     url="{apiBase + '/time-entries/' + (pendingUpdate ? pendingUpdate.id : '')}"
     credentials="include"
     body="{{

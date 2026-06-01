@@ -40,7 +40,7 @@
 
   <APICall
     id="deleteCall"
-    method="DELETE"
+    method="delete"
     url="{apiBase + '/clients/' + $param}"
     credentials="include"
     onSuccess="() => { toast.success('Client deleted'); clientsDs.refetch(); }"
