@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): polish the mobile import page and preview drawer (2b31da9)
 - feat(app): type-to-edit the date picker with a masked segmented field (ee17d02)
 - feat(app): note feedback is anonymous above the send button (6234e38)
+- feat(app): redesign the feedback modal with a card-based two-column layout (a8cdaa9)
 
 ### Changed
 
