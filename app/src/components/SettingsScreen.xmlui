@@ -47,7 +47,7 @@
     width="*"
     height="{vp.value && vp.value.isMobile ? null : '*'}"
     gap="$space-4"
-    padding="$space-4"
+    padding="0"
   >
 
     <!-- Left column: identity (Local profile + Profile) -->
@@ -168,8 +168,8 @@
             <Text variant="secondary" fontSize="$fontSize-small">Appearance</Text>
           </HStack>
           <ContentSeparator />
-          <HStack verticalAlignment="center" gap="$space-3" paddingVertical="$space-2">
-            <VStack width="*" gap="$space-0">
+          <VStack gap="$space-3" paddingVertical="$space-2" width="100%">
+            <VStack width="100%" gap="$space-0">
               <Text>Theme</Text>
               <Text variant="secondary" fontSize="$fontSize-small">
                 Choose how Animo looks on your device.
@@ -177,7 +177,7 @@
             </VStack>
             <Select
               initialValue="{themeInput}"
-              width="160px"
+              width="100%"
               onDidChange="(v) => {
                 themeInput = v;
                 emitEvent('saveTheme', v);
@@ -188,7 +188,7 @@
               <Option value="light" label="Light" />
               <Option value="dark" label="Dark" />
             </Select>
-          </HStack>
+          </VStack>
         </VStack>
       </Card>
 
@@ -355,8 +355,8 @@
             <Text variant="secondary" fontSize="$fontSize-small">Help & feedback</Text>
           </HStack>
           <ContentSeparator />
-          <HStack verticalAlignment="center" gap="$space-3" paddingVertical="$space-2">
-            <VStack width="*" gap="$space-1">
+          <VStack gap="$space-3" paddingVertical="$space-2" width="100%">
+            <VStack width="100%" gap="$space-1">
               <Text>Report a bug or share an idea</Text>
               <Text variant="secondary" fontSize="$fontSize-small">
                 {isTauri
@@ -368,14 +368,15 @@
               label="Send feedback"
               icon="mail"
               themeColor="primary"
-              onClick="feedbackModal.open()"
+              onClick="(vp.value && vp.value.isMobile) ? feedbackDrawer.open() : feedbackModal.open()"
             />
-          </HStack>
+          </VStack>
         </VStack>
       </Card>
 
     </VStack>
 
   </Stack>
-  <FeedbackModal id="feedbackModal" />
+  <FeedbackModal when="{!vp.value || !vp.value.isMobile}" id="feedbackModal" />
+  <FeedbackDrawer when="{vp.value &amp;&amp; vp.value.isMobile}" id="feedbackDrawer" />
 </Component>

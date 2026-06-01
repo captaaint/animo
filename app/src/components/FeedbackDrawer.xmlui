@@ -1,0 +1,229 @@
+<Component name="FeedbackDrawer"
+  var.category="{'bug'}"
+  var.titleInput="{''}"
+  var.bodyInput="{''}"
+  var.diagnosticsOptIn="{false}"
+  var.submitting="{false}"
+  var.errorMessage="{''}"
+  var.drawerOpen="{false}"
+  var.titleError="{!titleInput.trim() ? 'Title is required' : (titleInput.length > 120 ? 'Title must be 120 characters or less' : '')}"
+  var.bodyError="{!bodyInput.trim() ? 'Description is required' : (bodyInput.length > 8000 ? 'Description must be 8000 characters or less' : '')}"
+  var.canSubmit="{!submitting && !titleError && !bodyError}"
+  method.saveDraft="() => {
+    if (!window.animoFeedbackSaveDraft) return;
+    window.animoFeedbackSaveDraft({
+      category: category,
+      title: titleInput,
+      body: bodyInput,
+      diagnostics_opt_in: diagnosticsOptIn
+    });
+  }"
+  method.submit="() => {
+    if (!canSubmit || !window.animoFeedbackSubmit) return;
+    submitting = true;
+    errorMessage = '';
+    window.animoFeedbackSubmit(
+      {
+        category: category,
+        title: titleInput,
+        body: bodyInput,
+        diagnostics_opt_in: diagnosticsOptIn
+      },
+      (result) => {
+        submitting = false;
+        if (result && result.ok) {
+          if (window.animoFeedbackClearDraft) window.animoFeedbackClearDraft();
+          toast.success('Feedback sent');
+          drawerOpen = false;
+          emitEvent('closed');
+          return;
+        }
+        errorMessage = result && result.error ? result.error : 'Failed to send feedback';
+      },
+      (message) => {
+        submitting = false;
+        errorMessage = message || 'Failed to send feedback';
+      }
+    );
+  }"
+  method.open="() => {
+    const draft = window.animoFeedbackLoadDraft ? window.animoFeedbackLoadDraft() : null;
+    const wantsDiagnostics = !!(draft && draft.diagnostics_opt_in);
+    category = draft && draft.category ? draft.category : 'bug';
+    titleInput = draft && draft.title ? draft.title : '';
+    bodyInput = draft && draft.body ? draft.body : '';
+    diagnosticsOptIn = wantsDiagnostics;
+    submitting = false;
+    errorMessage = '';
+    drawerOpen = true;
+  }"
+>
+  <!-- Mirrors EntryDrawer: a tall, pinned-header bottom sheet. dvh keeps the
+       header on screen; see the global Drawer tokens in tracker-theme.ts. -->
+  <Theme height-Drawer="95dvh" maxHeight-Drawer="95dvh">
+  <Drawer
+    when="{drawerOpen}"
+    initiallyOpen="true"
+    position="bottom"
+    closeButtonVisible="false"
+    onClose="() => { drawerOpen = false; emitEvent('closed'); }">
+    <property name="headerTemplate">
+      <HStack width="100%" verticalAlignment="center">
+        <Button
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="drawerOpen = false; emitEvent('closed')"
+        />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          Send feedback
+        </Text>
+        <SpaceFiller />
+        <Button
+          icon="send"
+          themeColor="primary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          enabled="{canSubmit}"
+          onClick="submit()"
+        />
+      </HStack>
+    </property>
+
+    <VStack width="100%" gap="$space-3">
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <VStack width="100%" gap="$space-3">
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Category</Text>
+            <Select
+              width="100%"
+              initialValue="{category}"
+              onDidChange="(v) => { category = v || 'bug'; saveDraft(); }"
+            >
+              <Option value="bug" label="Bug" />
+              <Option value="feature" label="Feature request" />
+              <Option value="question" label="Question" />
+            </Select>
+          </VStack>
+
+          <VStack gap="$space-2" width="100%">
+            <TextBox
+              label="Title"
+              required="true"
+              maxLength="120"
+              initialValue="{titleInput}"
+              onDidChange="(v) => { titleInput = v || ''; saveDraft(); }"
+            />
+            <HStack width="100%">
+              <Text
+                when="{titleError && titleInput.length > 0}"
+                color="$color-danger-600"
+                fontSize="$fontSize-small"
+              >
+                {titleError}
+              </Text>
+              <SpaceFiller />
+              <Text fontSize="$fontSize-xs" variant="secondary">{titleInput.length} / 120</Text>
+            </HStack>
+          </VStack>
+
+          <VStack gap="$space-2" width="100%">
+            <Text fontWeight="500" color="$color-surface-900">Description</Text>
+            <TextArea
+              width="100%"
+              rows="6"
+              maxLength="8000"
+              resize="vertical"
+              initialValue="{bodyInput}"
+              onDidChange="(v) => { bodyInput = v || ''; saveDraft(); }"
+              placeholder="What happened, what did you expect, or what would you like to see?"
+            />
+            <HStack width="100%">
+              <Text
+                when="{bodyError && bodyInput.length > 0}"
+                color="$color-danger-600"
+                fontSize="$fontSize-small"
+              >
+                {bodyError}
+              </Text>
+              <SpaceFiller />
+              <Text fontSize="$fontSize-xs" variant="secondary">{bodyInput.length} / 8000</Text>
+            </HStack>
+          </VStack>
+        </VStack>
+      </Card>
+
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+        <HStack gap="$space-3" verticalAlignment="center" width="100%">
+          <Stack
+            width="40px"
+            height="40px"
+            borderRadius="10px"
+            backgroundColor="$color-primary-100"
+            horizontalAlignment="center"
+            verticalAlignment="center"
+          >
+            <Icon name="file-text" color="$color-primary-600" />
+          </Stack>
+          <VStack width="*" gap="$space-1">
+            <Text fontWeight="500" color="$color-surface-900">Attach diagnostics</Text>
+            <Text fontSize="$fontSize-xs" variant="secondary">
+              Preview exactly what will be attached before sending.
+            </Text>
+          </VStack>
+          <Switch
+            initialValue="{diagnosticsOptIn}"
+            onDidChange="(v) => {
+              diagnosticsOptIn = !!v;
+              saveDraft();
+            }"
+          />
+        </HStack>
+      </Card>
+
+      <Card
+        when="{diagnosticsOptIn}"
+        padding="$space-4"
+        boxShadow="0 2px 8px rgba(0,0,0,0.06)"
+      >
+        <VStack gap="$space-2" width="100%">
+          <Text fontWeight="600" fontSize="$fontSize-small">Diagnostics preview</Text>
+          <TextArea
+            width="100%"
+            rows="6"
+            readOnly="true"
+            fontFamily="monospace"
+            fontSize="$fontSize-xs"
+            initialValue="{window.animoFeedbackBuildPreview ? window.animoFeedbackBuildPreview({ category: category, title: titleInput, body: bodyInput, diagnostics_opt_in: true }) : 'Diagnostics preview is unavailable.'}"
+          />
+        </VStack>
+      </Card>
+
+      <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)" backgroundColor="$color-primary-50">
+        <HStack gap="$space-2" verticalAlignment="center" width="100%">
+          <Icon name="info" color="$color-primary-600" />
+          <Text fontSize="$fontSize-xs" variant="secondary" width="*">
+            Your feedback is completely anonymous — no personal data is included in what you send.
+          </Text>
+        </HStack>
+      </Card>
+
+      <Text
+        when="{errorMessage}"
+        color="$color-danger-600"
+        fontSize="$fontSize-small"
+      >
+        {errorMessage}
+      </Text>
+    </VStack>
+  </Drawer>
+  </Theme>
+</Component>
