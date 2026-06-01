@@ -87,6 +87,17 @@
     [class*="_pageContentContainer"] {
       overflow-y: auto !important;
     }
+
+    /* Active drag-over feedback for the import drop zone. WebKit (Tauri's
+       WKWebView) doesn't expose the dragged file's metadata during dragover,
+       so react-dropzone's own accept-gated overlay never fires there — it
+       only shows for `isDragActive && isDragAccept`, and isDragAccept stays
+       false without readable items. This metadata-free fallback toggles on
+       the raw drag events (see the drag-feedback script below) instead. */
+    [data-app-dragging="true"] {
+      border-color: var(--xmlui-color-primary-500, #3f8f8c) !important;
+      background-color: var(--xmlui-color-primary-50, #eef6f5) !important;
+    }
   </style>
   <script>window.__PUBLIC_PATH = '/'</script>
   <script>
@@ -164,6 +175,51 @@
       };
       apply();
     };
+  </script>
+  <script>
+    // Drag-over feedback for the import drop zone. In Tauri's WKWebView the
+    // dragged file's metadata isn't exposed during dragover, so react-dropzone
+    // can't light up its accept-gated overlay (works in Chrome, not in the
+    // desktop app). The raw drag *events* still fire there — a plain HTML5
+    // drop only happens because dragover was preventDefault'd — so we detect
+    // the drag ourselves and toggle a `data-app-dragging` attribute styled in
+    // the <style> block above.
+    //
+    // Capture phase is required: react-dropzone listens in the bubble phase
+    // with noDragEventsBubbling (stopPropagation), so a bubble-phase listener
+    // here would never see the events. We never preventDefault/stopPropagation,
+    // so the component's own drop handling is untouched.
+    (function () {
+      var SEL = '[data-testid="import-dropzone"]';
+      // The element carrying the dashed border is react-dropzone's root — the
+      // parent of its hidden file input. Fall back to the test-id host.
+      function dashedZone() {
+        var host = document.querySelector(SEL);
+        if (!host) return null;
+        var input = host.querySelector('input[type="file"]');
+        return (input && input.parentElement) ? input.parentElement : host;
+      }
+      var depth = 0;
+      function clearAll() {
+        depth = 0;
+        var els = document.querySelectorAll('[data-app-dragging]');
+        for (var i = 0; i < els.length; i++) els[i].removeAttribute('data-app-dragging');
+      }
+      function zoneFor(e) {
+        var t = e.target;
+        var host = (t && t.closest) ? t.closest(SEL) : null;
+        return host ? dashedZone() : null;
+      }
+      document.addEventListener('dragenter', function (e) {
+        var z = zoneFor(e);
+        if (z) { depth++; z.setAttribute('data-app-dragging', 'true'); }
+      }, true);
+      document.addEventListener('dragleave', function (e) {
+        if (zoneFor(e)) { depth = Math.max(0, depth - 1); if (depth === 0) clearAll(); }
+      }, true);
+      document.addEventListener('drop', clearAll, true);
+      document.addEventListener('dragend', clearAll, true);
+    })();
   </script>
   <base href="/">
 </head>

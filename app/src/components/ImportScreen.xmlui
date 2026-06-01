@@ -9,12 +9,11 @@
     <Card padding="$space-4">
       <VStack gap="$space-3">
         <HStack verticalAlignment="center" gap="$space-2">
-          <Icon name="upload" size="18px" />
-          <Text variant="secondary" fontSize="$fontSize-small">
+          <Icon name="upload" size="lg" color="$color-primary-500" />
+          <Text fontWeight="700" fontSize="1.375rem">
             Data import
           </Text>
         </HStack>
-        <ContentSeparator />
         <ImportFlow />
       </VStack>
     </Card>
