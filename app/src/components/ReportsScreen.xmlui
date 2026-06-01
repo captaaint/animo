@@ -309,7 +309,7 @@
           </Items>
         </AutoComplete>
       </HStack>
-      <HStack width="100%" verticalAlignment="center" wrapContent gap="$space-2">
+      <HStack width="100%" verticalAlignment="center" wrapContent="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-2">
         <Button
           label="Clear filters"
           variant="ghost"
