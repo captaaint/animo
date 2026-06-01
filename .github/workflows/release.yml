@@ -242,9 +242,20 @@ jobs:
               echo "::error::TAURI_UPDATER_PUBKEY is required when TAURI_SIGNING_PRIVATE_KEY is set"
               exit 1
             fi
+            # "v1Compatible" (not `true`) makes Tauri emit the *zipped*
+            # updater bundles the rest of this pipeline expects:
+            #   macOS   → *.app.tar.gz(.sig)
+            #   Linux   → *.AppImage.tar.gz(.sig)
+            #   Windows → *.msi.zip(.sig)
+            # With `true`, Windows/Linux reuse the raw installer (*.msi /
+            # *.AppImage) + a bare *.sig, whose names don't match the
+            # staging globs below — they were silently skipped, so the
+            # published manifest ended up macOS-only and Windows/Linux
+            # users got "no signed update package" in-app. (v1Compatible is
+            # removed in Tauri v3; revisit once the names are unified.)
             config_json=$(node -e '
               process.stdout.write(JSON.stringify({
-                bundle: { createUpdaterArtifacts: true },
+                bundle: { createUpdaterArtifacts: "v1Compatible" },
                 plugins: {
                   updater: {
                     pubkey: process.env.TAURI_UPDATER_PUBKEY,
@@ -266,6 +277,8 @@ jobs:
       - name: Stage artifacts (Linux)
         if: steps.gate.outputs.skip != 'true' && matrix.os == 'ubuntu-22.04'
         shell: bash
+        env:
+          HAS_UPDATER_SIGNING: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && 'true' || 'false' }}
         run: |
           mkdir -p staging
           version="${{ needs.verify.outputs.version }}"
@@ -286,12 +299,17 @@ jobs:
           if [ -n "$tgz" ] && [ -n "$sig" ]; then
             cp "$tgz" "staging/Animo_${version}_amd64.AppImage.tar.gz"
             cp "$sig" "staging/Animo_${version}_amd64.AppImage.tar.gz.sig"
+          elif [ "$HAS_UPDATER_SIGNING" = "true" ]; then
+            echo "::error::updater signing is enabled but no Linux updater bundle (*.AppImage.tar.gz + .sig) was produced — check that createUpdaterArtifacts is \"v1Compatible\". Refusing to publish an installer-only Linux release."
+            exit 1
           fi
           ls -la staging
 
       - name: Stage artifacts (macOS)
         if: steps.gate.outputs.skip != 'true' && startsWith(matrix.os, 'macos')
         shell: bash
+        env:
+          HAS_UPDATER_SIGNING: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && 'true' || 'false' }}
         run: |
           mkdir -p staging
           version="${{ needs.verify.outputs.version }}"
@@ -310,12 +328,17 @@ jobs:
           if [ -n "$tgz" ] && [ -n "$sig" ]; then
             cp "$tgz" "staging/Animo_${version}_${arch}.app.tar.gz"
             cp "$sig" "staging/Animo_${version}_${arch}.app.tar.gz.sig"
+          elif [ "$HAS_UPDATER_SIGNING" = "true" ]; then
+            echo "::error::updater signing is enabled but no macOS updater bundle (*.app.tar.gz + .sig) was produced — check that createUpdaterArtifacts is \"v1Compatible\". Refusing to publish an installer-only macOS release."
+            exit 1
           fi
           ls -la staging
 
       - name: Stage artifacts (Windows)
         if: steps.gate.outputs.skip != 'true' && matrix.os == 'windows-2022'
         shell: pwsh
+        env:
+          HAS_UPDATER_SIGNING: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && 'true' || 'false' }}
         run: |
           New-Item -ItemType Directory -Path staging -Force | Out-Null
           $version = "${{ needs.verify.outputs.version }}"
@@ -328,6 +351,9 @@ jobs:
           if ($zip -and $sig) {
             Copy-Item $zip.FullName "staging/Animo_${version}_x64.msi.zip"
             Copy-Item $sig.FullName "staging/Animo_${version}_x64.msi.zip.sig"
+          } elseif ($env:HAS_UPDATER_SIGNING -eq "true") {
+            Write-Output "::error::updater signing is enabled but no Windows updater bundle (*.msi.zip + .sig) was produced — check that createUpdaterArtifacts is ""v1Compatible"". Refusing to publish an installer-only Windows release."
+            exit 1
           }
           Get-ChildItem staging
 
@@ -580,6 +606,13 @@ jobs:
 
       - name: Validate manifest shape
         if: steps.gate.outputs.skip != 'true'
+        env:
+          # When updater signing is configured (production), every desktop
+          # platform the matrix builds MUST appear in the manifest. This is
+          # the backstop that turns a missing-platform regression into a hard
+          # release failure instead of a silently macOS-only manifest that
+          # leaves Windows/Linux users on "no signed update package".
+          HAS_UPDATER_SIGNING: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY != '' && 'true' || 'false' }}
         run: |
           node -e '
             const fs = require("fs");
@@ -588,12 +621,29 @@ jobs:
               console.error("invalid manifest:", m);
               process.exit(1);
             }
-            const count = Object.keys(m.platforms).length;
-            if (count === 0) {
+            const platforms = Object.keys(m.platforms);
+            if (platforms.length === 0) {
               console.error("manifest has no signed platforms; refusing to publish.");
               process.exit(1);
             }
-            console.log("manifest ok:", count, "platform(s)");
+            if (process.env.HAS_UPDATER_SIGNING === "true") {
+              const required = [
+                "darwin-aarch64", "darwin-aarch64-app",
+                "darwin-x86_64", "darwin-x86_64-app",
+                "linux-x86_64", "windows-x86_64",
+              ];
+              const missing = required.filter((p) => !platforms.includes(p));
+              if (missing.length > 0) {
+                console.error(
+                  "manifest is missing signed platform(s): " + missing.join(", ") +
+                  "\nupdater signing is enabled, so every desktop platform must be present." +
+                  "\nMost likely the build did not emit the expected updater bundle names" +
+                  " (check createUpdaterArtifacts is \"v1Compatible\"). Refusing to publish."
+                );
+                process.exit(1);
+              }
+            }
+            console.log("manifest ok:", platforms.length, "platform(s):", platforms.join(", "));
           '
 
       - name: Build website deploy directory
