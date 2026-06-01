@@ -5,7 +5,9 @@ import { test, expect } from '@playwright/test';
 // automatable proxy for iOS Safari. It guards the three mobile fixes:
 //   1. Settings is reachable from the nav (mobile NavLink, not the desktop-only
 //      footer dropdown that renders behind the nav drawer).
-//   2. Text inputs render at >= 16px so iOS Safari does not auto-zoom on focus.
+//   2. Text inputs stay at the theme base size (matching desktop); iOS Safari's
+//      focus auto-zoom is blocked by maximum-scale=1 in the viewport meta, not
+//      by enlarging the inputs.
 //   3. Bottom drawers fit within the visible viewport with their pinned header
 //      (and its action buttons) on screen.
 //
@@ -31,7 +33,7 @@ test.describe('mobile', () => {
     await expect(page.getByText('Local profile')).toBeVisible();
   });
 
-  test('text inputs render at >= 16px to prevent iOS auto-zoom', async ({
+  test('text inputs match the base size and the viewport blocks focus-zoom', async ({
     page,
   }) => {
     // /settings is reachable by direct navigation and has plain TextBox inputs.
@@ -40,10 +42,22 @@ test.describe('mobile', () => {
     const input = page.locator('input[type="text"]').first();
     await expect(input).toBeVisible();
 
-    const fontSizePx = await input.evaluate(
-      (el) => parseFloat(getComputedStyle(el).fontSize),
-    );
-    expect(fontSizePx).toBeGreaterThanOrEqual(16);
+    // Inputs render at the theme base size on mobile too (no 16px bump), so the
+    // text matches desktop instead of jumping larger on touch.
+    const { inputPx, rootPx } = await input.evaluate((el) => ({
+      inputPx: parseFloat(getComputedStyle(el).fontSize),
+      rootPx: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    }));
+    expect(inputPx).toBeLessThan(16);
+    expect(inputPx).toBeCloseTo(rootPx, 1);
+
+    // iOS Safari's focus auto-zoom is suppressed by maximum-scale=1 in the
+    // viewport meta (iOS 10+ still allows manual pinch-zoom), not by enlarging
+    // the font. That meta is what keeps small inputs from zooming the page.
+    const viewportContent = await page
+      .locator('meta[name="viewport"]')
+      .getAttribute('content');
+    expect(viewportContent).toContain('maximum-scale=1');
   });
 
   test('a bottom drawer fits the viewport with its header on screen', async ({

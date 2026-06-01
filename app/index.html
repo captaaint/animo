@@ -5,9 +5,11 @@
   <link rel="icon" type="image/svg+xml" href="/resources/logo.svg" />
   <!-- Mobile viewport. Deliberate choices:
        - width=device-width, initial-scale=1: standard responsive baseline.
-       - NO user-scalable=no / maximum-scale: pinch-zoom stays available for
-         accessibility (the 16px input rule in the <style> below is what stops
-         iOS focus auto-zoom, not a locked viewport).
+       - maximum-scale=1: blocks iOS Safari's *automatic* zoom when a focused
+         input is smaller than 16px, WITHOUT enlarging the text — inputs stay at
+         the theme's 13px so mobile matches desktop. iOS 10+ ignores
+         maximum-scale for *manual* pinch gestures, so pinch-zoom-to-read stays
+         available for accessibility; only the automatic focus-zoom is stopped.
        - interactive-widget=resizes-content: when the on-screen keyboard opens,
          the layout viewport (and our dvh-sized drawers) shrinks, keeping a
          focused field inside a drawer above the keyboard on supporting browsers
@@ -15,28 +17,12 @@
        - viewport-fit is intentionally left at the default (NOT cover): edge-to-
          edge would push bottom-drawer content under the iOS home indicator
          unless every surface added safe-area insets. -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, interactive-widget=resizes-content" />
   <title>Animo</title>
   <style>
     /* DatePicker / Select dropdown popovers shouldn't shrink to anchor width */
     [data-radix-popper-content-wrapper] {
       min-width: 280px !important;
-    }
-
-    /* iOS Safari auto-zooms the page whenever a focused form control has a
-       computed font-size below 16px. Our theme base is 13px (see
-       tracker-theme.ts), so every text input/textarea/select triggers that
-       zoom on focus. Bump the underlying native controls to 16px on touch
-       devices only — desktop keeps the 13px look, and because we don't touch
-       the viewport meta tag, pinch-zoom stays available. Checkbox/radio/range
-       are excluded (they don't trigger the zoom and font-size can affect their
-       sizing). */
-    @media (pointer: coarse) {
-      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-      textarea,
-      select {
-        font-size: 16px !important;
-      }
     }
 
     /* Mobile: hide the brand logo (Animo) in the AppHeader.
