@@ -616,11 +616,12 @@
   .sheetClear,
   .sheetApply {
     flex: 1 1 0;
-    min-height: 36px;
-    padding: 8px 16px;
+    // Match the app's standard Button scale (~0.875em text, weight 500) so the
+    // footer actions don't tower over every other button in the UI.
+    padding: 0.5em 1em;
     border-radius: var(--xmlui-borderRadius-Button, 6px);
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 0.875em;
+    font-weight: 500;
     cursor: pointer;
   }
 

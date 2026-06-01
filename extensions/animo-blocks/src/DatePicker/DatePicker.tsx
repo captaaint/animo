@@ -13,11 +13,24 @@ import {
   useRef,
   useState,
   type FocusEvent,
+  type ReactNode,
   type RefObject,
 } from "react";
 
 import styles from "./DatePicker.module.scss";
 import { useIsMobile } from "./useIsMobile";
+
+// On mobile the calendar is a fixed full-screen sheet, so it does not need
+// Ark's body portal — and portaling it out of the trigger's DOM subtree breaks
+// touch scrolling when the picker is opened inside another overlay (e.g. an
+// xmlui Drawer, whose react-remove-scroll lock blocks wheel/touch on anything
+// rendered outside the drawer). Rendering inline keeps the sheet within the
+// drawer's scroll-allowed subtree. Desktop still portals so Ark can anchor the
+// popover to the trigger. No ancestor uses transform/filter, so the fixed sheet
+// still covers the viewport when rendered inline.
+function MaybePortal({ disabled, children }: { disabled: boolean; children: ReactNode }) {
+  return disabled ? <>{children}</> : <Portal>{children}</Portal>;
+}
 
 type Mode = "single" | "range";
 type ValidationStatus = "none" | "error" | "warning" | "valid";
@@ -842,6 +855,7 @@ export function DatePicker(props: DatePickerProps) {
   const isControlled = controlledValue !== undefined;
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const [insideDialog, setInsideDialog] = useState(false);
   const [mobileFocusedValue, setMobileFocusedValue] = useState<DateValue | undefined>();
   const [desktopFocusedValue, setDesktopFocusedValue] = useState<DateValue | undefined>();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -956,6 +970,17 @@ export function DatePicker(props: DatePickerProps) {
     if (!isMobile || !isOpen) return;
     if (pendingMobileScrollTopRef.current != null) return;
     pendingMobileScrollTopRef.current = dayViewRef.current?.scrollTop ?? null;
+  }, [isMobile, isOpen]);
+
+  // When the picker lives inside another overlay that locks scroll (an xmlui
+  // Drawer / Radix Dialog), Ark's body portal would place the mobile sheet
+  // outside that overlay's react-remove-scroll subtree, which blocks touch/wheel
+  // scrolling in the calendar. Detect that case so the sheet can render inline
+  // (within the scroll-allowed subtree). Top-level pickers keep the body portal
+  // because the page may have a transformed ancestor that breaks fixed layout.
+  useLayoutEffect(() => {
+    if (!isMobile || !isOpen) return;
+    setInsideDialog(!!rootRef.current?.closest('[role="dialog"]'));
   }, [isMobile, isOpen]);
 
   useLayoutEffect(() => {
@@ -1205,7 +1230,7 @@ export function DatePicker(props: DatePickerProps) {
           </ArkDatePicker.Control>
         </div>
 
-        <Portal>
+        <MaybePortal disabled={isMobile && insideDialog}>
           <ArkDatePicker.Positioner
             ref={positionerRef}
             className={styles.positioner}
@@ -1511,7 +1536,7 @@ export function DatePicker(props: DatePickerProps) {
               )}
             </ArkDatePicker.Content>
           </ArkDatePicker.Positioner>
-        </Portal>
+        </MaybePortal>
       </div>
     </ArkDatePicker.Root>
   );
