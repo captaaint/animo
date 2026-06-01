@@ -4,18 +4,10 @@
     maxWidth="900px"
     marginHorizontal="auto"
     gap="$space-4"
-    padding="$space-4"
+    padding="0"
   >
     <Card padding="$space-4">
-      <VStack gap="$space-3">
-        <HStack verticalAlignment="center" gap="$space-2">
-          <Icon name="upload" size="lg" color="$color-primary-500" />
-          <Text fontWeight="700" fontSize="1.375rem">
-            Data import
-          </Text>
-        </HStack>
-        <ImportFlow />
-      </VStack>
+      <ImportFlow />
     </Card>
   </VStack>
 </Component>

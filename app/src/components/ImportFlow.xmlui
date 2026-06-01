@@ -55,6 +55,7 @@
 
     <FileUploadDropZone
       id="importDrop"
+      when="{!vp.value || !vp.value.isMobile}"
       testId="import-dropzone"
       text="Drop your file here"
       icon="file-text"
@@ -107,7 +108,52 @@
       </VStack>
     </FileUploadDropZone>
 
-    <HStack gap="$space-3" verticalAlignment="center">
+    <!-- Mobile: drag-and-drop is pointless on touch, so a plain file picker is
+         enough. FileInput keeps its own File in `.value`, same as the drop
+         zone, so the preview button can read from whichever picker is mounted. -->
+    <FileInput
+      id="importFile"
+      when="{vp.value && vp.value.isMobile}"
+      width="100%"
+      acceptsFileType="{['.csv', '.xlsx']}"
+      buttonLabel="Choose file"
+      buttonIcon="file-text"
+      buttonVariant="outlined"
+      buttonThemeColor="primary"
+      onDidChange="(files) => {
+        const f = files && files[0] ? files[0] : null;
+        const name = f && f.name ? f.name : '';
+        const lower = name.toLowerCase();
+        if (name && !lower.endsWith('.csv') && !lower.endsWith('.xlsx')) {
+          fileName = '';
+          isXlsx = false;
+          errorMessage = 'Please choose a .csv or .xlsx file.';
+          return;
+        }
+        fileName = name;
+        isXlsx = lower.endsWith('.xlsx');
+        errorMessage = null;
+      }"
+    />
+
+    <!-- Format. Mobile: label above a full-width select. Desktop: inline beside
+         a fixed-width select. -->
+    <VStack when="{vp.value && vp.value.isMobile}" gap="$space-2" width="100%">
+      <Text fontWeight="600">Format</Text>
+      <Select
+        width="100%"
+        initialValue="{formatHint}"
+        onDidChange="(v) => formatHint = v"
+      >
+        <Option value="auto" label="Auto-detect" />
+        <Option value="animo" label="Animo" />
+        <Option value="toggl" label="Toggl" />
+        <Option value="clockify" label="Clockify" />
+        <Option value="harvest" label="Harvest" />
+      </Select>
+    </VStack>
+
+    <HStack when="{!vp.value || !vp.value.isMobile}" gap="$space-3" verticalAlignment="center">
       <Text fontWeight="600">Format</Text>
       <Select
         width="*"
@@ -152,11 +198,14 @@
       themeColor="primary"
       icon="eye"
       size="lg"
+      width="{vp.value && vp.value.isMobile ? '100%' : null}"
       enabled="{fileName.length > 0}"
       onClick="() => {
-        // Read the real File object out of the drop zone at click time —
-        // never from a cached var (see header comment).
-        const liveFile = importDrop.value && importDrop.value[0];
+        // Read the real File object out of the active picker at click time —
+        // never from a cached var (see header comment). Desktop uses the drop
+        // zone; mobile uses the plain FileInput.
+        const src = (vp.value && vp.value.isMobile) ? importFile : importDrop;
+        const liveFile = src && src.value && src.value[0];
         if (!liveFile || !liveFile.name) {
           errorMessage = 'No file selected';
           return;
