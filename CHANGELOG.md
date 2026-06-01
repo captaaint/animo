@@ -20,11 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - feat(app): tidy up the mobile DatePicker drawer and Reports actions (995f672)
 - feat(app): redesign the import flow with a dropzone and step modal (03c416d)
 - feat(app): refine the mobile import preview drawer (c580de1)
+- feat(app): polish the mobile import page and preview drawer (2b31da9)
 
 ### Changed
 
 - perf(app): memoize and paginate the Reports screen to stop load jank (7fd39a7)
 - perf(app): memoize the List screen's filtered entries (a173f7d)
+
+### Fixed
+
+- fix(app): stop the Reports action row wrapping on desktop (863d1a7)
 
 ## [0.2.11] - 2026-05-30
 
