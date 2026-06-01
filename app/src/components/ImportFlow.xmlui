@@ -6,26 +6,44 @@
   var.previewData="{null}"
   var.summaryData="{null}"
   var.errorMessage="{null}"
+  var.commitError="{null}"
 >
   <!--
-    Multi-step CSV/XLSX import:
-      select   → choose file + (optionally) hint format
-      loading  → spinner while preview/commit runs
-      preview  → totals + entities to create + per-row errors, confirm or cancel
-      summary  → counts of what landed in the DB, "Import another"
+    CSV/XLSX import. The page only ever shows the `select` card (file +
+    format). Previewing opens an overlay that walks the remaining steps
+    (loading → preview → summary): a ModalDialog on desktop, a bottom Drawer
+    on mobile (the same split the Entry/DeleteConfirm screens use). Only one
+    is mounted at a time, gated on `vp.value.isMobile`.
+
+    The step markup is inlined in BOTH overlays on purpose. It reads the
+    component-scope vars (`step`, `previewData`, …) directly so it stays
+    reactive; passing this state down into a shared child component left the
+    child rendering its mount-time snapshot (empty drawer on mobile).
+
+    `onClose` on each overlay resets the in-overlay state, so any close path
+    (X, Esc, backdrop, Cancel) lands back on the select card.
+
+    Two separate error vars on purpose:
+      • `errorMessage` — page-level (preview request failed); shown under the
+        select card after the overlay closes.
+      • `commitError`  — in-overlay (commit request failed); shown on the
+        preview view while the overlay stays open. Cleared by `onClose`.
 
     Important: we never store the raw `File` object in a var. XMLUI's XS
     layer doesn't reliably round-trip DOM `File` instances through `var.*`
     state — by the time you read it back, the `name` property is gone and
     `file.name.toLowerCase()` blows up. Instead we keep just the metadata
-    we need (`fileName`, `isXlsx`) and re-read `importFile.value[0]` at
+    we need (`fileName`, `isXlsx`) and re-read `importDrop.value[0]` at
     the click moment when the actual File reference is required.
 
     `previewData` / `summaryData` come straight from importApi.ts —
     field names already match the backend's camelCase responses.
   -->
 
-  <VStack gap="$space-3">
+  <Viewport id="vp" />
+
+  <!-- ───────────────── Page: select card ───────────────── -->
+  <VStack gap="$space-4">
     <Text>
       Import time entries from CSV or XLSX. Supports Animo exports plus
       Toggl, Clockify, and Harvest Detailed reports (per-entry
@@ -35,245 +53,573 @@
       created as needed.
     </Text>
 
-    <!-- ───────────────── Step: select ───────────────── -->
-    <VStack when="{step === 'select'}" gap="$space-3">
-      <FileInput
-        id="importFile"
-        buttonLabel="Choose file"
-        acceptsFileType="{['.csv', '.xlsx']}"
-        onDidChange="(files) => {
-          const f = files && files[0] ? files[0] : null;
-          fileName = f && f.name ? f.name : '';
-          isXlsx = fileName ? fileName.toLowerCase().endsWith('.xlsx') : false;
-          errorMessage = null;
-        }"
-      />
-      <Text when="{fileName}" variant="secondary" fontSize="$fontSize-small">
-        Selected: {fileName}
-      </Text>
-
-      <HStack gap="$space-2" verticalAlignment="center">
-        <Text>Format:</Text>
-        <Select
-          width="200px"
-          initialValue="{formatHint}"
-          onDidChange="(v) => formatHint = v"
-        >
-          <Option value="auto" label="Auto-detect" />
-          <Option value="animo" label="Animo" />
-          <Option value="toggl" label="Toggl" />
-          <Option value="clockify" label="Clockify" />
-          <Option value="harvest" label="Harvest" />
-        </Select>
-      </HStack>
-
-      <Text
-        when="{errorMessage}"
-        color="$color-danger-600"
-        fontSize="$fontSize-small"
+    <FileUploadDropZone
+      id="importDrop"
+      when="{!vp.value || !vp.value.isMobile}"
+      testId="import-dropzone"
+      text="Drop your file here"
+      icon="file-text"
+      onUpload="(files) => {
+        // Accept any file here (react-dropzone only sees MIME types during a
+        // drag, not extensions, so an extension-based `acceptedFileTypes`
+        // would silently reject .csv/.xlsx and kill the drop). Validate by
+        // extension instead; the backend re-validates the format anyway.
+        const f = files && files[0] ? files[0] : null;
+        const name = f && f.name ? f.name : '';
+        const lower = name.toLowerCase();
+        if (name && !lower.endsWith('.csv') && !lower.endsWith('.xlsx')) {
+          fileName = '';
+          isXlsx = false;
+          errorMessage = 'Please choose a .csv or .xlsx file.';
+          return;
+        }
+        fileName = name;
+        isXlsx = lower.endsWith('.xlsx');
+        errorMessage = null;
+      }"
+    >
+      <VStack
+        width="100%"
+        paddingVertical="$space-8"
+        paddingHorizontal="$space-4"
+        horizontalAlignment="center"
+        verticalAlignment="center"
+        gap="$space-3"
       >
-        {errorMessage}
-      </Text>
+        <Stack
+          width="56px"
+          height="56px"
+          borderRadius="50%"
+          backgroundColor="$color-primary-100"
+          horizontalAlignment="center"
+          verticalAlignment="center"
+        >
+          <Icon name="file-text" size="lg" color="$color-primary-500" />
+        </Stack>
+        <VStack gap="$space-1" horizontalAlignment="center">
+          <Text fontWeight="700" fontSize="1.125rem">
+            {fileName ? fileName : 'Drag and drop your file here'}
+          </Text>
+          <Text variant="secondary" fontSize="$fontSize-small">
+            {fileName ? 'Drop another file, or choose to replace' : 'or click to browse'}
+          </Text>
+        </VStack>
+        <Button label="Choose file" themeColor="primary" variant="outlined" onClick="importDrop.open()" />
+      </VStack>
+    </FileUploadDropZone>
 
-      <HStack gap="$space-2">
-        <Button
-          label="Preview"
-          themeColor="primary"
-          enabled="{fileName.length > 0}"
-          onClick="() => {
-            // Read the real File object out of the input at click time —
-            // never from a cached var (see header comment).
-            const liveFile = importFile.value && importFile.value[0];
-            if (!liveFile || !liveFile.name) {
-              errorMessage = 'No file selected';
-              return;
-            }
-            step = 'loading';
-            errorMessage = null;
-            window.animoImportPreview(
-              liveFile,
-              formatHint,
-              (data) => { previewData = data; step = 'preview'; },
-              (msg) => {
-                errorMessage = msg;
-                step = 'select';
-              }
-            );
-          }"
-        />
-      </HStack>
+    <!-- Mobile: drag-and-drop is pointless on touch, so a plain file picker is
+         enough. FileInput keeps its own File in `.value`, same as the drop
+         zone, so the preview button can read from whichever picker is mounted. -->
+    <FileInput
+      id="importFile"
+      when="{vp.value && vp.value.isMobile}"
+      width="100%"
+      acceptsFileType="{['.csv', '.xlsx']}"
+      buttonLabel="Choose file"
+      buttonIcon="file-text"
+      buttonVariant="outlined"
+      buttonThemeColor="primary"
+      onDidChange="(files) => {
+        const f = files && files[0] ? files[0] : null;
+        const name = f && f.name ? f.name : '';
+        const lower = name.toLowerCase();
+        if (name && !lower.endsWith('.csv') && !lower.endsWith('.xlsx')) {
+          fileName = '';
+          isXlsx = false;
+          errorMessage = 'Please choose a .csv or .xlsx file.';
+          return;
+        }
+        fileName = name;
+        isXlsx = lower.endsWith('.xlsx');
+        errorMessage = null;
+      }"
+    />
+
+    <!-- Format. Mobile: label above a full-width select. Desktop: inline beside
+         a fixed-width select. -->
+    <VStack when="{vp.value && vp.value.isMobile}" gap="$space-2" width="100%">
+      <Text fontWeight="600">Format</Text>
+      <Select
+        width="100%"
+        initialValue="{formatHint}"
+        onDidChange="(v) => formatHint = v"
+      >
+        <Option value="auto" label="Auto-detect" />
+        <Option value="animo" label="Animo" />
+        <Option value="toggl" label="Toggl" />
+        <Option value="clockify" label="Clockify" />
+        <Option value="harvest" label="Harvest" />
+      </Select>
     </VStack>
 
-    <!-- ───────────────── Step: loading ───────────────── -->
-    <HStack
-      when="{step === 'loading'}"
-      verticalAlignment="center"
-      gap="$space-3"
-    >
-      <Spinner />
-      <Text>Working…</Text>
+    <HStack when="{!vp.value || !vp.value.isMobile}" gap="$space-3" verticalAlignment="center">
+      <Text fontWeight="600">Format</Text>
+      <Select
+        width="*"
+        maxWidth="360px"
+        initialValue="{formatHint}"
+        onDidChange="(v) => formatHint = v"
+      >
+        <Option value="auto" label="Auto-detect" />
+        <Option value="animo" label="Animo" />
+        <Option value="toggl" label="Toggl" />
+        <Option value="clockify" label="Clockify" />
+        <Option value="harvest" label="Harvest" />
+      </Select>
     </HStack>
 
-    <!-- ───────────────── Step: preview ───────────────── -->
-    <VStack when="{step === 'preview' && previewData}" gap="$space-3">
-      <HStack gap="$space-2" verticalAlignment="center">
-        <Text fontWeight="600">Preview</Text>
+    <Card backgroundColor="$color-primary-50" border="0" padding="$space-3">
+      <HStack gap="$space-3" verticalAlignment="start">
+        <Icon name="info" color="$color-primary-600" />
+        <VStack gap="$space-0_5">
+          <Text fontWeight="700" color="$color-primary-700" fontSize="$fontSize-small">
+            Supported formats
+          </Text>
+          <Text variant="secondary" fontSize="$fontSize-small">
+            CSV (.csv) and Excel (.xlsx)
+          </Text>
+        </VStack>
+      </HStack>
+    </Card>
+
+    <Text
+      when="{errorMessage}"
+      color="$color-danger-600"
+      fontSize="$fontSize-small"
+    >
+      {errorMessage}
+    </Text>
+
+    <!-- Primary CTA: previewing is how the whole import flow starts, so it
+         carries the page's main emphasis. -->
+    <Button
+      label="Preview import"
+      themeColor="primary"
+      icon="eye"
+      size="lg"
+      width="{vp.value && vp.value.isMobile ? '100%' : null}"
+      enabled="{fileName.length > 0}"
+      onClick="() => {
+        // Read the real File object out of the active picker at click time —
+        // never from a cached var (see header comment). Desktop uses the drop
+        // zone; mobile uses the plain FileInput.
+        const src = (vp.value && vp.value.isMobile) ? importFile : importDrop;
+        const liveFile = src && src.value && src.value[0];
+        if (!liveFile || !liveFile.name) {
+          errorMessage = 'No file selected';
+          return;
+        }
+        errorMessage = null;
+        commitError = null;
+        // Setting step opens the right overlay reactively (its `when`
+        // includes `step !== 'select'`); no imperative open()/close() needed.
+        step = 'loading';
+        window.animoImportPreview(
+          liveFile,
+          formatHint,
+          (data) => { previewData = data; step = 'preview'; },
+          (msg) => { errorMessage = msg; step = 'select'; }
+        );
+      }"
+    />
+  </VStack>
+
+  <!-- ───────────────── Desktop: modal ───────────────── -->
+  <!-- Theme override keeps the title in line with the app's other modals
+       (EntryModal, ProjectModal, …): $fontSize-large / weight 600 instead of
+       the ModalDialog default 2xl. -->
+  <Theme
+    fontSize-title-ModalDialog="$fontSize-large"
+    fontWeight-title-ModalDialog="600"
+  >
+  <ModalDialog
+    id="importModal"
+    when="{(!vp.value || !vp.value.isMobile) && step !== 'select'}"
+    maxWidth="720px"
+    padding="$space-4"
+    borderRadius="16px"
+    title="{step === 'summary' ? 'Import complete' : 'Preview import'}"
+    onClose="() => {
+      step = 'select';
+      previewData = null;
+      summaryData = null;
+      commitError = null;
+    }"
+  >
+    <Fragment when="{step === 'loading'}">
+      <VStack horizontalAlignment="center" verticalAlignment="center" gap="$space-3" paddingVertical="$space-6">
+        <Spinner />
+        <Text>Working…</Text>
+      </VStack>
+    </Fragment>
+
+    <Fragment when="{step === 'preview' && previewData}">
+      <VStack gap="$space-4">
+        <!-- File info -->
+        <HStack gap="$space-3" verticalAlignment="center">
+          <Stack
+            width="44px" height="44px" borderRadius="50%"
+            backgroundColor="$color-primary-50"
+            horizontalAlignment="center" verticalAlignment="center"
+          >
+            <Icon name="file-text" color="$color-primary-500" />
+          </Stack>
+          <VStack gap="$space-0_5">
+            <HStack gap="$space-2" verticalAlignment="center">
+              <Text variant="secondary" fontSize="$fontSize-small">Detected format:</Text>
+              <Text fontWeight="700" color="$color-primary-600" fontSize="$fontSize-small">{previewData.format}</Text>
+            </HStack>
+            <HStack gap="$space-2" verticalAlignment="center">
+              <Text variant="secondary" fontSize="$fontSize-small">File name:</Text>
+              <Text fontWeight="700" color="$color-primary-600" fontSize="$fontSize-small">{fileName}</Text>
+            </HStack>
+          </VStack>
+        </HStack>
+
+        <!-- KPI cards -->
+        <HStack gap="$space-3" wrapContent="true">
+          <Card padding="$space-3" width="*" minWidth="150px">
+            <HStack gap="$space-3" verticalAlignment="center">
+              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                     horizontalAlignment="center" verticalAlignment="center">
+                <Icon name="database" color="$color-surface-600" />
+              </Stack>
+              <VStack gap="$space-0_5">
+                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Total rows</Text>
+                <Text fontWeight="700" fontSize="1.25rem">{previewData.totalRows}</Text>
+              </VStack>
+            </HStack>
+          </Card>
+          <Card padding="$space-3" width="*" minWidth="150px"
+                backgroundColor="$color-primary-50" border="1px solid $color-primary-200">
+            <HStack gap="$space-3" verticalAlignment="center">
+              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-primary-100"
+                     horizontalAlignment="center" verticalAlignment="center">
+                <Icon name="checkmark" color="$color-primary-600" />
+              </Stack>
+              <VStack gap="$space-0_5">
+                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Will import</Text>
+                <Text fontWeight="700" fontSize="1.25rem" color="$color-primary-600">{previewData.validRows}</Text>
+              </VStack>
+            </HStack>
+          </Card>
+          <Card padding="$space-3" width="*" minWidth="150px">
+            <HStack gap="$space-3" verticalAlignment="center">
+              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                     horizontalAlignment="center" verticalAlignment="center">
+                <Icon name="copy" color="$color-surface-600" />
+              </Stack>
+              <VStack gap="$space-0_5">
+                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Duplicates</Text>
+                <Text fontWeight="700" fontSize="1.25rem">{previewData.duplicateWarnings}</Text>
+              </VStack>
+            </HStack>
+          </Card>
+          <Card padding="$space-3" width="*" minWidth="150px">
+            <HStack gap="$space-3" verticalAlignment="center">
+              <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                     horizontalAlignment="center" verticalAlignment="center">
+                <Icon name="warning" color="{previewData.errorRows.length > 0 ? '$color-danger-500' : '$color-surface-600'}" />
+              </Stack>
+              <VStack gap="$space-0_5">
+                <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">Errors</Text>
+                <Text fontWeight="700" fontSize="1.25rem"
+                  color="{previewData.errorRows.length > 0 ? '$color-danger-600' : '$color-surface-900'}">
+                  {previewData.errorRows.length}
+                </Text>
+              </VStack>
+            </HStack>
+          </Card>
+        </HStack>
+
+        <VStack when="{previewData.errorRows.length > 0}" gap="$space-2">
+          <Text fontWeight="600">Rows with problems:</Text>
+          <Table data="{previewData.errorRows}">
+            <Column bindTo="row" header="Row" width="80px" />
+            <Column bindTo="message" header="Reason" width="*" />
+          </Table>
+        </VStack>
+
+        <Text when="{commitError}" color="$color-danger-600" fontSize="$fontSize-small">{commitError}</Text>
+
+        <!-- Footer -->
+        <HStack
+          gap="$space-2"
+          verticalAlignment="center"
+          paddingTop="$space-3"
+          borderTop="1px solid $color-surface-200"
+        >
+          <SpaceFiller />
+          <Button label="Cancel" variant="ghost" onClick="step = 'select'; previewData = null; summaryData = null; commitError = null;" />
+          <Button
+            label="Import {previewData.validRows} entries"
+            themeColor="primary"
+            enabled="{previewData.validRows > 0}"
+            onClick="() => {
+              step = 'loading';
+              commitError = null;
+              window.animoImportCommit(
+                previewData.sessionId,
+                isXlsx,
+                (data) => { summaryData = data; step = 'summary'; },
+                (msg) => { commitError = msg; step = 'preview'; }
+              );
+            }"
+          />
+        </HStack>
+      </VStack>
+    </Fragment>
+
+    <Fragment when="{step === 'summary' && summaryData}">
+      <VStack gap="$space-2">
+        <HStack gap="$space-2" verticalAlignment="center">
+          <Icon name="check" color="$color-primary-600" />
+          <Text fontWeight="600">Import complete</Text>
+        </HStack>
+        <Text>{summaryData.entriesCreated} {summaryData.entriesCreated === 1 ? 'entry' : 'entries'} created.</Text>
         <Text variant="secondary" fontSize="$fontSize-small">
-          ({previewData.format})
+          Created {summaryData.clientsCreated} client(s), {summaryData.projectsCreated} project(s),
+          {summaryData.tagsCreated} tag(s). Skipped {summaryData.duplicatesSkipped} duplicate(s).
         </Text>
-      </HStack>
-
-      <HStack gap="$space-3" wrapContent="true">
-        <Card padding="$space-3" width="140px">
-          <VStack gap="$space-1">
-            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
-              Total rows
-            </Text>
-            <Text fontWeight="600" fontSize="1.1rem">{previewData.totalRows}</Text>
-          </VStack>
-        </Card>
-        <Card padding="$space-3" width="140px">
-          <VStack gap="$space-1">
-            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
-              Will import
-            </Text>
-            <Text fontWeight="600" fontSize="1.1rem" color="$color-primary-600">
-              {previewData.validRows}
-            </Text>
-          </VStack>
-        </Card>
-        <Card padding="$space-3" width="140px">
-          <VStack gap="$space-1">
-            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
-              Duplicates
-            </Text>
-            <Text fontWeight="600" fontSize="1.1rem">
-              {previewData.duplicateWarnings}
-            </Text>
-          </VStack>
-        </Card>
-        <Card padding="$space-3" width="140px">
-          <VStack gap="$space-1">
-            <Text variant="secondary" fontSize="$fontSize-xs" fontWeight="600">
-              Errors
-            </Text>
-            <Text
-              fontWeight="600"
-              fontSize="1.1rem"
-              color="{previewData.errorRows.length > 0 ? '$color-danger-600' : '$color-surface-700'}"
-            >
-              {previewData.errorRows.length}
-            </Text>
-          </VStack>
-        </Card>
-      </HStack>
-
-      <!-- New entities preview. Only show the section if any of the three
-           lists has items; otherwise it just adds noise. -->
-      <VStack
-        when="{(previewData.entitiesToCreate.clients.length + previewData.entitiesToCreate.projects.length + previewData.entitiesToCreate.tags.length) > 0}"
-        gap="$space-1"
-      >
-        <Text fontWeight="600">Will create:</Text>
-        <Text
-          when="{previewData.entitiesToCreate.clients.length > 0}"
-          fontSize="$fontSize-small"
-        >
-          Clients ({previewData.entitiesToCreate.clients.length}):
-          {previewData.entitiesToCreate.clients.join(', ')}
-        </Text>
-        <Text
-          when="{previewData.entitiesToCreate.projects.length > 0}"
-          fontSize="$fontSize-small"
-        >
-          Projects ({previewData.entitiesToCreate.projects.length}):
-          {previewData.entitiesToCreate.projects.join(', ')}
-        </Text>
-        <Text
-          when="{previewData.entitiesToCreate.tags.length > 0}"
-          fontSize="$fontSize-small"
-        >
-          Tags ({previewData.entitiesToCreate.tags.length}):
-          {previewData.entitiesToCreate.tags.join(', ')}
-        </Text>
+        <HStack gap="$space-2">
+          <Button
+            label="Import another file"
+            themeColor="primary"
+            onClick="fileName = ''; isXlsx = false; step = 'select'; previewData = null; summaryData = null; commitError = null;;"
+          />
+        </HStack>
       </VStack>
+    </Fragment>
+  </ModalDialog>
+  </Theme>
 
-      <VStack when="{previewData.errorRows.length > 0}" gap="$space-2">
-        <Text fontWeight="600">Rows with problems:</Text>
-        <Table data="{previewData.errorRows}">
-          <Column bindTo="row" header="Row" width="80px" />
-          <Column bindTo="message" header="Reason" width="*" />
-        </Table>
-      </VStack>
-
-      <!-- Commit-time error surface. The select step has its own block;
-           this one only renders when the commit call bounced us back to
-           preview with an errorMessage set. -->
-      <Text
-        when="{errorMessage}"
-        color="$color-danger-600"
-        fontSize="$fontSize-small"
-      >
-        {errorMessage}
-      </Text>
-
-      <HStack gap="$space-2">
+  <!-- ───────────────── Mobile: bottom drawer ───────────────── -->
+  <Drawer
+    id="importDrawer"
+    when="{vp.value && vp.value.isMobile && step !== 'select'}"
+    initiallyOpen="true"
+    position="bottom"
+    closeButtonVisible="false"
+    onClose="() => {
+      step = 'select';
+      previewData = null;
+      summaryData = null;
+      commitError = null;
+    }"
+  >
+    <!-- Header carries the actions, mirroring TagDrawer/EntryDrawer: a round
+         close (cancel) on the left, the title centered, and the round primary
+         confirm (import) on the right. The confirm only appears on the preview
+         step; a matching spacer keeps the title centered on the other steps. -->
+    <property name="headerTemplate">
+      <HStack width="100%" verticalAlignment="center">
         <Button
-          label="Cancel"
-          variant="ghost"
-          onClick="() => {
-            step = 'select';
-            previewData = null;
-            errorMessage = null;
-          }"
+          icon="close"
+          type="button"
+          variant="outlined"
+          themeColor="secondary"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          borderColor="$color-surface-400"
+          borderWidth="1px"
+          onClick="step = 'select'; previewData = null; summaryData = null; commitError = null;"
         />
+        <SpaceFiller />
+        <Text fontSize="$fontSize-large" fontWeight="700" color="$color-surface-900">
+          {step === 'summary' ? 'Import complete' : 'Preview import'}
+        </Text>
+        <SpaceFiller />
         <Button
-          label="Import {previewData.validRows} entries"
+          when="{step === 'preview' && previewData}"
+          icon="checkmark"
           themeColor="primary"
-          enabled="{previewData.validRows > 0}"
+          width="48px"
+          height="48px"
+          borderRadius="50%"
+          enabled="{previewData && previewData.validRows > 0}"
           onClick="() => {
             step = 'loading';
-            errorMessage = null;
+            commitError = null;
             window.animoImportCommit(
               previewData.sessionId,
               isXlsx,
               (data) => { summaryData = data; step = 'summary'; },
-              (msg) => { errorMessage = msg; step = 'preview'; }
+              (msg) => { commitError = msg; step = 'preview'; }
             );
           }"
         />
+        <Stack when="{!(step === 'preview' && previewData)}" width="48px" height="48px" />
       </HStack>
-    </VStack>
+    </property>
 
-    <!-- ───────────────── Step: summary ───────────────── -->
-    <VStack when="{step === 'summary' && summaryData}" gap="$space-2">
-      <HStack gap="$space-2" verticalAlignment="center">
-        <Icon name="check" color="$color-primary-600" />
-        <Text fontWeight="600">Import complete</Text>
-      </HStack>
-      <Text>{summaryData.entriesCreated} {summaryData.entriesCreated === 1 ? 'entry' : 'entries'} created.</Text>
-      <Text variant="secondary" fontSize="$fontSize-small">
-        Created {summaryData.clientsCreated} client(s),
-        {summaryData.projectsCreated} project(s),
-        {summaryData.tagsCreated} tag(s). Skipped
-        {summaryData.duplicatesSkipped} duplicate(s).
-      </Text>
-      <HStack gap="$space-2">
-        <Button
-          label="Import another file"
-          themeColor="primary"
-          variant="outlined"
-          onClick="() => {
-            step = 'select';
-            fileName = '';
-            isXlsx = false;
-            previewData = null;
-            summaryData = null;
-            errorMessage = null;
-            if (importFile) importFile.setValue([]);
-          }"
-        />
-      </HStack>
-    </VStack>
-  </VStack>
+    <Fragment when="{step === 'loading'}">
+      <VStack horizontalAlignment="center" verticalAlignment="center" gap="$space-3" paddingVertical="$space-6">
+        <Spinner />
+        <Text>Working…</Text>
+      </VStack>
+    </Fragment>
+
+    <Fragment when="{step === 'preview' && previewData}">
+      <VStack gap="$space-4" width="100%">
+        <!-- File info: filename wraps to its own line under the label -->
+        <HStack gap="$space-3" verticalAlignment="center" width="100%">
+          <Stack
+            width="44px" height="44px" borderRadius="50%"
+            backgroundColor="$color-primary-50"
+            horizontalAlignment="center" verticalAlignment="center"
+          >
+            <Icon name="file-text" color="$color-primary-500" />
+          </Stack>
+          <VStack gap="$space-1" width="*">
+            <HStack gap="$space-2" verticalAlignment="center">
+              <Text variant="secondary" fontSize="$fontSize-small">Detected format:</Text>
+              <Text fontWeight="700" color="$color-primary-600" fontSize="$fontSize-small">{previewData.format}</Text>
+            </HStack>
+            <VStack gap="$space-0_5">
+              <Text variant="secondary" fontSize="$fontSize-small">File name:</Text>
+              <Text fontWeight="700" color="$color-primary-600" fontSize="$fontSize-small">{fileName}</Text>
+            </VStack>
+          </VStack>
+        </HStack>
+
+        <Stack height="1px" width="100%" backgroundColor="$color-surface-200" />
+
+        <!-- KPI cards: 2×2 grid, big number below the icon + label row -->
+        <VStack gap="$space-3" width="100%">
+          <HStack gap="$space-3" width="100%">
+            <Card padding="$space-3" width="*">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="database" color="$color-surface-600" />
+                  </Stack>
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="600">Total rows</Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem">{previewData.totalRows}</Text>
+              </VStack>
+            </Card>
+            <Card padding="$space-3" width="*"
+                  backgroundColor="{previewData.validRows > 0 ? '$color-primary-50' : '$color-warn-50'}"
+                  border="{previewData.validRows > 0 ? '1px solid $color-primary-200' : '1px solid $color-warn-200'}">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%"
+                         backgroundColor="{previewData.validRows > 0 ? '$color-primary-100' : '$color-warn-100'}"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="{previewData.validRows > 0 ? 'checkmark' : 'warning'}"
+                          color="{previewData.validRows > 0 ? '$color-primary-600' : '$color-warn-600'}" />
+                  </Stack>
+                  <Text width="*" variant="secondary" fontSize="$fontSize-small" fontWeight="600">
+                    {previewData.validRows > 0 ? 'Will import' : 'Nothing to import'}
+                  </Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem"
+                      color="{previewData.validRows > 0 ? '$color-primary-600' : '$color-warn-700'}">
+                  {previewData.validRows}
+                </Text>
+              </VStack>
+            </Card>
+          </HStack>
+          <HStack gap="$space-3" width="100%">
+            <Card padding="$space-3" width="*">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="copy" color="$color-surface-600" />
+                  </Stack>
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="600">Duplicates</Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem">{previewData.duplicateWarnings}</Text>
+              </VStack>
+            </Card>
+            <Card padding="$space-3" width="*">
+              <VStack gap="$space-2" width="100%">
+                <HStack gap="$space-2" verticalAlignment="center">
+                  <Stack width="36px" height="36px" borderRadius="50%" backgroundColor="$color-surface-100"
+                         horizontalAlignment="center" verticalAlignment="center">
+                    <Icon name="warning" color="{previewData.errorRows.length > 0 ? '$color-danger-500' : '$color-surface-600'}" />
+                  </Stack>
+                  <Text variant="secondary" fontSize="$fontSize-small" fontWeight="600">Errors</Text>
+                </HStack>
+                <Text fontWeight="700" fontSize="1.75rem"
+                  color="{previewData.errorRows.length > 0 ? '$color-danger-600' : '$color-surface-900'}">
+                  {previewData.errorRows.length}
+                </Text>
+              </VStack>
+            </Card>
+          </HStack>
+        </VStack>
+
+        <!-- Why nothing imports: when validRows is 0, explain the blocker
+             (all duplicates / all errors / a mix) instead of the generic note. -->
+        <Card when="{previewData.validRows === 0}"
+              backgroundColor="$color-warn-50" border="0" padding="$space-3" width="100%">
+          <HStack gap="$space-3" verticalAlignment="start">
+            <Icon name="warning" color="$color-warn-600" />
+            <VStack gap="$space-1" width="*">
+              <Text fontWeight="700" color="$color-warn-700">Nothing will be imported</Text>
+              <Text variant="secondary" fontSize="$fontSize-small">
+                {previewData.errorRows.length === 0
+                  ? 'All ' + previewData.totalRows + ' rows are duplicates of entries you already have, so there is nothing new to add.'
+                  : (previewData.duplicateWarnings === 0
+                      ? 'All ' + previewData.totalRows + ' rows have errors, so none can be imported. See the problems listed below.'
+                      : 'Every row is either a duplicate or contains an error, so none can be imported.')}
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
+
+        <!-- About this import (when there is something to import) -->
+        <Card when="{previewData.validRows > 0}"
+              backgroundColor="$color-primary-50" border="0" padding="$space-3" width="100%">
+          <HStack gap="$space-3" verticalAlignment="start">
+            <Icon name="info" color="$color-primary-600" />
+            <VStack gap="$space-1" width="*">
+              <Text fontWeight="700" color="$color-primary-700">About this import</Text>
+              <Text variant="secondary" fontSize="$fontSize-small">
+                Duplicate rows (same date, time range, and description) will be
+                skipped automatically. New clients, projects, and tags will be
+                created as needed.
+              </Text>
+            </VStack>
+          </HStack>
+        </Card>
+
+        <VStack when="{previewData.errorRows.length > 0}" gap="$space-2" width="100%">
+          <Text fontWeight="600">Rows with problems:</Text>
+          <Table data="{previewData.errorRows}">
+            <Column bindTo="row" header="Row" width="80px" />
+            <Column bindTo="message" header="Reason" width="*" />
+          </Table>
+        </VStack>
+
+        <Text when="{commitError}" color="$color-danger-600" fontSize="$fontSize-small">{commitError}</Text>
+      </VStack>
+    </Fragment>
+
+    <Fragment when="{step === 'summary' && summaryData}">
+      <VStack gap="$space-2">
+        <HStack gap="$space-2" verticalAlignment="center">
+          <Icon name="check" color="$color-primary-600" />
+          <Text fontWeight="600">Import complete</Text>
+        </HStack>
+        <Text>{summaryData.entriesCreated} {summaryData.entriesCreated === 1 ? 'entry' : 'entries'} created.</Text>
+        <Text variant="secondary" fontSize="$fontSize-small">
+          Created {summaryData.clientsCreated} client(s), {summaryData.projectsCreated} project(s),
+          {summaryData.tagsCreated} tag(s). Skipped {summaryData.duplicatesSkipped} duplicate(s).
+        </Text>
+        <HStack gap="$space-2">
+          <Button
+            label="Import another file"
+            themeColor="primary"
+            onClick="fileName = ''; isXlsx = false; step = 'select'; previewData = null; summaryData = null; commitError = null;;"
+          />
+        </HStack>
+      </VStack>
+    </Fragment>
+  </Drawer>
 </Component>

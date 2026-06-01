@@ -10,6 +10,18 @@
   var.sliceBy="{'billable'}"
   var.exportFormat="{(window.localStorage && window.localStorage.getItem('animo:exportFormat')) || 'pdf'}"
   var.distData="{((fe) => sliceBy === 'project' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const key = p ? String(p.id) : '__none__'; if (!acc[key]) acc[key] = { label: p ? p.name : 'No project', seconds: 0, color: p ? p.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'client' ? Object.values(fe.reduce((acc, e) => { const p = (projectsDs.value || []).find(pp => pp.id === e.projectId); const c = p ? (clientsDs.value || []).find(cc => cc.id === p.clientId) : null; const key = c ? String(c.id) : '__none__'; if (!acc[key]) acc[key] = { label: c ? c.name : 'No client', seconds: 0, color: c ? c.color : '#C2BDB7' }; acc[key].seconds += (e.durationSeconds || 0); return acc; }, {})) : sliceBy === 'tag' ? fe.reduce((acc, e) => { const tags = tagsForIds(e.tagIds || [], tagsDs.value || []); if (tags.length === 0) { const ex = acc.find(a => a.label === 'No tag'); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: 'No tag', seconds: e.durationSeconds || 0, color: '#C2BDB7' }); } else { tags.forEach(t => { const ex = acc.find(a => a.label === t.name); if (ex) ex.seconds += (e.durationSeconds || 0); else acc.push({ label: t.name, seconds: e.durationSeconds || 0, color: t.color }); }); } return acc; }, []) : [{ label: 'Billable', seconds: sumBillableSeconds(fe) }, { label: 'Non-billable', seconds: sumDurationSeconds(fe) - sumBillableSeconds(fe) }])(filteredEntries)}"
+  var.dailyTotals="{dailyTotalsFromEntries(filteredEntries, fromDate, toDate)}"
+  var.dailyChartData="{(dailyTotals || []).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+  var.totalSeconds="{sumDurationSeconds(filteredEntries)}"
+  var.billableSeconds="{sumBillableSeconds(filteredEntries)}"
+  var.amounts="{amountsFromEntries(filteredEntries)}"
+  var.searchedEntries="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || [])}"
+  var.groupedDays="{groupEntriesByDay(entriesForListTable(searchedEntries, projectsDs.value || []))}"
+  var.dayPageSize="{7}"
+  var.dayPageIndex="{0}"
+  var.dayPageCount="{Math.max(1, Math.ceil((groupedDays || []).length / dayPageSize))}"
+  var.safeDayPage="{Math.min(dayPageIndex, dayPageCount - 1)}"
+  var.pagedDays="{(groupedDays || []).slice(safeDayPage * dayPageSize, safeDayPage * dayPageSize + dayPageSize)}"
 >
   <Viewport id="vp" />
 
@@ -127,7 +139,7 @@
 
   <APICall
     id="duplicateCall"
-    method="POST"
+    method="post"
     url="{apiBase + '/time-entries'}"
     credentials="include"
     body="{$param}"
@@ -137,7 +149,7 @@
 
   <APICall
     id="deleteCall"
-    method="DELETE"
+    method="delete"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
     onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
@@ -213,15 +225,16 @@
         <DatePicker
           label="Date range"
           id="rangePicker"
+          width="{vp.value &amp;&amp; vp.value.isMobile ? '100%' : null}"
           mode="range"
           weekStartsOn="1"
-          showWeekNumber="true"
           dateFormat="yyyy-MM-dd"
           initialValue="{{ from: fromDate, to: toDate }}"
           onDidChange="(v) => {
               if (!v || typeof v !== 'object') return;
               if (v.from && v.from !== fromDate) fromDate = v.from;
               if (v.to && v.to !== toDate) toDate = v.to;
+              dayPageIndex = 0;
             }"
         />
 
@@ -235,7 +248,7 @@
           initialValue="{projectFilter}"
           groupBy="clientName"
           testId="filter-project"
-          onDidChange="(v) => projectFilter = v || []"
+          onDidChange="(v) => { projectFilter = v || []; dayPageIndex = 0; }"
         >
           <property name="groupHeaderTemplate">
             <Text>
@@ -274,7 +287,7 @@
           multi="true"
           initialValue="{tagFilter}"
           testId="filter-tag"
-          onDidChange="(v) => tagFilter = v || []"
+          onDidChange="(v) => { tagFilter = v || []; dayPageIndex = 0; }"
         >
           <Items data="{tagsDs.value || []}">
             <Option
@@ -297,7 +310,7 @@
           </Items>
         </AutoComplete>
       </HStack>
-      <HStack width="100%" verticalAlignment="center">
+      <HStack width="100%" verticalAlignment="center" wrapContent="{vp.value &amp;&amp; vp.value.isMobile}" gap="$space-2">
         <Button
           label="Clear filters"
           variant="ghost"
@@ -314,6 +327,7 @@
             fromDate = defaultFrom;
             toDate = defaultTo;
             if (rangePicker) rangePicker.setValue({ from: defaultFrom, to: defaultTo });
+            dayPageIndex = 0;
           "
         />
         <SpaceFiller />
@@ -363,7 +377,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(filteredEntries))}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(totalSeconds)}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -374,7 +388,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(filteredEntries) === 0 ? '—' : formatDuration(sumBillableSeconds(filteredEntries))}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{billableSeconds === 0 ? '—' : formatDuration(billableSeconds)}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -385,7 +399,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(filteredEntries).length === 0 ? '—' : amountsFromEntries(filteredEntries).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{amounts.length === 0 ? '—' : amounts.map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -396,7 +410,7 @@
           </Stack>
           <VStack gap="$space-1">
             <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
-            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(filteredEntries, fromDate, toDate)))}</Text>
+            <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotals))}</Text>
           </VStack>
         </HStack>
       </Card>
@@ -411,7 +425,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Total Hours</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(sumDurationSeconds(filteredEntries))}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(totalSeconds)}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -422,7 +436,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Billable Hours</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{sumBillableSeconds(filteredEntries) === 0 ? '—' : formatDuration(sumBillableSeconds(filteredEntries))}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{billableSeconds === 0 ? '—' : formatDuration(billableSeconds)}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -435,7 +449,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Amount</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{amountsFromEntries(filteredEntries).length === 0 ? '—' : amountsFromEntries(filteredEntries).map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{amounts.length === 0 ? '—' : amounts.map(a => a.amount.toFixed(2) + ' ' + a.currency).join(' + ')}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -446,7 +460,7 @@
             </Stack>
             <VStack gap="$space-1">
               <Text variant="secondary" fontWeight="bold" fontSize="$fontSize-xs">Average Daily Hours</Text>
-              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotalsFromEntries(filteredEntries, fromDate, toDate)))}</Text>
+              <Text fontWeight="600" fontSize="1.1rem">{formatDuration(rangeAverageSecondsFromDaily(dailyTotals))}</Text>
             </VStack>
           </HStack>
         </Card>
@@ -467,7 +481,7 @@
         <Stack height="280px" width="*">
           <BarChart
             orientation="vertical"
-            data="{dailyTotalsFromEntries(filteredEntries, fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+            data="{dailyChartData}"
             dataKeys="{['hours']}"
             nameKey="day"
           />
@@ -517,7 +531,7 @@
         <Stack height="280px" width="*">
           <BarChart
             orientation="vertical"
-            data="{dailyTotalsFromEntries(filteredEntries, fromDate, toDate).map(d => ({ day: d.date.slice(5), hours: Math.round((d.seconds / 3600) * 100) / 100 }))}"
+            data="{dailyChartData}"
             dataKeys="{['hours']}"
             nameKey="day"
           />
@@ -562,13 +576,13 @@
         startIcon="search"
         testId="reports-search"
         initialValue="{searchText}"
-        onDidChange="(v) => searchText = v || ''"
+        onDidChange="(v) => { searchText = v || ''; dayPageIndex = 0; }"
       />
     </Card>
 
     <Card height="*" when-xs="false" when-sm="true">
       <TimeEntriesEmptyState
-        when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}"
+        when="{searchedEntries.length === 0}"
         title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
           ? 'No entries match your filters'
           : 'No entries in this date range'}"
@@ -579,7 +593,7 @@
       <VStack
         when-xs="false"
         when-sm="true"
-        when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
+        when="{searchedEntries.length > 0}"
         gap="0"
       >
         <Theme
@@ -589,7 +603,7 @@
           backgroundColor-summary-ExpandableItem="$color-surface-50"
         >
           <Items
-            data="{groupEntriesByDay(entriesForListTable(filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
+            data="{pagedDays}"
           >
             <ExpandableItem fullWidthSummary="true" initiallyExpanded="true">
               <property name="summary">
@@ -709,6 +723,15 @@
             </ExpandableItem>
           </Items>
         </Theme>
+        <Pagination
+          when="{(groupedDays || []).length > dayPageSize}"
+          itemCount="{(groupedDays || []).length}"
+          pageSize="{dayPageSize}"
+          pageIndex="{safeDayPage}"
+          maxVisiblePages="3"
+          showPageSizeSelector="false"
+          onPageDidChange="(page) => dayPageIndex = page"
+        />
       </VStack>
     </Card>
 
@@ -720,10 +743,10 @@
           startIcon="search"
           testId="reports-search"
           initialValue="{searchText}"
-          onDidChange="(v) => searchText = v || ''"
+          onDidChange="(v) => { searchText = v || ''; dayPageIndex = 0; }"
         />
       </Card>
-      <Card when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length === 0}">
+      <Card when="{searchedEntries.length === 0}">
         <TimeEntriesEmptyState
           title="{searchText || (projectFilter && projectFilter.length > 0) || (tagFilter && tagFilter.length > 0)
             ? 'No entries match your filters'
@@ -740,7 +763,7 @@
         />
       </Card>
       <VStack
-        when="{filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []).length > 0}"
+        when="{searchedEntries.length > 0}"
         gap="$space-4"
       >
         <Theme
@@ -752,7 +775,7 @@
           backgroundColor-summary-ExpandableItem--hover="transparent"
         >
           <Items
-            data="{groupEntriesByDay(entriesForListTable(filterEntries(filteredEntries, searchText, [], projectsDs.value || [], clientsDs.value || [], tagsDs.value || []), projectsDs.value || []))}"
+            data="{pagedDays}"
           >
             <ExpandableItem
               fullWidthSummary="true"
@@ -982,6 +1005,15 @@
             </ExpandableItem>
           </Items>
         </Theme>
+        <Pagination
+          when="{(groupedDays || []).length > dayPageSize}"
+          itemCount="{(groupedDays || []).length}"
+          pageSize="{dayPageSize}"
+          pageIndex="{safeDayPage}"
+          maxVisiblePages="3"
+          showPageSizeSelector="false"
+          onPageDidChange="(page) => dayPageIndex = page"
+        />
       </VStack>
     </VStack>
   </VStack>

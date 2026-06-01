@@ -349,12 +349,18 @@ function sumBillableSeconds(entries) {
 function dailyTotalsFromEntries(entries, fromIso, toIso) {
   const out = [];
   let cursor = fromIso;
-  while (cursor <= toIso) {
+  // Hard iteration cap: a daily breakdown only makes sense for a bounded range.
+  // Without this, an extreme/absurd range (e.g. a far-future year typed into the
+  // date picker) — or a malformed date that never reaches `toIso` — would spin
+  // this synchronous loop for millions of iterations and freeze the whole app.
+  let guard = 0;
+  while (cursor <= toIso && guard < 2000) {
     const seconds = (entries || [])
       .filter(e => (e.startTime || '').slice(0, 10) === cursor)
       .reduce((s, e) => s + (e.durationSeconds || 0), 0);
     out.push({ date: cursor, seconds });
     cursor = shiftDate(cursor, 1);
+    guard++;
   }
   return out;
 }

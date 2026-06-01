@@ -30,7 +30,7 @@
   />
 
   <APICall id="saveCounterCall"
-    method="POST"
+    method="post"
     url="{apiBase + '/time-entries'}"
     credentials="include"
     body="{{

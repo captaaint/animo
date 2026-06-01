@@ -1,6 +1,8 @@
 <Component
   name="ListScreen"
   var.searchText="{''}"
+  var.searchedEntries="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || [])}"
+  var.groupedDays="{groupEntriesByDay(entriesForListTable(searchedEntries, $props.projects || []))}"
 >
   <VStack gap="$space-4">
     <Card gap="$space-4">
@@ -106,14 +108,14 @@
     </Card>
     <Card height="*" when-xs="false" when-sm="true">
       <TimeEntriesEmptyState
-        when="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []).length === 0}"
+        when="{searchedEntries.length === 0}"
         title="{searchText ? 'No entries match your search' : 'No entries this week'}"
         subtitle="{searchText ? 'Try another search term or clear the search field.' : 'Add your first time entry to start tracking this week.'}"
       />
       <VStack
         when-xs="false"
         when-sm="true"
-        when="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []).length > 0}"
+        when="{searchedEntries.length > 0}"
         gap="0"
       >
         <Theme
@@ -123,7 +125,7 @@
           backgroundColor-summary-ExpandableItem="$color-surface-50"
         >
           <Items
-            data="{groupEntriesByDay(entriesForListTable(filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []), $props.projects || []))}"
+            data="{groupedDays}"
           >
             <ExpandableItem fullWidthSummary="true" initiallyExpanded="true">
               <property name="summary">
@@ -260,7 +262,7 @@
           onDidChange="(v) => searchText = v || ''"
         />
       </Card>
-      <Card when="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []).length === 0}">
+      <Card when="{searchedEntries.length === 0}">
         <TimeEntriesEmptyState
           title="{searchText ? 'No entries match your search' : 'No entries this week'}"
           subtitle="{searchText ? 'Try another search term or clear the search field.' : 'Add your first time entry to start tracking this week.'}"
@@ -273,7 +275,7 @@
         />
       </Card>
       <VStack
-        when="{filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []).length > 0}"
+        when="{searchedEntries.length > 0}"
         gap="$space-4"
       >
       <Theme
@@ -285,7 +287,7 @@
         backgroundColor-summary-ExpandableItem--hover="transparent"
       >
         <Items
-          data="{groupEntriesByDay(entriesForListTable(filterEntries($props.entries || [], searchText, [], $props.projects || [], $props.clients || [], $props.tags || []), $props.projects || []))}"
+          data="{groupedDays}"
         >
           <ExpandableItem
             fullWidthSummary="true"

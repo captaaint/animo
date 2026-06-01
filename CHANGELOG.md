@@ -7,7 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): detect mobile viewport in DatePicker (a6fe1c8)
+- feat(app): show DatePicker as a mobile bottom sheet (422b9a3)
+- feat(app): add a pinned header to the mobile DatePicker sheet (4ca379d)
+- feat(app): scroll through stacked months in the mobile DatePicker (54decaa)
+- feat(app): enlarge DatePicker day cells for mobile touch targets (7db633a)
+- feat(app): pin a scrollable preset row in the mobile DatePicker (e91b3d8)
+- feat(app): lock background scroll while the mobile DatePicker is open (8e999fb)
+- feat(app): stabilize the DatePicker drawer and add month-pair navigation (a78e814)
+- feat(app): tidy up the mobile DatePicker drawer and Reports actions (995f672)
+- feat(app): redesign the import flow with a dropzone and step modal (03c416d)
+- feat(app): refine the mobile import preview drawer (c580de1)
+- feat(app): polish the mobile import page and preview drawer (2b31da9)
+- feat(app): type-to-edit the date picker with a masked segmented field (ee17d02)
+- feat(app): note feedback is anonymous above the send button (6234e38)
+- feat(app): redesign the feedback modal with a card-based two-column layout (a8cdaa9)
+- feat(app): show feedback in a bottom-sheet drawer on mobile (ea1cb5c)
+
+### Changed
+
+- perf(app): memoize and paginate the Reports screen to stop load jank (7fd39a7)
+- perf(app): memoize the List screen's filtered entries (a173f7d)
+
+### Fixed
+
+- fix(app): stop the Reports action row wrapping on desktop (863d1a7)
+- fix(app): keep mobile input text at the desktop size (e1a8142)
+- fix(app): use lowercase APICall HTTP methods for xmlui 0.12.29 (8a6e66d)
 
 ## [0.2.11] - 2026-05-30
 

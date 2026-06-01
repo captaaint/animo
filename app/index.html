@@ -5,9 +5,11 @@
   <link rel="icon" type="image/svg+xml" href="/resources/logo.svg" />
   <!-- Mobile viewport. Deliberate choices:
        - width=device-width, initial-scale=1: standard responsive baseline.
-       - NO user-scalable=no / maximum-scale: pinch-zoom stays available for
-         accessibility (the 16px input rule in the <style> below is what stops
-         iOS focus auto-zoom, not a locked viewport).
+       - maximum-scale=1: blocks iOS Safari's *automatic* zoom when a focused
+         input is smaller than 16px, WITHOUT enlarging the text — inputs stay at
+         the theme's 13px so mobile matches desktop. iOS 10+ ignores
+         maximum-scale for *manual* pinch gestures, so pinch-zoom-to-read stays
+         available for accessibility; only the automatic focus-zoom is stopped.
        - interactive-widget=resizes-content: when the on-screen keyboard opens,
          the layout viewport (and our dvh-sized drawers) shrinks, keeping a
          focused field inside a drawer above the keyboard on supporting browsers
@@ -15,28 +17,12 @@
        - viewport-fit is intentionally left at the default (NOT cover): edge-to-
          edge would push bottom-drawer content under the iOS home indicator
          unless every surface added safe-area insets. -->
-  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, interactive-widget=resizes-content" />
   <title>Animo</title>
   <style>
     /* DatePicker / Select dropdown popovers shouldn't shrink to anchor width */
     [data-radix-popper-content-wrapper] {
       min-width: 280px !important;
-    }
-
-    /* iOS Safari auto-zooms the page whenever a focused form control has a
-       computed font-size below 16px. Our theme base is 13px (see
-       tracker-theme.ts), so every text input/textarea/select triggers that
-       zoom on focus. Bump the underlying native controls to 16px on touch
-       devices only — desktop keeps the 13px look, and because we don't touch
-       the viewport meta tag, pinch-zoom stays available. Checkbox/radio/range
-       are excluded (they don't trigger the zoom and font-size can affect their
-       sizing). */
-    @media (pointer: coarse) {
-      input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-      textarea,
-      select {
-        font-size: 16px !important;
-      }
     }
 
     /* Mobile: hide the brand logo (Animo) in the AppHeader.
@@ -86,6 +72,17 @@
        can scroll their content while the AppHeader stays sticky. */
     [class*="_pageContentContainer"] {
       overflow-y: auto !important;
+    }
+
+    /* Active drag-over feedback for the import drop zone. WebKit (Tauri's
+       WKWebView) doesn't expose the dragged file's metadata during dragover,
+       so react-dropzone's own accept-gated overlay never fires there — it
+       only shows for `isDragActive && isDragAccept`, and isDragAccept stays
+       false without readable items. This metadata-free fallback toggles on
+       the raw drag events (see the drag-feedback script below) instead. */
+    [data-app-dragging="true"] {
+      border-color: var(--xmlui-color-primary-500, #3f8f8c) !important;
+      background-color: var(--xmlui-color-primary-50, #eef6f5) !important;
     }
   </style>
   <script>window.__PUBLIC_PATH = '/'</script>
@@ -164,6 +161,51 @@
       };
       apply();
     };
+  </script>
+  <script>
+    // Drag-over feedback for the import drop zone. In Tauri's WKWebView the
+    // dragged file's metadata isn't exposed during dragover, so react-dropzone
+    // can't light up its accept-gated overlay (works in Chrome, not in the
+    // desktop app). The raw drag *events* still fire there — a plain HTML5
+    // drop only happens because dragover was preventDefault'd — so we detect
+    // the drag ourselves and toggle a `data-app-dragging` attribute styled in
+    // the <style> block above.
+    //
+    // Capture phase is required: react-dropzone listens in the bubble phase
+    // with noDragEventsBubbling (stopPropagation), so a bubble-phase listener
+    // here would never see the events. We never preventDefault/stopPropagation,
+    // so the component's own drop handling is untouched.
+    (function () {
+      var SEL = '[data-testid="import-dropzone"]';
+      // The element carrying the dashed border is react-dropzone's root — the
+      // parent of its hidden file input. Fall back to the test-id host.
+      function dashedZone() {
+        var host = document.querySelector(SEL);
+        if (!host) return null;
+        var input = host.querySelector('input[type="file"]');
+        return (input && input.parentElement) ? input.parentElement : host;
+      }
+      var depth = 0;
+      function clearAll() {
+        depth = 0;
+        var els = document.querySelectorAll('[data-app-dragging]');
+        for (var i = 0; i < els.length; i++) els[i].removeAttribute('data-app-dragging');
+      }
+      function zoneFor(e) {
+        var t = e.target;
+        var host = (t && t.closest) ? t.closest(SEL) : null;
+        return host ? dashedZone() : null;
+      }
+      document.addEventListener('dragenter', function (e) {
+        var z = zoneFor(e);
+        if (z) { depth++; z.setAttribute('data-app-dragging', 'true'); }
+      }, true);
+      document.addEventListener('dragleave', function (e) {
+        if (zoneFor(e)) { depth = Math.max(0, depth - 1); if (depth === 0) clearAll(); }
+      }, true);
+      document.addEventListener('drop', clearAll, true);
+      document.addEventListener('dragend', clearAll, true);
+    })();
   </script>
   <base href="/">
 </head>

@@ -5,7 +5,9 @@ import { test, expect } from '@playwright/test';
 // automatable proxy for iOS Safari. It guards the three mobile fixes:
 //   1. Settings is reachable from the nav (mobile NavLink, not the desktop-only
 //      footer dropdown that renders behind the nav drawer).
-//   2. Text inputs render at >= 16px so iOS Safari does not auto-zoom on focus.
+//   2. Text inputs stay at the theme base size (matching desktop); iOS Safari's
+//      focus auto-zoom is blocked by maximum-scale=1 in the viewport meta, not
+//      by enlarging the inputs.
 //   3. Bottom drawers fit within the visible viewport with their pinned header
 //      (and its action buttons) on screen.
 //
@@ -31,7 +33,7 @@ test.describe('mobile', () => {
     await expect(page.getByText('Local profile')).toBeVisible();
   });
 
-  test('text inputs render at >= 16px to prevent iOS auto-zoom', async ({
+  test('text inputs match the base size and the viewport blocks focus-zoom', async ({
     page,
   }) => {
     // /settings is reachable by direct navigation and has plain TextBox inputs.
@@ -40,10 +42,22 @@ test.describe('mobile', () => {
     const input = page.locator('input[type="text"]').first();
     await expect(input).toBeVisible();
 
-    const fontSizePx = await input.evaluate(
-      (el) => parseFloat(getComputedStyle(el).fontSize),
-    );
-    expect(fontSizePx).toBeGreaterThanOrEqual(16);
+    // Inputs render at the theme base size on mobile too (no 16px bump), so the
+    // text matches desktop instead of jumping larger on touch.
+    const { inputPx, rootPx } = await input.evaluate((el) => ({
+      inputPx: parseFloat(getComputedStyle(el).fontSize),
+      rootPx: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    }));
+    expect(inputPx).toBeLessThan(16);
+    expect(inputPx).toBeCloseTo(rootPx, 1);
+
+    // iOS Safari's focus auto-zoom is suppressed by maximum-scale=1 in the
+    // viewport meta (iOS 10+ still allows manual pinch-zoom), not by enlarging
+    // the font. That meta is what keeps small inputs from zooming the page.
+    const viewportContent = await page
+      .locator('meta[name="viewport"]')
+      .getAttribute('content');
+    expect(viewportContent).toContain('maximum-scale=1');
   });
 
   test('a bottom drawer fits the viewport with its header on screen', async ({
@@ -95,5 +109,133 @@ test.describe('mobile', () => {
     await expect(themePicker).toBeVisible();
     await themePicker.scrollIntoViewIfNeeded();
     await expect(themePicker).toBeInViewport();
+  });
+
+  test('the date-range DatePicker opens as a scrollable bottom sheet', async ({
+    page,
+  }) => {
+    await page.goto('/reports');
+
+    // Open the Reports date-range picker via its calendar adornment.
+    await page.getByRole('button', { name: 'Open calendar' }).first().click();
+
+    // On mobile the calendar is a bottom-sheet drawer, not an anchored popover.
+    const sheet = page.getByTestId('datepicker-sheet');
+    await expect(sheet).toBeVisible();
+    await sheet.evaluate(async (el) => {
+      await Promise.all(
+        el.getAnimations({ subtree: true }).map((animation) =>
+          animation.finished.catch(() => undefined),
+        ),
+      );
+    });
+
+    const viewport = page.viewportSize();
+    expect(viewport).not.toBeNull();
+    const vh = viewport!.height;
+
+    // The sheet is pinned to the bottom edge of the screen.
+    const sheetBox = await sheet.boundingBox();
+    expect(sheetBox, 'sheet has a layout box').not.toBeNull();
+    expect(sheetBox!.y + sheetBox!.height).toBeGreaterThanOrEqual(vh - 2);
+
+    // The pinned header's close button stays on screen while the body scrolls.
+    const close = sheet.getByRole('button', { name: 'close' });
+    await expect(close).toBeVisible();
+    const closeBox = await close.boundingBox();
+    expect(closeBox!.y).toBeGreaterThanOrEqual(-1);
+    expect(closeBox!.y + closeBox!.height).toBeLessThanOrEqual(vh + 1);
+
+    // Months are stacked vertically — each rendered month is a day-grid table
+    // (id="month-N"). Desktop range shows two; the mobile stack renders many
+    // more, which is what makes scroll-based navigation work.
+    const monthTables = sheet.locator('[id^="month-"]');
+    expect(await monthTables.count()).toBeGreaterThanOrEqual(3);
+
+    // Navigation is by scrolling: the calendar body has overflowing content in a
+    // scrollable container (no prev/next chevrons on mobile).
+    const isScrollable = await sheet.evaluate((el) => {
+      for (const node of Array.from(el.querySelectorAll<HTMLElement>('*'))) {
+        const overflowY = getComputedStyle(node).overflowY;
+        if (
+          (overflowY === 'auto' || overflowY === 'scroll') &&
+          node.scrollHeight > node.clientHeight + 4
+        ) {
+          return true;
+        }
+      }
+      return false;
+    });
+    expect(isScrollable).toBe(true);
+
+    // Selecting dates updates the live summary. Reports opens with an initial
+    // range, so capture it first, then pick a fresh range and assert it changed.
+    // Use DOM click here instead of locator.click(): Playwright scrolls the
+    // target into view before a locator click, which would mask the app's own
+    // scroll stability in this drawer.
+    const summary = sheet.getByTestId('datepicker-summary');
+    await expect(summary).toBeVisible();
+    const before = (await summary.textContent())?.trim();
+    const calendarBodyMetrics = async () =>
+      sheet.evaluate((el) => {
+        const currentMonth = el.querySelector<HTMLElement>('#month-6');
+        let node = currentMonth?.parentElement;
+        while (node) {
+          const overflowY = getComputedStyle(node).overflowY;
+          if (
+            (overflowY === 'auto' || overflowY === 'scroll') &&
+            node.scrollHeight > node.clientHeight + 4
+          ) {
+            const box = node.getBoundingClientRect();
+            return {
+              top: box.top,
+              height: box.height,
+              scrollTop: node.scrollTop,
+            };
+          }
+          node = node.parentElement;
+        }
+        throw new Error('DatePicker calendar body was not scrollable');
+      });
+    await sheet.evaluate((el) => {
+      const view = el.querySelector<HTMLElement>('#month-6')?.closest<HTMLElement>('div[class*="_view"]');
+      const march = Array.from(el.querySelectorAll<HTMLElement>('[id^="month-"]')).find(
+        (table) =>
+          table
+            .closest<HTMLElement>('div[class*="_calendarMonth"]')
+            ?.querySelector('button')
+            ?.textContent?.trim() === 'March 2026',
+      );
+      const marchMonth = march?.closest<HTMLElement>('div[class*="_calendarMonth"]');
+      if (!view || !marchMonth) throw new Error('March 2026 month was not rendered');
+      view.scrollTop = marchMonth.offsetTop;
+    });
+    const bodyAtMarch = await calendarBodyMetrics();
+
+    await sheet
+      .getByRole('button', { name: 'Choose Monday, March 9, 2026' })
+      .evaluate((button: HTMLButtonElement) => button.click());
+    const bodyAfterStart = await calendarBodyMetrics();
+    expect(Math.abs(bodyAfterStart.top - bodyAtMarch.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(bodyAfterStart.height - bodyAtMarch.height)).toBeLessThanOrEqual(1);
+    expect(bodyAfterStart.scrollTop).toBe(bodyAtMarch.scrollTop);
+
+    await sheet
+      .getByRole('button', { name: 'Choose Sunday, March 22, 2026' })
+      .evaluate((button: HTMLButtonElement) => button.click());
+    const bodyAfterEnd = await calendarBodyMetrics();
+    expect(Math.abs(bodyAfterEnd.top - bodyAtMarch.top)).toBeLessThanOrEqual(1);
+    expect(Math.abs(bodyAfterEnd.height - bodyAtMarch.height)).toBeLessThanOrEqual(1);
+    expect(bodyAfterEnd.scrollTop).toBe(bodyAtMarch.scrollTop);
+
+    await expect
+      .poll(async () => (await summary.textContent())?.trim())
+      .not.toBe(before);
+    await expect(summary).toContainText('Mar 9, 2026');
+    await expect(summary).toContainText('Mar 22, 2026');
+
+    // The close button dismisses the sheet.
+    await close.click();
+    await expect(sheet).toBeHidden();
   });
 });
