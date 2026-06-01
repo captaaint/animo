@@ -33,16 +33,46 @@
     modal.open();
   }"
 >
+  <Viewport id="vp" />
   <ModalDialog id="modal"
     paddingTop="$space-6"
-    maxWidth="460px"
+    maxWidth="{vp.value && vp.value.isMobile ? '460px' : '760px'}"
     padding="$space-4"
     borderRadius="16px"
     closeButtonVisible="true"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">
     <VStack gap="$space-4" width="100%">
 
+      <HStack when="{!successIssueUrl}" gap="$space-3" verticalAlignment="center" width="100%">
+        <Stack
+          width="48px"
+          height="48px"
+          borderRadius="14px"
+          backgroundColor="$color-primary-100"
+          horizontalAlignment="center"
+          verticalAlignment="center"
+        >
+          <Icon name="message-heart" size="md" color="$color-primary-600" />
+        </Stack>
+        <VStack gap="$space-1" width="*">
+          <Text fontSize="$fontSize-2xl" fontWeight="700" color="$color-surface-900">
+            Send feedback
+          </Text>
+          <Text variant="secondary" fontSize="$fontSize-small">
+            Tell us what happened, what you expected, or what would help.
+          </Text>
+        </VStack>
+      </HStack>
+
       <VStack when="{!successIssueUrl}" gap="$space-3" width="100%">
+       <Stack
+         orientation="{vp.value && vp.value.isMobile ? 'vertical' : 'horizontal'}"
+         gap="$space-4"
+         width="100%"
+         verticalAlignment="start"
+       >
+        <Card width="*" padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+          <VStack width="100%" gap="$space-3">
         <VStack gap="$space-2" width="100%">
           <Text fontWeight="500" color="$color-surface-900">Category</Text>
           <Select
@@ -100,27 +130,42 @@
             <Text fontSize="$fontSize-xs" variant="secondary">{bodyInput.length} / 8000</Text>
           </HStack>
         </VStack>
-
-        <HStack gap="$space-3" verticalAlignment="center" width="100%">
-          <VStack width="*" gap="$space-1">
-            <Text fontWeight="500" color="$color-surface-900">Attach diagnostics</Text>
-            <Text fontSize="$fontSize-xs" variant="secondary">
-              Preview exactly what will be attached before sending.
-            </Text>
           </VStack>
-          <Switch
-            initialValue="{diagnosticsOptIn}"
-            onDidChange="(v) => {
-              diagnosticsOptIn = !!v;
-              saveDraft();
-            }"
-          />
-        </HStack>
+        </Card>
+
+        <VStack width="*" gap="$space-3">
+        <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
+          <HStack gap="$space-3" verticalAlignment="center" width="100%">
+            <Stack
+              width="40px"
+              height="40px"
+              borderRadius="10px"
+              backgroundColor="$color-primary-100"
+              horizontalAlignment="center"
+              verticalAlignment="center"
+            >
+              <Icon name="file-text" color="$color-primary-600" />
+            </Stack>
+            <VStack width="*" gap="$space-1">
+              <Text fontWeight="500" color="$color-surface-900">Attach diagnostics</Text>
+              <Text fontSize="$fontSize-xs" variant="secondary">
+                Preview exactly what will be attached before sending.
+              </Text>
+            </VStack>
+            <Switch
+              initialValue="{diagnosticsOptIn}"
+              onDidChange="(v) => {
+                diagnosticsOptIn = !!v;
+                saveDraft();
+              }"
+            />
+          </HStack>
+        </Card>
 
         <Card
           when="{diagnosticsOptIn}"
-          padding="$space-3"
-          backgroundColor="$color-surface-50"
+          padding="$space-4"
+          boxShadow="0 2px 8px rgba(0,0,0,0.06)"
         >
           <VStack gap="$space-2" width="100%">
             <Text fontWeight="600" fontSize="$fontSize-small">Diagnostics preview</Text>
@@ -134,6 +179,17 @@
             />
           </VStack>
         </Card>
+
+        <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)" backgroundColor="$color-primary-50">
+          <HStack gap="$space-2" verticalAlignment="center" width="100%">
+            <Icon name="info" color="$color-primary-600" />
+            <Text fontSize="$fontSize-xs" variant="secondary" width="*">
+              Your feedback is completely anonymous — no personal data is included in what you send.
+            </Text>
+          </HStack>
+        </Card>
+        </VStack>
+       </Stack>
 
         <Text
           when="{errorMessage}"
@@ -173,16 +229,6 @@
           </Text>
         </VStack>
       </VStack>
-
-      <Card
-        when="{!successIssueUrl}"
-        padding="$space-3"
-        backgroundColor="$color-surface-50"
-      >
-        <Text fontSize="$fontSize-xs" variant="secondary">
-          Your feedback is completely anonymous — no personal data is included in what you send.
-        </Text>
-      </Card>
 
       <HStack width="100%" verticalAlignment="center" gap="$space-3">
         <Button

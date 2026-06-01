@@ -29,6 +29,7 @@ const App: StandaloneAppDescription = {
     "icon.credit-card": "resources/credit-card.svg",
     "icon.file-text": "resources/file-text.svg",
     "icon.github": "resources/github.svg",
+    "icon.message-heart": "resources/message-heart.svg",
     "icon.timer": "resources/timer.svg",
     "icon.trending-up": "resources/trending-up.svg",
   },
