@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - fix(app): stop the Reports action row wrapping on desktop (863d1a7)
 - fix(app): keep mobile input text at the desktop size (e1a8142)
+- fix(app): use lowercase APICall HTTP methods for xmlui 0.12.29 (8a6e66d)
 
 ## [0.2.11] - 2026-05-30
 
