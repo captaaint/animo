@@ -32,6 +32,7 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
+    onTagCreated="() => tagsDs.refetch()"
     onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); }"
     onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
   />
@@ -42,6 +43,7 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => entriesDs.refetch()"
+    onTagCreated="() => tagsDs.refetch()"
     onClosed="() => { if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
     onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
   />

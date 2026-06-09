@@ -111,6 +111,7 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
+    onTagCreated="() => tagsDs.refetch()"
     onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
   />
 
@@ -120,6 +121,7 @@
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
     onSaved="() => summaryDs.refetch()"
+    onTagCreated="() => tagsDs.refetch()"
     onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
   />
 

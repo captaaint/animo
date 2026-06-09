@@ -7,6 +7,7 @@
   var.projectId="{null}"
   var.billable="{false}"
   var.entryTagIds="{[]}"
+  var.pendingTagName="{''}"
   var.drawerOpen="{false}"
   method.open="(data) => {
     editItem = data || null;
@@ -71,6 +72,23 @@
       emitEvent('closed');
     }"
     onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
+  />
+
+  <APICall id="createTagCall"
+    method="post"
+    url="{apiBase + '/tags'}"
+    credentials="include"
+    body="{{ name: pendingTagName, color: '#3F8F8C' }}"
+    onSuccess="(tag) => {
+      entryTagIds = (entryTagIds || []).concat([tag.id]);
+      tagsInput.setValue(entryTagIds);
+      pendingTagName = '';
+      emitEvent('tagCreated', tag);
+    }"
+    onError="(err) => {
+      pendingTagName = '';
+      toast.error(err && err.message ? err.message : 'Tag create failed');
+    }"
   />
 
 
@@ -152,7 +170,7 @@
               width="100%"
               initialValue="{projectId}"
               onDidChange="(v) => projectId = v"
-              placeholder="No project">
+              placeholder="Search project">
               <Items data="{$props.projects || []}">
                 <Option value="{$item.id}" label="{$item.name}">
                   <HStack verticalAlignment="center" gap="$space-2">
@@ -167,11 +185,17 @@
           <VStack gap="$space-2" width="100%">
             <Text fontWeight="500" color="$color-surface-900">Tags</Text>
             <AutoComplete
+              id="tagsInput"
               width="100%"
               multi="true"
+              creatable="true"
               initialValue="{entryTagIds}"
-              onDidChange="(v) => entryTagIds = v || []"
-              placeholder="No tags">
+              onDidChange="(v) => entryTagIds = existingTagIdsOnly(v || [], $props.tags || [])"
+              onItemCreated="(name) => {
+                pendingTagName = (name || '').trim();
+                if (pendingTagName) createTagCall.execute();
+              }"
+              placeholder="Search tag">
               <Items data="{$props.tags || []}">
                 <Option value="{$item.id}" label="{$item.name}">
                   <HStack verticalAlignment="center" gap="$space-2">

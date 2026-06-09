@@ -291,6 +291,13 @@ function tagsForPicker(tags, search) {
   return result;
 }
 
+function existingTagIdsOnly(tagIds, allTags) {
+  const ids = Array.isArray(tagIds) ? tagIds : (tagIds ? [tagIds] : []);
+  const known = {};
+  for (const t of (allTags || [])) known[t.id] = true;
+  return ids.filter(id => known[id]);
+}
+
 function publishResume(description, projectId) {
   try {
     if (window.ttPublishResume) {
