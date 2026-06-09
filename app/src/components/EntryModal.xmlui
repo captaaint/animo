@@ -106,6 +106,7 @@
     title="{editItem ? 'Edit entry' : 'New entry'}"
     maxWidth="720px"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px"
     closeButtonVisible="true"
     onClose="() => { modalOpen = false; emitEvent('closed'); }">

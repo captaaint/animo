@@ -238,6 +238,7 @@
     when="{(!vp.value || !vp.value.isMobile) && step !== 'select'}"
     maxWidth="720px"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px"
     title="{step === 'summary' ? 'Import complete' : 'Preview import'}"
     onClose="() => {

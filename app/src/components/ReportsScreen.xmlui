@@ -50,6 +50,7 @@
     padding="$space-4"
     title="Generating report"
     maxWidth="420px"
+    border="1px solid $borderColor"
   >
     <VStack gap="$space-4" padding="$space-2">
       <Text>
@@ -68,6 +69,7 @@
     maxWidth="980px"
     height="95vh"
     padding="$space-0"
+    border="1px solid $borderColor"
     onClose="if ($param && $param.url) window.revokeBlobUrl($param.url);"
   >
     <VStack height="*" width="*" gap="$space-0" backgroundColor="$color-surface-100">

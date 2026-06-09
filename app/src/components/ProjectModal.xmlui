@@ -61,6 +61,7 @@
     closeButtonVisible="true"
     maxWidth="520px"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px">
     <VStack gap="$space-4" width="100%">
 

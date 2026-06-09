@@ -38,6 +38,7 @@
     paddingTop="$space-6"
     maxWidth="{vp.value && vp.value.isMobile ? '460px' : '760px'}"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px"
     closeButtonVisible="true"
     onClose="() => {
