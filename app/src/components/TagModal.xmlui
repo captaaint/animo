@@ -55,13 +55,13 @@
 
       <Card padding="$space-4">
         <VStack gap="$space-2" width="100%">
-          <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
-          <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your tag</Text>
           <TextBox
+            label="Name"
             width="100%"
             initialValue="{nameInput}"
             onDidChange="(v) => nameInput = v || ''"
           />
+          <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your tag</Text>
         </VStack>
       </Card>
 

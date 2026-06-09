@@ -28,6 +28,10 @@ const metadata = createMetadata({
       description: "String array used as autocomplete suggestions.",
       valueType: "any",
     },
+    label: {
+      description: "Optional label rendered above the textarea.",
+      valueType: "string",
+    },
     placeholder: {
       description: "Placeholder text shown when the field is empty.",
       valueType: "string",
@@ -105,6 +109,7 @@ export const descriptionAutocompleteRenderer = createComponentRenderer(
         value={extractValue.asOptionalString(props.value)}
         initialValue={extractValue.asOptionalString(props.initialValue)}
         suggestions={extractValue(props.suggestions) as string[] | undefined}
+        label={extractValue.asOptionalString(props.label)}
         placeholder={extractValue.asOptionalString(props.placeholder)}
         rows={extractValue.asOptionalNumber(props.rows)}
         maxLength={extractValue.asOptionalNumber(props.maxLength)}

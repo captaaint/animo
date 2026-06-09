@@ -93,8 +93,8 @@
         <Card width="*" padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
           <VStack width="100%" gap="$space-3">
         <VStack gap="$space-2" width="100%">
-          <Text fontWeight="500" color="$color-surface-900">Category</Text>
           <Select
+            label="Category"
             width="100%"
             initialValue="{category}"
             onDidChange="(v) => { category = v || 'bug'; saveDraft(); }"
@@ -127,8 +127,8 @@
         </VStack>
 
         <VStack gap="$space-2" width="100%">
-          <Text fontWeight="500" color="$color-surface-900">Description</Text>
           <TextArea
+            label="Description"
             width="100%"
             rows="8"
             maxLength="8000"

@@ -25,6 +25,7 @@ type DescriptionAutocompleteProps = {
   value?: string | null;
   initialValue?: string | null;
   suggestions?: string[];
+  label?: string;
   placeholder?: string;
   enabled?: boolean;
   readOnly?: boolean;
@@ -75,6 +76,7 @@ export const DescriptionAutocomplete = forwardRef<
     value,
     initialValue,
     suggestions,
+    label,
     placeholder,
     enabled = true,
     readOnly = false,
@@ -194,6 +196,20 @@ export const DescriptionAutocomplete = forwardRef<
       style={style}
       data-testid={testId}
     >
+      {label && (
+        <label
+          className={styles.label}
+          htmlFor={id}
+          onMouseDown={(event) => {
+            if (!enabled) return;
+            event.preventDefault();
+            inputRef.current?.focus();
+          }}
+        >
+          {label}
+          {required && <span aria-hidden="true"> *</span>}
+        </label>
+      )}
       <textarea
         id={id}
         ref={inputRef}

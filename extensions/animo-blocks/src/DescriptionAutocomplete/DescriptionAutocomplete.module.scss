@@ -7,6 +7,21 @@
   width: 100%;
 }
 
+.label {
+  display: block;
+  margin-bottom: 0.5em;
+  color: var(--xmlui-textColor-label-formItem, var(--xmlui-textColor-primary, inherit));
+  font-family: var(--xmlui-fontFamily-label-formItem, inherit);
+  font-size: var(--xmlui-fontSize-label-formItem, inherit);
+  font-weight: var(--xmlui-fontWeight-label-formItem, inherit);
+  font-style: var(--xmlui-fontStyle-label-formItem, normal);
+  text-transform: var(--xmlui-textTransform-label-formItem, none);
+  user-select: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+}
+
 .textarea {
   width: 100%;
   min-height: var(--xmlui-minHeight-TextArea, 96px);

@@ -1,5 +1,15 @@
 import { expect, test } from '@playwright/test';
 
+test('clicking the DatePicker label focuses the first date field', async ({
+  page,
+}) => {
+  await page.goto('/reports');
+
+  await page.getByText('Date range', { exact: true }).click();
+
+  await expect(page.locator('#rangePicker-start-field')).toBeFocused();
+});
+
 test('desktop date-range DatePicker navigates by consecutive month pairs', async ({
   page,
 }) => {
