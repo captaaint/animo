@@ -9,6 +9,11 @@
     credentials="include"
   />
   <DataSource
+    id="descriptionEntriesDs"
+    url="{apiBase + '/time-entries'}"
+    credentials="include"
+  />
+  <DataSource
     id="projectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
@@ -31,7 +36,8 @@
     id="entryModal"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
-    onSaved="() => entriesDs.refetch()"
+    entries="{descriptionEntriesDs.value || []}"
+    onSaved="() => { entriesDs.refetch(); descriptionEntriesDs.refetch(); }"
     onTagCreated="() => tagsDs.refetch()"
     onClosed="() => { if (calendarScreen) calendarScreen.clearSelection(); }"
     onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
@@ -42,7 +48,8 @@
     id="entryDrawer"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
-    onSaved="() => entriesDs.refetch()"
+    entries="{descriptionEntriesDs.value || []}"
+    onSaved="() => { entriesDs.refetch(); descriptionEntriesDs.refetch(); }"
     onTagCreated="() => tagsDs.refetch()"
     onClosed="() => { if (calendarScreenMobile) calendarScreenMobile.clearSelection(); }"
     onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
@@ -67,14 +74,14 @@
     url="{apiBase + '/time-entries'}"
     credentials="include"
     body="{duplicatePayload}"
-    onSuccess="() => { toast.success('Entry duplicated'); entriesDs.refetch(); }"
+    onSuccess="() => { toast.success('Entry duplicated'); entriesDs.refetch(); descriptionEntriesDs.refetch(); }"
     onError="() => toast.error('Duplicate failed')" />
 
   <APICall id="deleteCall"
     method="delete"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    onSuccess="() => { toast.success('Entry deleted'); entriesDs.refetch(); }"
+    onSuccess="() => { toast.success('Entry deleted'); entriesDs.refetch(); descriptionEntriesDs.refetch(); }"
     onError="() => toast.error('Delete failed')" />
 
   <!-- Desktop layout: TimerBar is in the AppHeader, so the page body just

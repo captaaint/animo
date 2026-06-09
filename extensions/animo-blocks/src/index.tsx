@@ -11,6 +11,7 @@ import { windowEventRenderer } from "./WindowEvent";
 import { viewportRenderer } from "./Viewport";
 import { centerRowRenderer } from "./CenterRow";
 import { datePickerRenderer } from "./DatePicker";
+import { descriptionAutocompleteRenderer } from "./DescriptionAutocomplete";
 import { timePickerRenderer } from "./TimePicker";
 
 export default {
@@ -22,6 +23,7 @@ export default {
     viewportRenderer,
     centerRowRenderer,
     datePickerRenderer,
+    descriptionAutocompleteRenderer,
     timePickerRenderer,
   ],
 };

@@ -119,13 +119,14 @@
               <Text fontWeight="500" color="$color-surface-900">
                 What did you work on?
               </Text>
-              <TextArea
+              <DescriptionAutocomplete
                 id="descrInput"
                 width="100%"
                 rows="5"
                 maxLength="200"
                 resize="none"
                 initialValue="{descr}"
+                suggestions="{descriptionSuggestions($props.entries || [])}"
                 onDidChange="(v) => descr = v || ''"
                 placeholder="Add description..."
               />

@@ -31,6 +31,11 @@
     credentials="include"
   />
   <DataSource
+    id="descriptionEntriesDs"
+    url="{apiBase + '/time-entries'}"
+    credentials="include"
+  />
+  <DataSource
     id="projectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
@@ -112,7 +117,8 @@
     id="entryModal"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
-    onSaved="() => summaryDs.refetch()"
+    entries="{descriptionEntriesDs.value || []}"
+    onSaved="() => { summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
     onTagCreated="() => tagsDs.refetch()"
     onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
   />
@@ -122,7 +128,8 @@
     id="entryDrawer"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
-    onSaved="() => summaryDs.refetch()"
+    entries="{descriptionEntriesDs.value || []}"
+    onSaved="() => { summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
     onTagCreated="() => tagsDs.refetch()"
     onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
   />
@@ -147,7 +154,7 @@
     url="{apiBase + '/time-entries'}"
     credentials="include"
     body="{$param}"
-    onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); }"
+    onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
     onError="() => toast.error('Duplicate failed')"
   />
 
@@ -156,7 +163,7 @@
     method="delete"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
+    onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
     onError="() => toast.error('Delete failed')"
   />
 
