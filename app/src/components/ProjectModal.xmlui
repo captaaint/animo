@@ -61,24 +61,24 @@
     closeButtonVisible="true"
     maxWidth="520px"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px">
     <VStack gap="$space-4" width="100%">
 
       <Card padding="$space-4">
         <VStack gap="$space-3" width="100%">
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
-            <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your project</Text>
             <TextBox
+              label="Name"
               width="100%"
               initialValue="{nameInput}"
               onDidChange="(v) => nameInput = v || ''"
             />
+            <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your project</Text>
           </VStack>
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Client</Text>
-            <Text variant="secondary" fontSize="$fontSize-small">Link this project to a client (optional)</Text>
             <AutoComplete
+              label="Client"
               width="100%"
               initialValue="{clientIdInput}"
               onDidChange="(v) => clientIdInput = v"
@@ -92,18 +92,16 @@
                 </Option>
               </Items>
             </AutoComplete>
+            <Text variant="secondary" fontSize="$fontSize-small">Link this project to a client (optional)</Text>
           </VStack>
         </VStack>
       </Card>
 
       <Card padding="$space-4">
         <VStack gap="$space-3" width="100%">
-          <VStack gap="$space-1" width="100%">
-            <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Rate</Text>
-            <Text variant="secondary" fontSize="$fontSize-small">Hourly billing rate for this project</Text>
-          </VStack>
           <HStack gap="$space-2" width="100%">
             <NumberBox
+              label="Rate"
               width="*"
               initialValue="{hourlyRateInput}"
               onDidChange="(v) => hourlyRateInput = v"
@@ -111,6 +109,7 @@
               step="1"
             />
             <Select
+              label="Currency"
               width="120px"
               initialValue="{currencyInput}"
               onDidChange="(v) => currencyInput = v">
@@ -120,6 +119,7 @@
               <Option value="HUF" label="HUF" />
             </Select>
           </HStack>
+          <Text variant="secondary" fontSize="$fontSize-small">Hourly billing rate for this project</Text>
         </VStack>
       </Card>
 

@@ -562,6 +562,7 @@ const resolvePresets = (
 };
 
 type DateFieldProps = {
+  id?: string;
   value: DateValue | undefined;
   dateFormat: string;
   placeholder: string;
@@ -580,6 +581,7 @@ type DateFieldProps = {
 // you're entering, and completing a part auto-advances to the next. Month is
 // clamped to 01-12 and day to the real length of the month (see maskToFormat).
 function DateField({
+  id,
   value,
   dateFormat,
   placeholder,
@@ -798,6 +800,7 @@ function DateField({
 
   return (
     <input
+      id={id}
       ref={fieldRef ?? ownRef}
       className={className}
       placeholder={placeholder}
@@ -1091,6 +1094,7 @@ export function DatePicker(props: DatePickerProps) {
     mode === "range" && values[0] && values[1]
       ? daysInclusive(values[0], values[1])
       : undefined;
+  const startFieldId = id ? `${id}-start-field` : undefined;
 
   return (
     <ArkDatePicker.Root
@@ -1135,7 +1139,16 @@ export function DatePicker(props: DatePickerProps) {
         onBlurCapture={handleBlurCapture}
       >
         {label && (
-          <ArkDatePicker.Label className={styles.label}>
+          <ArkDatePicker.Label
+            className={styles.label}
+            htmlFor={startFieldId}
+            onMouseDown={(event) => {
+              if (!enabled) return;
+              event.preventDefault();
+              inputRef.current?.focus();
+              if (isMobile) apiRef.current?.setOpen(true);
+            }}
+          >
             {label}
           </ArkDatePicker.Label>
         )}
@@ -1180,6 +1193,7 @@ export function DatePicker(props: DatePickerProps) {
             )}
 
             <DateField
+              id={startFieldId}
               fieldRef={inputRef}
               value={values[0]}
               dateFormat={dateFormat}

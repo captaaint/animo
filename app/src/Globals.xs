@@ -230,6 +230,25 @@ function entriesForListTable(entriesList, projectsList) {
   }));
 }
 
+function descriptionSuggestions(entriesList) {
+  const seen = {};
+  const rows = (entriesList || [])
+    .map(e => ({
+      description: (e.description || '').trim(),
+      startTime: e.startTime || ''
+    }))
+    .filter(e => e.description)
+    .sort((a, b) => String(b.startTime).localeCompare(String(a.startTime)));
+  const result = [];
+  for (const row of rows) {
+    const key = row.description.toLowerCase();
+    if (seen[key]) continue;
+    seen[key] = true;
+    result.push(row.description);
+  }
+  return result;
+}
+
 function groupReportEntriesByDay(entriesList) {
   const groups = {};
   for (const e of entriesList || []) {
@@ -289,6 +308,13 @@ function tagsForPicker(tags, search) {
     result = result.filter(t => (t.name || '').toLowerCase().indexOf(s) !== -1);
   }
   return result;
+}
+
+function existingTagIdsOnly(tagIds, allTags) {
+  const ids = Array.isArray(tagIds) ? tagIds : (tagIds ? [tagIds] : []);
+  const known = {};
+  for (const t of (allTags || [])) known[t.id] = true;
+  return ids.filter(id => known[id]);
 }
 
 function publishResume(description, projectId) {

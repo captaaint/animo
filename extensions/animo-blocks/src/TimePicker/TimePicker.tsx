@@ -593,6 +593,11 @@ export const TimePicker = forwardRef<HTMLDivElement, TimePickerProps>(
           <label
             className={styles.label}
             htmlFor={id ? `${id}-input` : undefined}
+            onMouseDown={(event) => {
+              if (!enabled) return;
+              event.preventDefault();
+              firstTriggerRef.current?.focus();
+            }}
           >
             {label}
             {required && <span aria-hidden="true"> *</span>}

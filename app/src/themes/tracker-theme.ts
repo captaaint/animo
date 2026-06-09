@@ -196,6 +196,16 @@ export const TrackerTheme: ThemeDefinition = {
     "font-feature-settings": "'cv03', 'ss03'",
     "fontSize-code": "13px",
     "textColor-Text": "$color-surface-600",
+    "textColor-label-formItem": "$color-surface-900",
+    "textColor-label-formItem--required": "$color-surface-900",
+    "fontSize-label-formItem": "$fontSize-medium",
+    "fontSize-label-formItem--required": "$fontSize-medium",
+    "fontWeight-label-formItem": "700",
+    "fontWeight-label-formItem--required": "700",
+    "fontStyle-label-formItem": "normal",
+    "fontStyle-label-formItem--required": "normal",
+    "textTransform-label-formItem": "none",
+    "textTransform-label-formItem--required": "none",
 
     // --- Navigation layout
     "iconAlignment-NavLink": "baseline",

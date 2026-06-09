@@ -7,6 +7,7 @@
   var.projectId="{null}"
   var.billable="{false}"
   var.entryTagIds="{[]}"
+  var.pendingTagName="{''}"
   var.drawerOpen="{false}"
   method.open="(data) => {
     editItem = data || null;
@@ -73,6 +74,23 @@
     onError="(err) => toast.error(err && err.message ? err.message : 'Save failed')"
   />
 
+  <APICall id="createTagCall"
+    method="post"
+    url="{apiBase + '/tags'}"
+    credentials="include"
+    body="{{ name: pendingTagName, color: '#3F8F8C' }}"
+    onSuccess="(tag) => {
+      entryTagIds = (entryTagIds || []).concat([tag.id]);
+      tagsInput.setValue(entryTagIds);
+      pendingTagName = '';
+      emitEvent('tagCreated', tag);
+    }"
+    onError="(err) => {
+      pendingTagName = '';
+      toast.error(err && err.message ? err.message : 'Tag create failed');
+    }"
+  />
+
 
   <KeyListener enabled="{drawerOpen}"
     onEnter="() => {
@@ -123,15 +141,15 @@
     <VStack width="100%" gap="$space-3">
       <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack gap="$space-2" width="100%">
-          <Text fontWeight="500" color="$color-surface-900">
-            What did you work on?
-          </Text>
-          <TextArea
+          <DescriptionAutocomplete
+            id="descrInput"
+            label="What did you work on?"
             width="100%"
             rows="5"
             maxLength="200"
             resize="none"
             initialValue="{descr}"
+            suggestions="{descriptionSuggestions($props.entries || [])}"
             onDidChange="(v) => descr = v || ''"
             placeholder="Add description..."
           />
@@ -147,12 +165,13 @@
       <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack width="100%" gap="$space-3">
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="500" color="$color-surface-900">Project</Text>
             <AutoComplete
+              id="projectInput"
+              label="Project"
               width="100%"
               initialValue="{projectId}"
               onDidChange="(v) => projectId = v"
-              placeholder="No project">
+              placeholder="Search project">
               <Items data="{$props.projects || []}">
                 <Option value="{$item.id}" label="{$item.name}">
                   <HStack verticalAlignment="center" gap="$space-2">
@@ -165,13 +184,19 @@
           </VStack>
 
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="500" color="$color-surface-900">Tags</Text>
             <AutoComplete
+              id="tagsInput"
+              label="Tags"
               width="100%"
               multi="true"
+              creatable="true"
               initialValue="{entryTagIds}"
-              onDidChange="(v) => entryTagIds = v || []"
-              placeholder="No tags">
+              onDidChange="(v) => entryTagIds = existingTagIdsOnly(v || [], $props.tags || [])"
+              onItemCreated="(name) => {
+                pendingTagName = (name || '').trim();
+                if (pendingTagName) createTagCall.execute();
+              }"
+              placeholder="Search tag">
               <Items data="{$props.tags || []}">
                 <Option value="{$item.id}" label="{$item.name}">
                   <HStack verticalAlignment="center" gap="$space-2">
@@ -193,9 +218,9 @@
           <Text fontWeight="500" color="$color-surface-900">Time</Text>
           <HStack gap="$space-3" width="100%" verticalAlignment="end">
             <VStack width="*" gap="$space-1">
-              <Text fontSize="$fontSize-small" color="$color-surface-700">Start</Text>
               <TimePicker
                 id="startInput"
+                label="Start"
                 width="100%"
                 iconAlign="start"
                 initialValue="{startStr}"
@@ -216,9 +241,9 @@
               <Text variant="secondary">→</Text>
             </Stack>
             <VStack width="*" gap="$space-1">
-              <Text fontSize="$fontSize-small" color="$color-surface-700">End</Text>
               <TimePicker
                 id="endInput"
+                label="End"
                 width="100%"
                 iconAlign="start"
                 initialValue="{endStr}"
@@ -231,9 +256,9 @@
             </VStack>
           </HStack>
           <VStack width="100%" gap="$space-1">
-            <Text fontSize="$fontSize-small" color="$color-surface-700">Duration</Text>
             <TimePicker
               id="durInput"
+              label="Duration"
               width="100%"
               iconAlign="start"
               iconName="timer"
@@ -255,8 +280,9 @@
       <Card padding="$space-4" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
         <VStack width="100%" gap="$space-3">
           <VStack gap="$space-2" width="100%">
-            <Text fontWeight="500" color="$color-surface-900">Date</Text>
             <DatePicker
+              id="entryDatePicker"
+              label="Date"
               width="100%"
               initialValue="{entryDate}"
               onDidChange="(v) => entryDate = v"

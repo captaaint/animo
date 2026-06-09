@@ -17,6 +17,8 @@ transpiles them through the normal pipeline.
 - `centerRow` — horizontal flex container that centers wrapped items.
 - `DatePicker` — Ark UI backed XMLUI DatePicker override with single/range
   mode compatibility and quick-select range presets.
+- `DescriptionAutocomplete` — textarea with suggestions from previously used
+  time entry descriptions.
 
 ## Usage
 

@@ -31,6 +31,11 @@
     credentials="include"
   />
   <DataSource
+    id="descriptionEntriesDs"
+    url="{apiBase + '/time-entries'}"
+    credentials="include"
+  />
+  <DataSource
     id="projectsDs"
     url="{apiBase + '/projects'}"
     credentials="include"
@@ -50,6 +55,7 @@
     padding="$space-4"
     title="Generating report"
     maxWidth="420px"
+    border="1px solid $borderColor"
   >
     <VStack gap="$space-4" padding="$space-2">
       <Text>
@@ -68,6 +74,7 @@
     maxWidth="980px"
     height="95vh"
     padding="$space-0"
+    border="1px solid $borderColor"
     onClose="if ($param && $param.url) window.revokeBlobUrl($param.url);"
   >
     <VStack height="*" width="*" gap="$space-0" backgroundColor="$color-surface-100">
@@ -110,7 +117,9 @@
     id="entryModal"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
-    onSaved="() => summaryDs.refetch()"
+    entries="{descriptionEntriesDs.value || []}"
+    onSaved="() => { summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
+    onTagCreated="() => tagsDs.refetch()"
     onDeleteRequested="(item) => deleteConfirmModal.open(item.id)"
   />
 
@@ -119,7 +128,9 @@
     id="entryDrawer"
     projects="{projectsDs.value || []}"
     tags="{tagsDs.value || []}"
-    onSaved="() => summaryDs.refetch()"
+    entries="{descriptionEntriesDs.value || []}"
+    onSaved="() => { summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
+    onTagCreated="() => tagsDs.refetch()"
     onDeleteRequested="(item) => deleteConfirmDrawer.open(item)"
   />
 
@@ -143,7 +154,7 @@
     url="{apiBase + '/time-entries'}"
     credentials="include"
     body="{$param}"
-    onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); }"
+    onSuccess="() => { toast.success('Entry duplicated'); summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
     onError="() => toast.error('Duplicate failed')"
   />
 
@@ -152,7 +163,7 @@
     method="delete"
     url="{apiBase + '/time-entries/' + $param}"
     credentials="include"
-    onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); }"
+    onSuccess="() => { toast.success('Entry deleted'); summaryDs.refetch(); descriptionEntriesDs.refetch(); }"
     onError="() => toast.error('Delete failed')"
   />
 

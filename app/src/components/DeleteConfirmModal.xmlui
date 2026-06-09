@@ -6,6 +6,7 @@
     id="modal"
     maxWidth="480px"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px">
     <VStack width="100%" gap="$space-4">
       <HStack verticalAlignment="center" gap="$space-3">

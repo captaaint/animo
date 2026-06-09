@@ -49,18 +49,19 @@
     closeButtonVisible="true"
     maxWidth="480px"
     padding="$space-4"
+    border="1px solid $borderColor"
     borderRadius="16px">
     <VStack gap="$space-4" width="100%">
 
       <Card padding="$space-4">
         <VStack gap="$space-2" width="100%">
-          <Text fontWeight="700" fontSize="$fontSize-medium" color="$color-surface-900">Name</Text>
-          <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your client</Text>
           <TextBox
+            label="Name"
             width="100%"
             initialValue="{nameInput}"
             onDidChange="(v) => nameInput = v || ''"
           />
+          <Text variant="secondary" fontSize="$fontSize-small">Choose a name for your client</Text>
         </VStack>
       </Card>
 
