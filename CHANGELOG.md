@@ -7,7 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- Added inline tag creation to the entry tag selector.
+- Added autocomplete suggestions for time entry descriptions based on previously used descriptions.
+
+### Changed
+
+- Updated entry and project form labels to use input label props and unified their appearance through theme variables.
+- Standardized modal dialog borders across the app.
+- Updated entry project and tag placeholders to use search-oriented text.
+
+### Fixed
+
+- Fixed form labels in entry and related modals so clicking labels focuses their inputs.
+- Restored the previous custom DatePicker behavior after the XMLUI DatePicker trial.
+- Fixed description autocomplete typing so spaces are preserved between words.
 
 ## [0.2.12] - 2026-06-01
 
