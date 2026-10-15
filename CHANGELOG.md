@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.2.14] - 2026-10-15
+
 ### Changed
 
 - perf(app): render the List and Reports entry lists without freezing (278c590)
@@ -309,7 +313,8 @@ Initial private preview release. Self-contained on-prem time tracker — XMLUI w
 - No code signing yet; macOS install requires manual Gatekeeper approval.
 - Single-user only at this stage; multi-tenant work deferred to a later release.
 
-[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.13...HEAD
+[Unreleased]: https://github.com/captaaint/animo/compare/v0.2.14...HEAD
+[0.2.14]: https://github.com/captaaint/animo/compare/v0.2.13...v0.2.14
 [0.2.13]: https://github.com/captaaint/animo/compare/v0.2.12...v0.2.13
 [0.2.12]: https://github.com/captaaint/animo/compare/v0.2.11...v0.2.12
 [0.2.11]: https://github.com/captaaint/animo/compare/v0.2.10...v0.2.11
