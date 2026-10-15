@@ -62,6 +62,17 @@ export type EntryListProps = {
 type SortKey = "projectName" | "durationSeconds" | "billable";
 type Sort = { key: SortKey; dir: "asc" | "desc" } | null;
 
+// The TimerBar's Stopwatch listens for this event (see Stopwatch.tsx) and
+// starts the timer with the entry's description and project.
+function publishResume(row: EntryRow) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("tt:resume", {
+      detail: { description: row.description, projectId: row.projectId },
+    }),
+  );
+}
+
 function sortRows(rows: EntryRow[], sort: Sort): EntryRow[] {
   if (!sort) return rows;
   const factor = sort.dir === "asc" ? 1 : -1;
@@ -115,6 +126,16 @@ const RowMenu = memo(function RowMenu({
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content className={styles.menu} align="end" sideOffset={4} role="menu">
+          <button
+            type="button"
+            role="menuitem"
+            className={styles.menuItem}
+            data-testid="resume-entry"
+            onClick={run(() => publishResume(row))}
+          >
+            <Icon name="play" />
+            Resume
+          </button>
           <button
             type="button"
             role="menuitem"
