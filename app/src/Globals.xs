@@ -230,6 +230,38 @@ function entriesForListTable(entriesList, projectsList) {
   }));
 }
 
+// View model for the <EntryList> React extension (List screen). All display
+// formatting stays here so the List, Reports and PDF export keep sharing one
+// set of formatters; the React side only renders. `entry` carries the
+// original list-table row so event payloads (openEntry, duplicateEntry, …)
+// are unchanged from the previous markup implementation.
+function listViewDays(days, projectsList, tagsList) {
+  const projects = projectsList || [];
+  const tags = tagsList || [];
+  return (days || []).map(d => ({
+    date: d.date,
+    datePart: formatDatePart(d.date),
+    dayPart: formatDayPart(d.date),
+    totalText: formatDuration(d.totalSec),
+    totalCompact: formatDurationCompact(d.totalSec),
+    entries: (d.entries || []).map(e => ({
+      entry: e,
+      id: e.id,
+      description: e.description || '',
+      projectId: e.projectId || null,
+      projectName: e.projectName,
+      projectColor: projectColor(e.projectId, projects),
+      startHm: (e.startTime || '').slice(11, 16),
+      endHm: (e.endTime || '').slice(11, 16),
+      durationSeconds: e.durationSeconds,
+      durationText: formatDuration(e.durationSeconds),
+      durationCompact: formatDurationCompact(e.durationSeconds),
+      billable: !!e.billable,
+      tags: tagsForIds(e.tagIds || [], tags).map(t => ({ id: t.id, name: t.name, color: t.color }))
+    }))
+  }));
+}
+
 function descriptionSuggestions(entriesList) {
   const seen = {};
   const rows = (entriesList || [])

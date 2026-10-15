@@ -8,6 +8,7 @@ import pieChartExt from "./src/extensions/PieChart";
 import stopwatchExt from "./src/extensions/Stopwatch";
 import pickerExt from "./src/extensions/Picker";
 import colorPickerExt from "./src/extensions/ColorPicker";
+import entryListExt from "./src/extensions/EntryList";
 
 const extensions = [
   xmluiPdf,
@@ -19,6 +20,7 @@ const extensions = [
   stopwatchExt,
   pickerExt,
   colorPickerExt,
+  entryListExt,
 ];
 
 export const runtime = import.meta.glob(`/src/**`, { eager: true });

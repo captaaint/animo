@@ -1,0 +1,439 @@
+// Styles mirror the previous XMLUI markup (ExpandableItem + Table / timeline
+// cards) and read the same theme variables, so light/dark tones keep working.
+
+// Default body text of XMLUI <Text> in the Animo theme (surface-600 / dark-mode override).
+$text: var(--xmlui-textColor-Text, var(--xmlui-textColor-primary, #544f4b));
+$textSecondary: var(--xmlui-textColor-secondary, #544f4b);
+$border: var(--xmlui-borderColor, rgba(30, 35, 40, 0.1));
+$surface50: var(--xmlui-color-surface-50, #faf8f6);
+$surface100: var(--xmlui-color-surface-100, #f0edea);
+$surface200: var(--xmlui-color-surface-200, #e0dcd7);
+$raised: var(--xmlui-color-surface-raised, #ffffff);
+$radius: var(--xmlui-borderRadius, 4px);
+$primary50: var(--xmlui-color-primary-50, #eaf3f1);
+$primary500: var(--xmlui-color-primary-500, #3f8f8c);
+$primary700: var(--xmlui-color-primary-700, #2a5f5b);
+
+.tableRoot,
+.cardsRoot {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  color: $text;
+}
+
+.tableRoot {
+  gap: 0;
+}
+
+.cardsRoot {
+  gap: 1em;
+}
+
+// --- Shared bits -------------------------------------------------------------
+
+.ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.project {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+}
+
+.swatch {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+}
+
+.tag,
+.tagLarge {
+  display: inline-block;
+  color: white;
+  border-radius: $radius;
+  white-space: nowrap;
+  line-height: 1.7;
+}
+
+.tag {
+  font-size: 0.625em;
+  padding: 0 0.5em;
+}
+
+.tagLarge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  padding: 0.25em 0.6em;
+}
+
+// --- Row menu ----------------------------------------------------------------
+
+.menuTrigger {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: $radius;
+  background: transparent;
+  color: $textSecondary;
+  cursor: pointer;
+
+  &:hover,
+  &[data-state="open"] {
+    background: $surface100;
+    color: $text;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--xmlui-color-primary-300, rgba(63, 143, 140, 0.45));
+    outline-offset: 1px;
+  }
+}
+
+.menu {
+  z-index: 1000;
+  min-width: 180px;
+  padding: 0.25em 0;
+  background: var(--xmlui-backgroundColor-DropdownMenu, $raised);
+  color: $text;
+  border: 1px solid $border;
+  border-radius: 6px;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  font-family: var(--xmlui-fontFamily, inherit);
+  font-size: 13px;
+}
+
+.menuItem {
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.6em;
+  width: 100%;
+  padding: 0.45em 0.75em;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: $surface100;
+    outline: none;
+  }
+}
+
+.menuSeparator {
+  height: 1px;
+  margin: 0.25em 0;
+  background: $border;
+}
+
+// --- Desktop table -----------------------------------------------------------
+
+.day {
+  display: flex;
+  flex-direction: column;
+}
+
+.daySummary {
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  width: 100%;
+  padding: 0.5em 0.75em;
+  border: none;
+  border-radius: $radius;
+  background: $surface50;
+  color: $text;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dayDate {
+  flex: 1 1 auto;
+  font-weight: 700;
+}
+
+.dayTotal {
+  color: $textSecondary;
+  font-weight: 700;
+  font-size: 0.875em;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin: 0.25em 0;
+  font-size: 1em;
+
+  th {
+    height: 28px;
+    padding: 0 1em;
+    background: $surface100;
+    color: $textSecondary;
+    font-size: 0.6125em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    text-align: left;
+    border-bottom: 1px solid $border;
+    white-space: nowrap;
+  }
+
+  td {
+    height: 40px;
+    padding: 0.35em 1em;
+    border-bottom: 1px solid $border;
+    vertical-align: middle;
+  }
+
+  tbody tr:hover td {
+    background: $surface50;
+  }
+}
+
+.sortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+.actionsHeader,
+.actionsCell {
+  text-align: center !important;
+}
+
+.description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25em;
+  margin-top: 0.15em;
+}
+
+// --- Mobile cards ------------------------------------------------------------
+
+.cardDay {
+  border: 1px solid $surface200;
+  border-radius: $radius;
+  background: $raised;
+}
+
+.cardDaySummary {
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  width: 100%;
+  padding: 0.75em;
+  border: none;
+  background: transparent;
+  color: $text;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dateBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: $primary50;
+  color: var(--xmlui-color-primary-600, #357773);
+}
+
+.cardDayLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cardDayDate {
+  font-weight: 700;
+  font-size: 0.875em;
+}
+
+.cardDayName {
+  color: $textSecondary;
+  font-size: 0.625em;
+}
+
+.cardDayTotal {
+  width: 68px;
+  color: $primary700;
+  font-weight: 700;
+  font-size: 0.875em;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75em;
+  padding: 0.75em 0.25em;
+}
+
+.cardRow {
+  display: flex;
+  gap: 0.25em;
+  width: 100%;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25em;
+  flex: 0 0 32px;
+}
+
+.timelineStart {
+  font-size: 0.625em;
+  font-weight: 700;
+}
+
+.timelineLine {
+  flex: 1 1 auto;
+  width: 1px;
+  min-height: 88px;
+  background: $surface200;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.75em;
+  background: $raised;
+  border: 1px solid $surface200;
+  border-radius: $radius;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25em;
+}
+
+.cardMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cardTimes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25em;
+}
+
+.cardRange {
+  color: $textSecondary;
+  font-weight: 600;
+  font-size: 0.625em;
+  white-space: nowrap;
+}
+
+.cardDuration {
+  font-weight: 700;
+  font-size: 1em;
+  white-space: nowrap;
+}
+
+.cardDescription {
+  font-weight: 700;
+  font-size: 1em;
+  overflow-wrap: anywhere;
+}
+
+.cardProject {
+  color: $textSecondary;
+  font-weight: 600;
+  font-size: 0.625em;
+  min-width: 0;
+}
+
+.cardTags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.billable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0.25em 0.6em;
+  border-radius: $radius;
+  background: $primary50;
+  color: $primary700;
+  font-size: 0.625rem;
+  font-weight: 700;
+}
+
+.cardAdd {
+  display: flex;
+  justify-content: center;
+  padding: 0.25em 0 0.75em;
+}
+
+.addButton {
+  font: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 30px;
+  border: none;
+  border-radius: $radius;
+  background: $primary500;
+  color: white;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.95);
+  }
+}

@@ -11,6 +11,7 @@ import pieChartExt from "./src/extensions/PieChart";
 import stopwatchExt from "./src/extensions/Stopwatch";
 import pickerExt from "./src/extensions/Picker";
 import colorPickerExt from "./src/extensions/ColorPicker";
+import entryListExt from "./src/extensions/EntryList";
 
 export default [
   xmluiPdf,
@@ -22,4 +23,5 @@ export default [
   stopwatchExt,
   pickerExt,
   colorPickerExt,
+  entryListExt,
 ];
