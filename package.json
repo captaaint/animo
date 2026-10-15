@@ -6,13 +6,14 @@
     "app",
     "website",
     "demo",
-    "extensions/*"
+    "extensions/*",
+    "vendor/xmlui-pdf"
   ],
   "packageManager": "npm@10.9.2",
   "scripts": {
     "//build": "Turbo build tasks (cached, dependency-aware)",
     "build": "turbo run build:extension build:demo build:website",
-    "build:blocks": "turbo run build:extension --filter=animo-blocks",
+    "build:blocks": "turbo run build:extension --filter=animo-blocks --filter=xmlui-pdf",
     "build:app": "turbo run build:demo --filter=animo-app",
     "build:website": "turbo run build:website --filter=animo-website",
     "check": "turbo run check",
