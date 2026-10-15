@@ -176,9 +176,11 @@
     // here would never see the events. We never preventDefault/stopPropagation,
     // so the component's own drop handling is untouched.
     (function () {
-      var SEL = '[data-testid="import-dropzone"]';
+      // `data-testid` is only rendered in E2E / xsVerbose mode, so key off the
+      // always-present `data-xmlui-id` of <FileUploadDropZone id="importDrop">.
+      var SEL = '[data-xmlui-id="importDrop"]';
       // The element carrying the dashed border is react-dropzone's root — the
-      // parent of its hidden file input. Fall back to the test-id host.
+      // parent of its hidden file input. Fall back to the drop-zone host.
       function dashedZone() {
         var host = document.querySelector(SEL);
         if (!host) return null;
