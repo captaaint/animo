@@ -93,6 +93,10 @@ jobs:
       # postinstall (runtime is unaffected).
       - name: Install workspace dependencies
         run: |
+          # npm 10.x (bundled with Node 20) crashes in Arborist's peer-set
+          # resolution on this workspace tree ("Cannot read properties of
+          # null (reading 'edgesOut')"); npm 11 resolves it cleanly.
+          npm install -g npm@11 --no-audit --no-fund
           rm -rf node_modules package-lock.json
           npm install --prefer-offline --no-audit --no-fund --ignore-scripts
 
@@ -204,6 +208,10 @@ jobs:
       # postinstall (runtime is unaffected).
       - name: Install workspace dependencies
         run: |
+          # npm 10.x (bundled with Node 20) crashes in Arborist's peer-set
+          # resolution on this workspace tree ("Cannot read properties of
+          # null (reading 'edgesOut')"); npm 11 resolves it cleanly.
+          npm install -g npm@11 --no-audit --no-fund
           rm -rf node_modules package-lock.json
           npm install --prefer-offline --no-audit --no-fund --ignore-scripts
 
