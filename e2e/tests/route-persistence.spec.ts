@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
 // Regression: AuthGate used to fire `onSignIn` from its bootstrap path on
 // every page mount. Main.xmlui's `onSignIn="Actions.navigate('/')"` then

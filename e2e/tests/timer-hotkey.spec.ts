@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '../fixtures';
+import { type Page } from '@playwright/test';
 
 // E2E coverage for issue #47: an in-app keyboard shortcut ("t") starts/stops
 // the timer, mirroring the play/stop buttons, and is ignored while typing in a

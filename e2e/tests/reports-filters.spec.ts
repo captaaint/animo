@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import {
   createClient,
   createProject,
@@ -8,7 +8,7 @@ import {
   uniqueName,
 } from '../helpers';
 
-test('client filter reduces the entry table to that client only', async ({ page }) => {
+test('project filter (searchable by client) reduces the entry table to that client only', async ({ page }) => {
   const clientA = uniqueName('FilterA');
   const clientB = uniqueName('FilterB');
   const projectA = uniqueName('ProjA');
@@ -41,9 +41,13 @@ test('client filter reduces the entry table to that client only', async ({ page 
   await expect(page.getByText(descA)).toBeVisible();
   await expect(page.getByText(descB)).toBeVisible();
 
-  // Pick clientA from the client filter.
-  await page.getByTestId('filter-client').click();
-  await page.getByRole('option', { name: clientA }).click();
+  // The Projects filter groups projects by client and matches client names
+  // too: search for clientA and pick its project.
+  const projectFilter = page.getByRole('combobox', { name: 'Projects' });
+  await projectFilter.click();
+  await projectFilter.pressSequentially(clientA);
+  await page.getByRole('option', { name: projectA }).click();
+  await page.keyboard.press('Escape');
 
   // Only the A entry remains.
   await expect(page.getByText(descA)).toBeVisible();
@@ -65,7 +69,9 @@ test('AppHeader Export PDF button on Reports page opens the preview', async ({ p
   await page.getByRole('link', { name: 'Reports' }).click();
   await expect(page).toHaveURL(/\/reports$/);
 
-  await page.getByTestId('header-export-pdf').click();
+  // The Export button exports in the format chosen next to it (PDF by default).
+  await expect(page.getByTestId('export-format')).toContainText('PDF');
+  await page.getByTestId('header-export').click();
 
   // Same downstream behavior as before: the preview modal mounts with a
   // Download + Discard button pair.
@@ -91,7 +97,9 @@ test('export PDF succeeds when entries carry tags', async ({ page }) => {
   });
 
   await page.getByRole('link', { name: 'Reports' }).click();
-  await page.getByTestId('header-export-pdf').click();
+  // The Export button exports in the format chosen next to it (PDF by default).
+  await expect(page.getByTestId('export-format')).toContainText('PDF');
+  await page.getByTestId('header-export').click();
 
   await expect(page.getByRole('button', { name: /^Download$/i })).toBeVisible({
     timeout: 30_000,
@@ -124,8 +132,11 @@ test('tag filter narrows entries to those with the selected tag', async ({ page 
   await expect(page.getByText(desc1)).toBeVisible();
   await expect(page.getByText(desc2)).toBeVisible();
 
-  await page.getByTestId('filter-tag').click();
+  const tagFilter = page.getByRole('combobox', { name: 'Tags' });
+  await tagFilter.click();
+  await tagFilter.pressSequentially(tagName);
   await page.getByRole('option', { name: tagName }).click();
+  await page.keyboard.press('Escape');
 
   await expect(page.getByText(desc1)).toBeVisible();
   await expect(page.getByText(desc2)).toHaveCount(0);

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { createTimeEntry, todayAt, uniqueName } from '../helpers';
 
 test('reports screen shows totals and the entry table for the current week', async ({
@@ -55,7 +55,9 @@ test('export PDF opens the preview modal with a Download button', async ({ page 
   });
 
   await page.getByRole('link', { name: 'Reports' }).click();
-  await page.getByRole('button', { name: /Export PDF/i }).click();
+  // The Export button exports in the format chosen next to it (PDF by default).
+  await expect(page.getByTestId('export-format')).toContainText('PDF');
+  await page.getByTestId('header-export').click();
 
   // pdfmake renders client-side; once done the preview modal mounts with a
   // Discard / Download pair. Allow plenty of time for the first render

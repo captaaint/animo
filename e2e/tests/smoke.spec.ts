@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
 // Local-first model: with a bootstrapped user (global.setup) the app boots
 // straight into the workspace. There is no login screen — only the workspace

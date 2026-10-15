@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { createTimeEntry, todayAt, uniqueName } from '../helpers';
 
 test('list view search filters entries by description', async ({ page }) => {

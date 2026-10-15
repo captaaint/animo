@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
 // Regression: starting the TimerBar on List, navigating to another menu
 // section (Reports / Manage), then returning used to wipe the running
@@ -22,9 +22,11 @@ test('TimerBar keeps running across navigation between sections', async ({ page 
   await expect(stop).toBeVisible();
 
   // Let the stopwatch tick at least once so the display is past 0:00:00.
-  await page.waitForTimeout(1200);
+  // Poll instead of sleeping a fixed 1.2 s: the first tick lands ~1 s after
+  // start, and right after navigating to List the dev server can still be busy
+  // enough to delay it by a few hundred ms.
+  await expect(counter).not.toHaveText('0:00:00', { timeout: 5_000 });
   const elapsedBefore = await counter.innerText();
-  expect(elapsedBefore).not.toBe('0:00:00');
 
   // Reports: under the old behaviour the TimerBar would disappear here.
   await page.getByRole('link', { name: 'Reports' }).click();

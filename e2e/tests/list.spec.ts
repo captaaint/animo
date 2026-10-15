@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { createTimeEntry, todayAt, uniqueName } from '../helpers';
 
 test('create a new time entry from the List view', async ({ page }) => {
@@ -10,15 +10,15 @@ test('create a new time entry from the List view', async ({ page }) => {
 
   await page.getByRole('button', { name: /New entry/i }).click();
 
-  // EntryModal: the description input has a "What did you work on?"
-  // placeholder.
-  const descrInput = page.getByPlaceholder('What did you work on?');
+  // EntryModal: the description field is an AutoComplete with an
+  // "Add description..." placeholder.
+  const descrInput = page.getByPlaceholder('Add description...');
   await expect(descrInput).toBeVisible();
   await descrInput.click();
   await page.keyboard.type(description);
 
-  // New-entry button label is "Add" (Save is only for edits).
-  await page.getByRole('button', { name: /^Add$/i }).click();
+  // The same "Save entry" button creates and updates; the toast tells them apart.
+  await page.getByRole('button', { name: /^Save entry$/i }).click();
 
   await expect(page.getByText('Entry added')).toBeVisible();
   await expect(page.getByText(description)).toBeVisible();
@@ -46,9 +46,8 @@ test('row dot-menu Delete removes the entry after confirm', async ({ page }) => 
   await row.getByTestId('row-actions').click();
   await page.getByTestId('delete-entry').click();
 
-  // XMLUI's APICall confirmMessage opens an in-page ConfirmationModal with
-  // a default "Yes" button. Confirm to actually fire the DELETE.
-  await page.getByRole('button', { name: /^Yes$/i }).click();
+  // DeleteConfirmModal asks for confirmation; its Delete button fires the DELETE.
+  await page.getByRole('dialog').getByRole('button', { name: /^Delete$/i }).click();
 
   await expect(page.getByText('Entry deleted')).toBeVisible();
   await expect(page.getByText(description)).toHaveCount(0);

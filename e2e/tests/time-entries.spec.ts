@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { uniqueName } from '../helpers';
 
 test('TimerBar exposes only the counter mode (no Manual switch)', async ({ page }) => {

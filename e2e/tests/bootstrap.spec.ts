@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { API_URL } from '../constants';
 
 // API contract for the local-first bootstrap flow. global.setup has already

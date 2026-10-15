@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import {
   createTag,
   createTimeEntry,
@@ -13,9 +13,9 @@ test('manage tags from the Tags screen', async ({ page }) => {
   await page.getByRole('link', { name: 'Tags' }).click();
   await expect(page).toHaveURL(/\/tags$/);
 
-  await page.getByTestId('new-tag-btn').click();
-  await page.locator('input#name').fill(tagName);
-  await page.getByRole('button', { name: /^Save$/i }).click();
+  await page.getByRole('button', { name: /^New tag$/i }).click();
+  await page.getByRole('dialog').getByRole('textbox', { name: 'Name' }).fill(tagName);
+  await page.getByRole('button', { name: /^Save tag$/i }).click();
 
   await expect(page.getByText('Tag added')).toBeVisible();
   await expect(page.getByRole('cell', { name: tagName })).toBeVisible();

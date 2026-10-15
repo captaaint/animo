@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { createClient, uniqueName } from '../helpers';
 
 test('create a new project linked to a client', async ({ page }) => {
@@ -14,17 +14,20 @@ test('create a new project linked to a client', async ({ page }) => {
 
   await page.getByRole('button', { name: /New project/i }).click();
 
-  const nameInput = page.locator('input#name');
+  const dialog = page.getByRole('dialog');
+  const nameInput = dialog.getByRole('textbox', { name: 'Name' });
   await expect(nameInput).toBeVisible();
   await nameInput.click();
   await page.keyboard.type(projectName);
 
-  // The project modal now has two Selects (Client + Currency); scope to the
-  // Client one by aria-label so we always open the correct dropdown.
-  await page.getByRole('combobox', { name: 'Client' }).click();
+  // Client is an AutoComplete: type to filter, then pick the option.
+  const clientInput = dialog.getByRole('combobox', { name: 'Client' });
+  await clientInput.click();
+  await clientInput.pressSequentially(clientName.slice(0, 12));
   await page.getByRole('option', { name: clientName }).click();
 
-  await page.getByRole('button', { name: /^Save$/i }).click();
+  await page.getByRole('button', { name: /^Save project$/i }).click();
+  await expect(page.getByText('Project added')).toBeVisible();
 
   // The new project row, with the chosen client, should appear in the table.
   await expect(page.getByRole('cell', { name: projectName })).toBeVisible();

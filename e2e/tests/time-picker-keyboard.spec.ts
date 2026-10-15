@@ -1,4 +1,5 @@
-import { test, expect, Page, Locator } from '@playwright/test';
+import { test, expect } from '../fixtures';
+import { type Page, type Locator } from '@playwright/test';
 
 // E2E coverage for issue #48: the TimePicker accepts typed keyboard input in
 // addition to the dropdown wheel. Exercised through the List → New entry

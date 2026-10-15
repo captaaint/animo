@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 
 // Mobile web UX regression suite. Runs under the WebKit "mobile-safari" project
 // (iPhone viewport, touch) defined in playwright.config.ts, which is the closest
@@ -114,6 +114,9 @@ test.describe('mobile', () => {
   test('the date-range DatePicker opens as a scrollable bottom sheet', async ({
     page,
   }) => {
+    // The month assertions below (e.g. scrolling to "March 2026") assume
+    // "today" is Tuesday 12 May 2026; pin the browser clock accordingly.
+    await page.clock.setFixedTime(new Date('2026-05-12T10:00:00'));
     await page.goto('/reports');
 
     // Open the Reports date-range picker via its calendar adornment.

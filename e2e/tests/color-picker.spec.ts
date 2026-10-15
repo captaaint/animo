@@ -1,37 +1,46 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
+import { type Locator } from '@playwright/test';
 
-// Regression test for the xmlui ColorPicker controlled-input lag bug.
-// Before the local extension override, dispatching a single `change` event
-// on the underlying `<input type="color">` left the DOM input's `.value`
-// snapping back to the previous color (because the parent's state update
-// was wrapped in `startTransition`, while the input itself was controlled).
-// The user-visible symptom was the swatch being one selection behind.
-//
-// This test exercises the user-driven path via the TagModal: open it, pick
-// a new color, and assert the input's DOM value persists on the next paint
-// without any second interaction. See docs/xmlui-bugs/colorpicker.md.
-test('ColorPicker reflects the selected color on the first change', async ({ page }) => {
+// Palette swatches are plain XMLUI Stacks (no role / test id), so find the one
+// whose rendered background is the requested color.
+async function swatch(dialog: Locator, rgb: string): Promise<Locator> {
+  const index = await dialog.locator('div').evaluateAll(
+    (els, color) =>
+      els.findIndex(
+        (el) =>
+          getComputedStyle(el).backgroundColor === color &&
+          (el as HTMLElement).offsetHeight >= 40,
+      ),
+    rgb,
+  );
+  if (index < 0) throw new Error(`no swatch with background ${rgb}`);
+  return dialog.locator('div').nth(index);
+}
+
+// The tag color is picked from a swatch palette in TagModal (it replaced the
+// earlier <input type="color"> ColorPicker; see docs/xmlui-bugs/colorpicker.md
+// for that component's controlled-input lag bug). This keeps the original
+// regression's intent: a single pick must show up immediately — the preview
+// must never lag one selection behind.
+test('tag color palette reflects the selected color on the first pick', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: 'Tags' }).click();
   await expect(page).toHaveURL(/\/tags$/);
 
-  await page.getByRole('button', { name: /New tag/i }).click();
+  await page.getByRole('button', { name: /^New tag$/i }).click();
+  const dialog = page.getByRole('dialog');
 
-  const colorInput = page.locator('input[type="color"]').first();
-  await expect(colorInput).toBeVisible();
+  // Sanity: a new tag starts at the default "Sage teal".
+  await expect(dialog.getByText('#3F8F8C', { exact: true })).toBeVisible();
 
-  // Sanity: the form starts at the TagModal's bound default color.
-  await expect(colorInput).toHaveValue('#3f8f8c');
+  await (await swatch(dialog, 'rgb(235, 87, 87)')).click(); // Coral #EB5757
 
-  // Simulate a single user color selection. With the upstream bug, React
-  // would re-reconcile the controlled input with the stale `value` prop
-  // on the next paint, reverting `.value` back to '#3f8f8c'.
-  await colorInput.evaluate((el: HTMLInputElement) => {
-    el.value = '#ff0000';
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-  });
+  // The preview updates on the very first pick — no second click.
+  await expect(dialog.getByText('Coral', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('#EB5757', { exact: true })).toBeVisible();
 
-  // The new color must stick on the very next paint — no second pick.
-  await expect(colorInput).toHaveValue('#ff0000');
+  // And a second, different pick replaces it immediately as well.
+  await (await swatch(dialog, 'rgb(63, 81, 181)')).click(); // Indigo #3F51B5
+  await expect(dialog.getByText('Indigo', { exact: true })).toBeVisible();
+  await expect(dialog.getByText('#3F51B5', { exact: true })).toBeVisible();
 });

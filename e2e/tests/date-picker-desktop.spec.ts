@@ -1,4 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from '../fixtures';
+
+// The month-pair assertions below are written against a fixed "today"
+// (Tuesday 12 May 2026, so the default Reports range is May 11–17). Pin the
+// browser clock so they do not depend on when the suite runs. Timers keep
+// running; only Date.now() / new Date() are fixed.
+const FIXED_NOW = new Date('2026-05-12T10:00:00');
 
 test('clicking the DatePicker label focuses the first date field', async ({
   page,
@@ -13,6 +19,7 @@ test('clicking the DatePicker label focuses the first date field', async ({
 test('desktop date-range DatePicker navigates by consecutive month pairs', async ({
   page,
 }) => {
+  await page.clock.setFixedTime(FIXED_NOW);
   await page.goto('/reports');
 
   await page.getByRole('button', { name: 'Open calendar' }).first().click();
@@ -48,6 +55,7 @@ test('desktop date-range DatePicker navigates by consecutive month pairs', async
 test('desktop date-range DatePicker keeps the month pair stable while hovering a range', async ({
   page,
 }) => {
+  await page.clock.setFixedTime(FIXED_NOW);
   await page.goto('/reports');
 
   await page.getByRole('button', { name: 'Open calendar' }).first().click();

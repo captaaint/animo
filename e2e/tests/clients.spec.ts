@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { uniqueName } from '../helpers';
 
 test('create a new client via the UI', async ({ page }) => {
@@ -10,12 +10,14 @@ test('create a new client via the UI', async ({ page }) => {
 
   await page.getByRole('button', { name: /New client/i }).click();
 
-  const nameInput = page.locator('input#name');
+  // ClientModal's "Name" TextBox — located by its label, not a DOM id.
+  const nameInput = page.getByRole('dialog').getByRole('textbox', { name: 'Name' });
   await expect(nameInput).toBeVisible();
   await nameInput.click();
   await page.keyboard.type(name);
 
-  await page.getByRole('button', { name: /^Save$/i }).click();
+  await page.getByRole('button', { name: /^Save client$/i }).click();
+  await expect(page.getByText('Client added')).toBeVisible();
 
   // The new client should appear in the table.
   await expect(page.getByRole('cell', { name })).toBeVisible();

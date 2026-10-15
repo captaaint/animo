@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { createTimeEntry, todayAt, uniqueName } from '../helpers';
 
 test('calendar renders the current week with day columns', async ({ page }) => {
@@ -52,8 +52,12 @@ test('clicking an entry on the calendar opens the EntryModal for editing', async
   await block.scrollIntoViewIfNeeded();
   await block.click({ force: true });
 
-  // EntryModal has a Save button (since editItem is set) and the description input.
-  await expect(page.getByRole('button', { name: /^Save$/i })).toBeVisible();
-  // The description value should be prefilled in the modal's text input.
-  await expect(page.locator(`input[value="${description}"]`)).toBeVisible();
+  // EntryModal opens in edit mode ("Edit entry", with a Delete button) and the
+  // description textarea is prefilled.
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByRole('button', { name: /^Save entry$/i })).toBeVisible();
+  await expect(dialog.getByRole('button', { name: /^Delete$/i })).toBeVisible();
+  await expect(dialog.getByRole('textbox', { name: 'What did you work on?' })).toHaveValue(
+    description,
+  );
 });

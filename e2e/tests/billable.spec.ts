@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
 import { API_URL } from '../constants';
 import {
   createClient,
@@ -97,12 +97,13 @@ test('ProjectModal hourly rate field persists on the project', async ({ page }) 
   await expect(page).toHaveURL(/\/projects$/);
   await page.getByRole('button', { name: /New project/i }).click();
 
-  await page.locator('input#name').fill(projectName);
-  // The hourly rate field is a NumberBox bound to "hourlyRate".
-  const rateInput = page.locator('input#hourlyRate');
-  await rateInput.fill('75');
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('textbox', { name: 'Name' }).fill(projectName);
 
-  await page.getByRole('button', { name: /^Save$/i }).click();
+  // The hourly rate field is the "Rate" NumberBox (currency defaults to EUR).
+  await dialog.getByRole('spinbutton', { name: 'Rate' }).fill('75');
+
+  await page.getByRole('button', { name: /^Save project$/i }).click();
 
   await expect(page.getByText('Project added')).toBeVisible();
   // The project row should show "75 EUR/h" or "75 USD/h" depending on the

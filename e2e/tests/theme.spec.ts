@@ -1,4 +1,5 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../fixtures';
+import { type Page } from '@playwright/test';
 import { API_URL } from '../constants';
 
 const PREF_KEY = 'tt:theme-pref';
@@ -18,6 +19,17 @@ test.beforeEach(async ({ request }) => {
 // preference state deterministic.
 test.describe.configure({ mode: 'serial' });
 
+// Start listening for the preference PATCH *before* the click that triggers it.
+// The Select's change handler fires synchronously, so the request can complete
+// before `click()` resolves; a listener registered afterwards would miss it.
+const themePatch = (page: Page) =>
+  page.waitForResponse(
+    (res) =>
+      res.url().includes('/api/user/me') &&
+      res.request().method() === 'PATCH' &&
+      res.ok(),
+  );
+
 test.describe('theme preference persistence', () => {
   test('Select on Settings updates the live tone and survives reload', async ({
     page,
@@ -30,16 +42,11 @@ test.describe('theme preference persistence', () => {
     // same theme.
     const themeSelect = page.getByRole('combobox');
     await themeSelect.click();
-    await page.getByRole('option', { name: 'Dark' }).click();
-
     // Wait for the PATCH to land — otherwise a fast reload can race the
     // server write and read back the previous value.
-    await page.waitForResponse(
-      (res) =>
-        res.url().includes('/api/user/me') &&
-        res.request().method() === 'PATCH' &&
-        res.ok(),
-    );
+    const darkSaved = themePatch(page);
+    await page.getByRole('option', { name: 'Dark' }).click();
+    await darkSaved;
 
     // Live: TonePersist mirrors the active tone into localStorage.
     const live = await page.evaluate(
@@ -74,24 +81,14 @@ test.describe('theme preference persistence', () => {
 
     const themeSelect = page.getByRole('combobox');
     await themeSelect.click();
+    const lightSaved = themePatch(page);
     await page.getByRole('option', { name: 'Light' }).click();
-
-    await page.waitForResponse(
-      (res) =>
-        res.url().includes('/api/user/me') &&
-        res.request().method() === 'PATCH' &&
-        res.ok(),
-    );
+    await lightSaved;
 
     await themeSelect.click();
+    const systemSaved = themePatch(page);
     await page.getByRole('option', { name: 'System' }).click();
-
-    await page.waitForResponse(
-      (res) =>
-        res.url().includes('/api/user/me') &&
-        res.request().method() === 'PATCH' &&
-        res.ok(),
-    );
+    await systemSaved;
 
     const state = await page.evaluate(
       ({ pref, tone }) => ({
