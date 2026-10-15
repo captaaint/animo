@@ -7,7 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Changed
+
+- perf(app): render the List and Reports entry lists without freezing (278c590)
+
+### Fixed
+
+- fix(app): restore the Resume action in the List and Reports row menus (a6aee82)
+- fix(app): focus the description, time and date fields when their labels are clicked (7453c03)
+- fix(app): highlight the import drop zone while a file is dragged over it (bd7e1dd)
 
 ## [0.2.13] - 2026-06-09
 
