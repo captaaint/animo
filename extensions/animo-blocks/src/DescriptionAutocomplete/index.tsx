@@ -105,7 +105,9 @@ export const descriptionAutocompleteRenderer = createComponentRenderer(
 
     return (
       <DescriptionAutocomplete
-        id={extractValue.asOptionalString(props.id)}
+        // XMLUI puts the markup `id` on `node.uid`, not in `node.props`; it is
+        // the DOM id that the <label htmlFor> needs to focus the textarea.
+        id={extractValue.asOptionalString(props.id) ?? node.uid}
         value={extractValue.asOptionalString(props.value)}
         initialValue={extractValue.asOptionalString(props.initialValue)}
         suggestions={extractValue(props.suggestions) as string[] | undefined}

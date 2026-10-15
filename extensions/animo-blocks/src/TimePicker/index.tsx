@@ -151,7 +151,8 @@ export const timePickerRenderer = createComponentRenderer(
 
     return (
       <TimePicker
-        id={extractValue.asOptionalString(props.id)}
+        // XMLUI puts the markup `id` on `node.uid`, not in `node.props`.
+        id={extractValue.asOptionalString(props.id) ?? node.uid}
         value={extractValue(props.value)}
         initialValue={extractValue(props.initialValue)}
         mode={
