@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Changed
+
+- refactor(app)!: rewrite the frontend in React and drop XMLUI (#60)
+
+### Added
+
+- feat(app): keep the tag selector on one line (#61)
+
+### Fixed
+
+- fix(app): project editor uses the same two-column modal layout as clients and tags (#60)
+- fix(app): time picker overhangs modals instead of making them scroll (#61)
+- fix(app): list view shows the time range like the calendar (#61)
 
 ## [0.2.15] - 2026-10-16
 
