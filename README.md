@@ -117,8 +117,8 @@ npm run preview:demo     # build + preview locally
 
 The bundle ships a hand-written `/api/*` fetch handler
 ([`app/src/demoApi.ts`](app/src/demoApi.ts)) that intercepts `window.fetch`
-before the app mounts. Bootstrap always returns the "Demo User" local profile,
-data covers four work-weeks of seed entries, and all CRUD persists in
+before the app mounts. Bootstrap always returns the "Alex Rivera" (@alex) local profile,
+data covers about three months of seed entries across four clients, and all CRUD persists in
 `localStorage`. The version stamp in the app shell comes from
 `VITE_ANIMO_VERSION` — see [`app/scripts/with-version.mjs`](app/scripts/with-version.mjs).
 

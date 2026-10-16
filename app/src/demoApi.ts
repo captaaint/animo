@@ -9,12 +9,12 @@
 //   synchronously in main.tsx before the app mounts sidesteps that entirely.
 //
 // Storage:
-//   * Initial seed (4 weeks of entries, 2 clients × 2 projects, 5 tags) is
+//   * Initial seed (~3 months of entries, 4 clients, 8 projects, 8 tags) is
 //     generated relative to "today" at first launch, then snapshotted to
 //     localStorage on every mutation.
 //   * To reset the demo, clear site data in the browser dev tools.
 
-const STORAGE_KEY = "animo-demo-state-v2";
+const STORAGE_KEY = "animo-demo-state-v3";
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Types — mirror the Rust API JSON shapes the frontend already consumes.
@@ -113,8 +113,8 @@ function buildSeedState(): DemoState {
   const now = new Date().toISOString();
   const user: LocalUser = {
     id: "demo-user",
-    name: "Demo User",
-    username: "demo",
+    name: "Alex Rivera",
+    username: "alex",
     createdAt: now,
     updatedAt: now,
     preferences: {
@@ -130,50 +130,152 @@ function buildSeedState(): DemoState {
     },
   };
 
-  // All colors below come from the Animo brand palette
-  // (see app/src/themes/tracker-theme.ts). Picked so that adjacent
-  // categories don't share a hue and the calendar/Reports charts
-  // read at a glance.
+  // Colors come from the swatches the app's own color picker offers
+  // (CollectionScreens.tsx), picked so neighbouring projects in the
+  // calendar and the Reports charts never share a hue.
   const clients: Client[] = [
-    { id: "c1", name: "Acme Corp", color: "#3F8F8C" }, // Sage Teal
-    { id: "c2", name: "Globex Inc.", color: "#F2A82F" }, // Warm Amber
+    { id: "c1", name: "Northwind Studio", color: "#3F8F8C" }, // Sage teal
+    { id: "c2", name: "Brightline Health", color: "#2D9CDB" }, // Sky blue
+    { id: "c3", name: "Kestrel Logistics", color: "#F2994A" }, // Orange
+    { id: "c4", name: "Fieldnote Press", color: "#EB5C9D" }, // Magenta
   ];
   const projects: Project[] = [
-    { id: "p1", name: "Website Redesign", color: "#3F8F8C", clientId: "c1", hourlyRate: 120, currency: "USD" }, // Sage Teal
-    { id: "p2", name: "Platform API", color: "#A7D0C9", clientId: "c1", hourlyRate: 140, currency: "USD" }, // Soft Mint
-    { id: "p3", name: "Internal Tools", color: "#1E2328", clientId: "c2", hourlyRate: null, currency: null }, // Deep Charcoal
-    { id: "p4", name: "Mobile Companion", color: "#FF6F61", clientId: "c2", hourlyRate: 110, currency: "EUR" }, // Soft Coral
+    { id: "p1", name: "Website Redesign", color: "#3F8F8C", clientId: "c1", hourlyRate: 120, currency: "USD" }, // Sage teal
+    { id: "p2", name: "Design System", color: "#6FCF97", clientId: "c1", hourlyRate: 120, currency: "USD" }, // Mint
+    { id: "p3", name: "Patient Portal", color: "#2D9CDB", clientId: "c2", hourlyRate: 145, currency: "USD" }, // Sky blue
+    { id: "p4", name: "Platform API", color: "#3F51B5", clientId: "c2", hourlyRate: 145, currency: "USD" }, // Indigo
+    { id: "p5", name: "Fleet Dashboard", color: "#F2994A", clientId: "c3", hourlyRate: 110, currency: "EUR" }, // Orange
+    { id: "p6", name: "Mobile Companion", color: "#EB5C9D", clientId: "c4", hourlyRate: 95, currency: "EUR" }, // Magenta
+    { id: "p7", name: "Open Source", color: "#A7C957", clientId: null, hourlyRate: null, currency: null }, // Lime
+    { id: "p8", name: "Admin & Planning", color: "#4A6172", clientId: null, hourlyRate: null, currency: null }, // Slate
   ];
   const tags: Tag[] = [
-    { id: "t1", name: "frontend", color: "#3F8F8C" }, // Sage Teal
-    { id: "t2", name: "backend", color: "#A7D0C9" }, // Soft Mint
-    { id: "t3", name: "meeting", color: "#F2A82F" }, // Warm Amber
-    { id: "t4", name: "design", color: "#FF6F61" }, // Soft Coral
-    { id: "t5", name: "bugfix", color: "#1E2328" }, // Deep Charcoal
+    { id: "t1", name: "frontend", color: "#3F8F8C" }, // Sage teal
+    { id: "t2", name: "backend", color: "#3F51B5" }, // Indigo
+    { id: "t3", name: "design", color: "#EB5C9D" }, // Magenta
+    { id: "t4", name: "meeting", color: "#F2C94C" }, // Amber
+    { id: "t5", name: "bugfix", color: "#EB5757" }, // Coral
+    { id: "t6", name: "research", color: "#9B51E0" }, // Purple
+    { id: "t7", name: "review", color: "#56CCF2" }, // Light blue
+    { id: "t8", name: "admin", color: "#BDBDBD" }, // Gray
   ];
 
-  const tagPools: string[][] = [
-    ["t1", "t4"],
-    ["t2", "t5"],
-    ["t1", "t3"],
-    ["t2"],
-    ["t3"],
+  // Each project carries a pool of realistic tasks, each with the tags a
+  // freelancer would actually attach to it.
+  type Task = [description: string, tagIds: string[]];
+  const tasks: Record<string, Task[]> = {
+    p1: [
+      ["Homepage hero and navigation", ["t1"]],
+      ["Pricing page layout", ["t1", "t3"]],
+      ["Responsive fixes for tablet", ["t1", "t5"]],
+      ["Blog template build-out", ["t1"]],
+      ["Lighthouse performance pass", ["t1", "t6"]],
+      ["Content migration from old CMS", ["t1"]],
+    ],
+    p2: [
+      ["Button and form tokens", ["t3"]],
+      ["Typography scale in Figma", ["t3"]],
+      ["Component docs in Storybook", ["t1", "t3"]],
+      ["Dark mode color audit", ["t3", "t6"]],
+    ],
+    p3: [
+      ["Appointment booking flow", ["t1"]],
+      ["Accessibility audit fixes", ["t1", "t5"]],
+      ["Patient messages inbox", ["t1"]],
+      ["Insurance card upload", ["t1", "t2"]],
+      ["Usability test synthesis", ["t3", "t6"]],
+    ],
+    p4: [
+      ["OAuth token refresh", ["t2"]],
+      ["Rate limiter tuning", ["t2"]],
+      ["Session expiry bug", ["t2", "t5"]],
+      ["Database migration backfill", ["t2"]],
+      ["Webhook retry queue", ["t2"]],
+      ["Code review: billing service", ["t2", "t7"]],
+    ],
+    p5: [
+      ["Live vehicle map", ["t1"]],
+      ["Route ETA chart", ["t1", "t2"]],
+      ["CSV export for dispatch", ["t2"]],
+      ["Driver status filters", ["t1"]],
+      ["Map clustering performance", ["t1", "t5"]],
+    ],
+    p6: [
+      ["Offline reading mode", ["t1"]],
+      ["Push notification opt-in", ["t1", "t2"]],
+      ["App Store screenshots", ["t3"]],
+      ["Crash on Android 14", ["t1", "t5"]],
+    ],
+    p7: [
+      ["Triage issues and PRs", ["t7"]],
+      ["Docs: getting started guide", ["t6"]],
+      ["Release notes and changelog", ["t8"]],
+    ],
+    p8: [
+      ["Invoicing and bookkeeping", ["t8"]],
+      ["Weekly planning", ["t8"]],
+      ["Inbox zero", ["t8"]],
+    ],
+  };
+  // Client syncs, keyed by the project they belong to.
+  const meetings: Record<string, string> = {
+    p1: "Northwind weekly sync",
+    p3: "Brightline sprint planning",
+    p4: "Brightline API standup",
+    p5: "Kestrel demo and feedback",
+    p6: "Fieldnote check-in",
+  };
+  // How often each project shows up as a day's focus. Clients dominate;
+  // internal work fills the gaps.
+  const focusWeights: [string, number][] = [
+    ["p1", 5],
+    ["p2", 2],
+    ["p3", 5],
+    ["p4", 4],
+    ["p5", 3],
+    ["p6", 3],
+    ["p7", 1],
   ];
-  const descPool: Record<string, string[]> = {
-    p1: ["Homepage redesign", "Pricing page tweaks", "Component library audit", "A/B test wiring"],
-    p2: ["Auth flow refactor", "Session expiry bug", "Rate-limiter tuning", "Migration backfill"],
-    p3: ["Onboarding flow", "Dashboard polish", "Empty-state illustrations", "Search UX pass"],
-    p4: ["API integration", "Webhook retries", "Audit log endpoints", "Background job cleanup"],
+
+  const rand = mulberry32(20261016);
+  const pick = <T,>(items: T[]): T => items[Math.floor(rand() * items.length)];
+  const pickWeighted = (items: [string, number][]): string => {
+    const total = items.reduce((sum, [, w]) => sum + w, 0);
+    let r = rand() * total;
+    for (const [id, w] of items) {
+      r -= w;
+      if (r < 0) return id;
+    }
+    return items[items.length - 1][0];
   };
 
-  const rand = mulberry32(20260518);
-  const projectIds = projects.map((p) => p.id);
   const timeEntries: TimeEntry[] = [];
   let nextId = 1;
-  const HORIZON_DAYS = 60; // ~2 months back through today; weekends are skipped below
+  const clock = new Date();
+  const nowMin = clock.getHours() * 60 + clock.getMinutes();
+  const push = (daysAgo: number, startMin: number, durationMin: number, projectId: string, description: string, tagIds: string[]) => {
+    // Today only gets entries that have already finished.
+    if (daysAgo === 0 && startMin + durationMin > nowMin) return;
+    const startTime = isoAt(daysAgo, Math.floor(startMin / 60), startMin % 60);
+    const durationSec = durationMin * 60;
+    const project = projects.find((p) => p.id === projectId);
+    timeEntries.push({
+      id: "e" + nextId++,
+      projectId,
+      description,
+      startTime,
+      endTime: isoEnd(startTime, durationSec),
+      durationSeconds: durationSec,
+      billable: !!project?.hourlyRate && !tagIds.includes("t8"),
+      tagIds: tagIds.slice(),
+    });
+  };
+  const HORIZON_DAYS = 90; // ~3 months back through today; weekends are skipped below
 
   // Walk from the furthest day forward to today so IDs come out in
-  // chronological order and Reports lists them naturally.
+  // chronological order and Reports lists them naturally. A day is a
+  // morning focus block, lunch, and one or two afternoon blocks, with
+  // client meetings and admin sprinkled in.
   for (let daysAgo = HORIZON_DAYS; daysAgo >= 0; daysAgo--) {
     const ref = new Date();
     ref.setHours(0, 0, 0, 0);
@@ -181,28 +283,36 @@ function buildSeedState(): DemoState {
     const dow = ref.getDay(); // 0 = Sun, 6 = Sat
     if (dow === 0 || dow === 6) continue; // weekdays only — keeps the calendar tidy
 
-    const entriesToday = 2 + Math.floor(rand() * 2);
-    let hour = 9;
-    for (let i = 0; i < entriesToday; i++) {
-      const projectId = projectIds[Math.floor(rand() * projectIds.length)];
-      const tagIds = tagPools[Math.floor(rand() * tagPools.length)].slice();
-      const description = descPool[projectId][Math.floor(rand() * descPool[projectId].length)];
-      const durationMin = 45 + Math.floor(rand() * 90);
-      const durationSec = durationMin * 60;
-      const startTime = isoAt(daysAgo, hour, Math.floor(rand() * 30));
-      const endTime = isoEnd(startTime, durationSec);
-      const billable = projectId !== "p3";
-      timeEntries.push({
-        id: "e" + nextId++,
-        projectId,
-        description,
-        startTime,
-        endTime,
-        durationSeconds: durationSec,
-        billable,
-        tagIds,
-      });
-      hour += Math.ceil(durationMin / 60) + 1;
+    const focus = pickWeighted(focusWeights);
+    let t = 8 * 60 + 30 + Math.floor(rand() * 4) * 15; // 08:30–09:15
+
+    if (dow === 1) {
+      push(daysAgo, t, 45, "p8", "Weekly planning", ["t8"]);
+      t += 60;
+    }
+    if (meetings[focus] && rand() < 0.45) {
+      push(daysAgo, t, 45 + Math.floor(rand() * 2) * 15, focus, meetings[focus], ["t4"]);
+      t += 75;
+    }
+
+    // Morning deep work until lunch.
+    const [morningDesc, morningTags] = pick(tasks[focus]);
+    const lunch = 12 * 60 + Math.floor(rand() * 3) * 15;
+    if (lunch - t >= 45) push(daysAgo, t, lunch - t, focus, morningDesc, morningTags);
+    t = lunch + 45 + Math.floor(rand() * 2) * 15;
+
+    const afternoonProject = rand() < 0.55 ? focus : pickWeighted(focusWeights);
+    const [afternoonDesc, afternoonTags] = pick(tasks[afternoonProject]);
+    const afternoonLen = 105 + Math.floor(rand() * 6) * 15;
+    push(daysAgo, t, afternoonLen, afternoonProject, afternoonDesc, afternoonTags);
+    t += afternoonLen + 15;
+
+    if (dow === 5) {
+      push(daysAgo, t, 45, "p8", "Invoicing and bookkeeping", ["t8"]);
+    } else if (rand() < 0.6) {
+      const lateProject = rand() < 0.3 ? "p7" : pickWeighted(focusWeights);
+      const [lateDesc, lateTags] = pick(tasks[lateProject]);
+      push(daysAgo, t, 45 + Math.floor(rand() * 4) * 15, lateProject, lateDesc, lateTags);
     }
   }
 
