@@ -51,12 +51,13 @@
     onError="() => { pendingStart = null; pendingEnd = null; toast.error('Save failed'); }"
   />
 
-  <!-- In-app keyboard shortcut: press "t" (when not typing in a field) to
-       start/stop the timer, mirroring the play/stop buttons. ignoreInInputs
-       keeps it from hijacking the description box and other inputs; the default
-       ignoreWithModifiers also lets the desktop global hotkey
-       (Cmd/Ctrl+Shift+T) through untouched, so the two never double-fire. -->
-  <KeyListener keys="t,T" ignoreInInputs="true"
+  <!-- In-app keyboard shortcut: Alt+T (Option+T on macOS) starts/stops the
+       timer, mirroring the play/stop buttons. A bare "T" fired too easily by
+       accident, so the shortcut needs a modifier; with one it is safe to keep
+       active inside text fields too (type a description, then Alt+T). The
+       chord matches exact modifiers, so the desktop global hotkey
+       (Cmd/Ctrl+Shift+T) never double-fires it. -->
+  <KeyListener chord="Alt+T"
     onKey="() => { if (sw.value && sw.value.running) sw.stop(); else sw.start(); }" />
 
   <!-- Compact: single-row input + icon-only play/stop button. On stop the
@@ -75,11 +76,11 @@
       </Text>
       <Button when="{!sw.value || !sw.value.running}"
         label="▶" themeColor="primary" size="sm"
-        tooltip="Start the timer (T)"
+        tooltip="Start the timer (Alt+T)"
         onClick="sw.start()" />
       <Button when="{sw.value && sw.value.running}"
         label="■" themeColor="attention" size="sm"
-        tooltip="Stop the timer (T)"
+        tooltip="Stop the timer (Alt+T)"
         onClick="sw.stop()" />
     </HStack>
   </Card>
@@ -119,24 +120,24 @@
       value="{tagIds}"
       onDidChange="(v) => tagIds = v || []" />
 
-    <!-- Keycap hint: surfaces the in-app "T" shortcut so it's discoverable
-         without hovering a button. -->
+    <!-- Keycap hint: surfaces the in-app Alt+T shortcut so it's
+         discoverable without hovering a button. -->
     <HStack verticalAlignment="center"
       borderWidth="1px" borderColor="$borderColor"
       borderRadius="4px" paddingHorizontal="5px"
-      tooltip="Press T to start or stop the timer">
-      <Text fontSize="$fontSize-xs" variant="secondary" fontFamily="monospace">T</Text>
+      tooltip="Press Alt+T (⌥T on Mac) to start or stop the timer">
+      <Text fontSize="$fontSize-xs" variant="secondary" fontFamily="monospace">Alt+T</Text>
     </HStack>
     <Text fontFamily="monospace" fontSize="1.25rem" fontWeight="bold">
       {sw.value && sw.value.display ? sw.value.display : '0:00:00'}
     </Text>
     <Button when="{!sw.value || !sw.value.running}"
       label="▶" themeColor="primary"
-      tooltip="Start the timer (T)"
+      tooltip="Start the timer (Alt+T)"
       onClick="sw.start()" />
     <Button when="{sw.value && sw.value.running}"
       label="■" themeColor="attention"
-      tooltip="Stop the timer (T)"
+      tooltip="Stop the timer (Alt+T)"
       onClick="sw.stop()" />
   </HStack>
 </Component>

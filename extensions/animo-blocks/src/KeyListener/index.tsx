@@ -24,6 +24,14 @@ const metadata = createMetadata({
       valueType: "boolean",
       defaultValue: true,
     },
+    chord: {
+      description:
+        "A modifier chord such as \"Alt+T\" or \"Ctrl+Shift+K\". Fires `onKey` " +
+        "only when exactly these modifiers are held with the key (letters and " +
+        "digits match by physical key), and suppresses the browser default. " +
+        "Overrides `keys` and `ignoreWithModifiers`.",
+      valueType: "string",
+    },
     ignoreInInputs: {
       description:
         "Ignore the key when focus is in an editable element (input, textarea, " +
@@ -51,6 +59,7 @@ export const keyListenerRenderer = createComponentRenderer(
         enabled={extractValue.asOptionalBoolean(node.props.enabled)}
         ignoreWithModifiers={extractValue.asOptionalBoolean(node.props.ignoreWithModifiers)}
         ignoreInInputs={extractValue.asOptionalBoolean(node.props.ignoreInInputs)}
+        chord={extractValue.asOptionalString(node.props.chord)}
         onKey={lookupEventHandler("key")}
         onEnter={lookupEventHandler("enter")}
         onEscape={lookupEventHandler("escape")}
