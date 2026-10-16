@@ -38,5 +38,5 @@ Examples:
 - [ ] Pre-commit hook is installed locally (`scripts/install-hooks.sh`) — branch passes `cargo fmt` and the secret-scan.
 - [ ] CHANGELOG.md updated under `[Unreleased]` if the change is user-visible.
 - [ ] Conventional Commit prefix in the title (`feat:`, `fix:`, `chore:`, ...).
-- [ ] No `testId` props added to XMLUI markup (see CONTRIBUTING).
+- [ ] Tests locate elements by role/label/text; `data-testid` only where needed (see CONTRIBUTING).
 - [ ] No secrets / personal data / `.env` files staged.

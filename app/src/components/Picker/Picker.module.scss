@@ -1,0 +1,90 @@
+.searchInput {
+  width: 100%;
+  background: var(--animo-backgroundColor-Input, var(--animo-color-surface-0, transparent));
+  color: var(--animo-textColor-primary, inherit);
+  border: var(--animo-borderWidth-Input, 1px) var(--animo-borderStyle-Input, solid)
+    var(--animo-borderColor-Input, var(--animo-borderColor, rgb(229, 231, 235)));
+  border-radius: var(--animo-borderRadius-Input, 6px);
+  padding: 6px 8px;
+  font-size: var(--animo-fontSize-Input, 14px);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--animo-color-surface-500, currentColor);
+  }
+
+  &:focus,
+  &:focus-visible {
+    outline: var(--animo-outlineWidth-Input--focus, 2px)
+      var(--animo-outlineStyle-Input--focus, solid)
+      var(--animo-outlineColor-Input--focus, var(--animo-color-primary-300, rgba(63, 143, 140, 0.45)));
+    outline-offset: 1px;
+  }
+
+  &::placeholder {
+    color: var(--animo-textColor-placeholder-Input, var(--animo-textColor-secondary, rgb(100, 116, 139)));
+  }
+}
+
+.content {
+  background: var(--animo-backgroundColor-popover-Picker, var(--animo-color-surface-raised, white));
+  color: var(--animo-textColor-primary, inherit);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--animo-borderColor, rgb(229, 231, 235));
+  border-radius: 8px;
+  min-width: 240px;
+  max-width: 360px;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: inherit;
+  text-align: left;
+
+  &:hover {
+    background: var(--animo-backgroundColor-item-Select--hover, var(--animo-color-surface-100, rgba(0, 0, 0, 0.05)));
+  }
+
+  &[data-selected="true"] {
+    background: var(--animo-backgroundColor-item-Select--active, var(--animo-color-surface-200, rgba(0, 0, 0, 0.08)));
+
+    &:hover {
+      background: var(--animo-backgroundColor-item-Select--active, var(--animo-color-surface-200, rgba(0, 0, 0, 0.08)));
+    }
+  }
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: var(--animo-textColor-secondary, rgb(71, 85, 105));
+  font-weight: 400;
+  font-size: 14px;
+
+  &:hover {
+    background: var(--animo-backgroundColor-item-Select--hover, var(--animo-color-surface-100, rgba(0, 0, 0, 0.05)));
+  }
+
+  &[data-active="true"] {
+    font-weight: 600;
+  }
+}

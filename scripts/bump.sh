@@ -5,7 +5,7 @@ set -euo pipefail
 #
 # Synchronises a single version across four manifests:
 #   - package.json                (root, source of truth)
-#   - app/package.json            (XMLUI SPA)
+#   - app/package.json            (React SPA)
 #   - api/Cargo.toml              (animo-api server)
 #   - desktop/Cargo.toml          (Tauri shell)
 #   - desktop/tauri.conf.json     (Tauri bundle metadata)

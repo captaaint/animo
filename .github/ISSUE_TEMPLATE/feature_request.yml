@@ -40,7 +40,7 @@ body:
     attributes:
       label: Roughly where does this land?
       options:
-        - Web UI (XMLUI / screens)
+        - Web UI (screens)
         - Backend / API (animo-api)
         - Desktop shell (Tauri)
         - Reports / PDF export

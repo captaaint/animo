@@ -1,7 +1,7 @@
 import { test, expect } from '../fixtures';
 
 // Regression: AuthGate used to fire `onSignIn` from its bootstrap path on
-// every page mount. Main.xmlui's `onSignIn="Actions.navigate('/')"` then
+// every page mount. The app's `onSignIn="Actions.navigate('/')"` then
 // kicked in on every refresh, so reloading the browser on any route
 // silently bounced the user back to the Calendar (`/`). Local-first dropped
 // the AuthGate entirely (LocalUserGate now bootstraps without navigation),

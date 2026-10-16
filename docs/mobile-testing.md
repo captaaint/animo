@@ -93,5 +93,5 @@ cover landed in:
 - Input font-size — `fix(app): bump input font-size to 16px on touch devices …`
 - Drawer height — `fix(app): size drawers with dvh …`
 
-If a future XMLUI upgrade changes drawer portaling, input rendering, or NavPanel
-behaviour, treat all three sections as required re-tests.
+If a change touches drawer portaling, input rendering, or the mobile nav,
+treat all three sections as required re-tests.

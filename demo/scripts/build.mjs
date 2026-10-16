@@ -3,7 +3,7 @@
 //
 // The actual app code lives in animo/app/ (workspace `animo-app`). This
 // thin package wraps that build in demo mode (VITE_ANIMO_DEMO=true, which
-// turns on the MSW in-browser API mock) and re-publishes the artifact
+// turns on the in-browser API mock) and re-publishes the artifact
 // under animo/demo/dist so Netlify can use animo/demo as its base.
 import { cpSync, rmSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -27,8 +27,7 @@ function run(command, args, options = {}) {
   }
 }
 
-// Build animo-app in demo mode via turbo so animo-blocks (extension dep)
-// is built first.
+// Build animo-app in demo mode via turbo (cached across runs).
 run("npx", ["turbo", "run", "build:demo", "--filter=animo-app"], {
   cwd: repoRoot,
   env: { VITE_ANIMO_DEMO: "true" },

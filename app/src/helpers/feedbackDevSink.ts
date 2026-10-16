@@ -17,8 +17,8 @@
 //   without anything reaching GitHub.
 //
 // Scope:
-//   Installed only when `import.meta.env.DEV` is true (see app/index.ts).
-//   Production/preview builds (`xmlui build --prod`, `tauri build`, the
+//   Installed only when `import.meta.env.DEV` is true (see src/main.tsx).
+//   Production/preview builds (`vite build`, `tauri build`, the
 //   deployed Netlify demo) never install it, so real delivery is unchanged.
 
 const RECORD_KEY = "animo_feedback_dev_submissions";

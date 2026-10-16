@@ -5,15 +5,12 @@
   "workspaces": [
     "app",
     "website",
-    "demo",
-    "extensions/*",
-    "vendor/xmlui-pdf"
+    "demo"
   ],
   "packageManager": "npm@10.9.2",
   "scripts": {
     "//build": "Turbo build tasks (cached, dependency-aware)",
-    "build": "turbo run build:extension build:demo build:website",
-    "build:blocks": "turbo run build:extension --filter=animo-blocks --filter=xmlui-pdf",
+    "build": "turbo run build:demo build:website",
     "build:app": "turbo run build:demo --filter=animo-app",
     "build:website": "turbo run build:website --filter=animo-website",
     "check": "turbo run check",
@@ -21,7 +18,7 @@
     "api": "DATABASE_URL=\"sqlite:dev.db?mode=rwc\" cargo run -p animo-api",
     "api:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api",
     "seed:demo": "DATABASE_URL=\"sqlite:demo.db?mode=rwc\" cargo run -p animo-api --bin seed_demo",
-    "//app": "XMLUI web app (single-package)",
+    "//app": "React web app (Vite)",
     "app": "cd app && npm run start",
     "app:demo": "cd app && VITE_ANIMO_DEMO=true npm run start",
     "build:demo": "cd app && npm run build:demo",
@@ -42,18 +39,11 @@
     "e2e:ui": "cd e2e && npm run test:ui",
     "e2e:headed": "cd e2e && npm run test:headed",
     "e2e:report": "cd e2e && npm run report",
-    "e2e:install": "cd e2e && npm install && npm run install-browsers",
-    "e2e:gen-from-trace": "node e2e/.trace-tools/generate-playwright.js",
-    "e2e:watch-traces": "cd e2e && npm run watch-traces"
+    "e2e:install": "cd e2e && npm install && npm run install-browsers"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
     "concurrently": "^9.1.0",
     "turbo": "^2.9.14"
-  },
-  "//overrides": "xmlui pins React 18.2.0 in its nested node_modules; without an explicit override the workspaces install hoists React 19 (pulled in transitively by @ark-ui/react, @radix-ui/*, etc.), and SSG renders break with `useContext` null because the xmlui bundle and the SSR runtime resolve different React copies. Pin every React/ReactDOM resolution across the workspaces to 18.2.0 so a single copy is hoisted.",
-  "overrides": {
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
   }
 }

@@ -1,0 +1,288 @@
+.root {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5em;
+  width: max-content;
+  min-width: 0;
+  color: var(--animo-textColor-primary, inherit);
+
+  &[data-stretch="true"] {
+    display: flex;
+    width: 100%;
+
+    .control,
+    .trigger {
+      width: 100%;
+      max-width: none;
+      flex: 1 1 auto;
+    }
+
+    .input {
+      width: 100%;
+    }
+  }
+
+  &[data-validation-status="error"] .control {
+    border-color: var(--animo-borderColor-TimePicker--error, var(--animo-color-danger-500, #dc2626));
+  }
+
+  &[data-validation-status="warning"] .control {
+    border-color: var(--animo-borderColor-TimePicker--warning, var(--animo-color-warning-500, #d97706));
+  }
+
+  &[data-validation-status="valid"] .control {
+    border-color: var(--animo-borderColor-TimePicker--success, var(--animo-color-success-500, #16a34a));
+  }
+
+  &[data-bordered="false"] .control {
+    border-width: 0;
+    box-shadow: none;
+    background: transparent;
+
+    &:hover {
+      border-width: 0;
+      background: transparent;
+    }
+  }
+}
+
+.label {
+  color: var(--animo-textColor-label-formItem, var(--animo-textColor-primary, inherit));
+  font-family: var(--animo-fontFamily-label-formItem, inherit);
+  font-size: var(--animo-fontSize-label-formItem, inherit);
+  font-weight: var(--animo-fontWeight-label-formItem, inherit);
+  font-style: var(--animo-fontStyle-label-formItem, normal);
+  text-transform: var(--animo-textTransform-label-formItem, none);
+  user-select: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: var(--animo-minHeight-TimePicker, var(--animo-minHeight-Input, 40px));
+  line-height: normal;
+  gap: 8px;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.separator {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0 4px;
+  color: var(--animo-color-adornment-TimePicker, var(--animo-textColor-secondary, rgb(100, 116, 139)));
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  height: var(--animo-minHeight-TimePicker, var(--animo-minHeight-Input, 40px));
+  padding: 0 var(--animo-paddingHorizontal-TimePicker, var(--animo-paddingHorizontal-Input, 12px));
+  border-width: var(--animo-borderWidth-TimePicker, var(--animo-borderWidth-Input, 1px));
+  border-style: var(--animo-borderStyle-TimePicker, var(--animo-borderStyle-Input, solid));
+  border-color: var(--animo-borderColor-TimePicker, var(--animo-borderColor-Input, var(--animo-borderColor, rgb(229, 231, 235))));
+  border-radius: var(--animo-borderRadius-TimePicker, var(--animo-borderRadius-Input, 6px));
+  background: var(--animo-backgroundColor-TimePicker, var(--animo-backgroundColor-Input, transparent));
+  color: var(--animo-textColor-TimePicker, var(--animo-textColor-primary, inherit));
+  box-shadow: var(--animo-boxShadow-TimePicker, var(--animo-boxShadow-Input, none));
+  font: inherit;
+  font-size: var(--animo-fontSize-TimePicker, var(--animo-fontSize-Input, inherit));
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--animo-borderColor-TimePicker--hover, var(--animo-borderColor-Input--hover, var(--animo-borderColor-TimePicker, var(--animo-borderColor-Input, currentColor))));
+  }
+
+  &[data-open="true"],
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
+    outline: var(--animo-outlineWidth-TimePicker--focus, 2px)
+      var(--animo-outlineStyle-TimePicker--focus, solid)
+      var(--animo-outlineColor-TimePicker--focus, var(--animo-color-primary-300, rgba(63, 143, 140, 0.45)));
+    outline-offset: var(--animo-outlineOffset-TimePicker--focus, 1px);
+  }
+
+  &:disabled,
+  &[data-disabled] {
+    opacity: 0.55;
+    cursor: default;
+  }
+}
+
+.triggerValue {
+  display: inline-block;
+  text-align: center;
+}
+
+// Editable time field. Borderless/transparent so the surrounding `.trigger`
+// box supplies the visible chrome; the box owns focus styling via :focus-within.
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: var(--animo-fontSize-TimePicker, var(--animo-fontSize-Input, inherit));
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+  appearance: none;
+
+  &::placeholder {
+    color: var(--animo-textColor-placeholder-TimePicker, var(--animo-textColor-secondary, rgb(100, 116, 139)));
+    opacity: 1;
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// Clock/timer glyph rendered as the popover trigger button.
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.triggerIcon {
+  width: var(--animo-iconSize-TimePicker, 16px);
+  height: var(--animo-iconSize-TimePicker, 16px);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+  color: var(--animo-color-adornment-TimePicker, var(--animo-textColor-secondary, rgb(100, 116, 139)));
+}
+
+.icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.positioner {
+  z-index: 1000;
+}
+
+.popoverContent {
+  background: var(--animo-backgroundColor-popover-TimePicker, var(--animo-color-surface-raised, var(--animo-backgroundColor-primary, white)));
+  color: var(--animo-textColor-primary, inherit);
+  border: 1px solid var(--animo-borderColor-popover-TimePicker, var(--animo-borderColor, rgba(0, 0, 0, 0.08)));
+  border-radius: var(--animo-borderRadius-popover-TimePicker, 12px);
+  box-shadow: var(--animo-boxShadow-popover-TimePicker, 0 10px 30px rgba(0, 0, 0, 0.18));
+  padding: 12px;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.wheel {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+}
+
+.wheelColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 70px;
+
+  & + .wheelColumn {
+    border-left: 1px solid var(--animo-borderColor-popover-TimePicker, var(--animo-borderColor, rgba(0, 0, 0, 0.06)));
+  }
+}
+
+.wheelColumnHeader {
+  font-size: var(--animo-fontSize-label-TimePicker, var(--animo-fontSize-xs, 12px));
+  font-weight: var(--animo-fontWeight-label-TimePicker, 500);
+  color: var(--animo-textColor-label-TimePicker, var(--animo-textColor-secondary, rgb(100, 116, 139)));
+  text-align: center;
+  padding: 4px 0 8px;
+  user-select: none;
+}
+
+.wheelColumnList {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  max-height: var(--animo-maxHeight-wheel-TimePicker, 220px);
+  overflow-y: auto;
+  padding: 0 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--animo-color-surface-300, rgba(0, 0, 0, 0.2)) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: var(--animo-color-surface-300, rgba(0, 0, 0, 0.2));
+    border-radius: 3px;
+  }
+}
+
+.wheelCell {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--animo-textColor-secondary, inherit);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--animo-fontSize-TimePicker, var(--animo-fontSize-Input, inherit));
+  padding: 4px 12px;
+  border-radius: var(--animo-borderRadius-cell-TimePicker, 6px);
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+
+  &:hover {
+    background: var(--animo-backgroundColor-item-TimePicker--hover, var(--animo-backgroundColor-item-Select--hover, var(--animo-color-surface-100, rgba(0, 0, 0, 0.05))));
+    color: var(--animo-textColor-primary, inherit);
+  }
+
+  &[data-selected="true"] {
+    background: var(--animo-backgroundColor-item-TimePicker--selected, transparent);
+    border-color: var(--animo-borderColor-item-TimePicker--selected, var(--animo-color-primary-500, #3F8F8C));
+    color: var(--animo-textColor-primary, inherit);
+    font-weight: 500;
+  }
+}

@@ -46,16 +46,6 @@ type TurnstileApi = {
 
 declare global {
   interface Window {
-    animoFeedbackClearDraft?: () => void;
-    animoFeedbackLoadDraft?: () => FeedbackDraft | null;
-    animoFeedbackSaveDraft?: (draft: FeedbackDraft) => void;
-    animoFeedbackCollectDiagnostics?: () => Promise<Diagnostics>;
-    animoFeedbackBuildPreview?: (draft: FeedbackDraft) => string;
-    animoFeedbackSubmit?: (
-      draft: FeedbackDraft,
-      onSuccess: (result: FeedbackResult) => void,
-      onError?: (message: string) => void,
-    ) => void;
     turnstile?: TurnstileApi;
   }
 }
@@ -127,10 +117,9 @@ export async function buildFeedbackPayload(
   return payload;
 }
 
-// Synchronous so the XMLUI caller can assign the result to reactive state
-// directly (an awaited/Promise result only updates state from an event
-// handler, not from a method). The preview only needs the diagnostics block,
-// which collectDiagnosticsSync produces without any async work.
+// Synchronous so the preview can be computed during render. It only needs
+// the diagnostics block, which collectDiagnosticsSync produces without any
+// async work.
 export function buildFeedbackPreview(_draft: FeedbackDraft): string {
   return JSON.stringify(collectDiagnosticsSync(), null, 2);
 }
@@ -345,20 +334,4 @@ async function parseResponse(response: Response): Promise<{
   } catch {
     return {};
   }
-}
-
-if (typeof window !== "undefined") {
-  window.animoFeedbackBuildPreview = buildFeedbackPreview;
-  window.animoFeedbackClearDraft = clearDraft;
-  window.animoFeedbackCollectDiagnostics = collectDiagnostics;
-  window.animoFeedbackLoadDraft = loadDraft;
-  window.animoFeedbackSaveDraft = saveDraft;
-  window.animoFeedbackSubmit = (draft, onSuccess, onError) => {
-    submitFeedback(draft)
-      .then(onSuccess)
-      .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : "Failed to submit feedback.";
-        onError?.(message);
-      });
-  };
 }

@@ -1,0 +1,91 @@
+.root {
+  position: relative;
+  width: fit-content;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5em;
+  color: var(--animo-textColor-label-formItem, var(--animo-textColor-primary, inherit));
+  font-family: var(--animo-fontFamily-label-formItem, inherit);
+  font-size: var(--animo-fontSize-label-formItem, inherit);
+  font-weight: var(--animo-fontWeight-label-formItem, inherit);
+  font-style: var(--animo-fontStyle-label-formItem, normal);
+  text-transform: var(--animo-textTransform-label-formItem, none);
+  user-select: none;
+  cursor: pointer;
+  white-space: nowrap;
+  height: fit-content;
+}
+
+.textarea {
+  width: 100%;
+  min-height: var(--animo-minHeight-TextArea, 96px);
+  padding: var(--animo-paddingVertical-TextArea, var(--animo-space-2)) var(--animo-paddingHorizontal-TextArea, var(--animo-space-3));
+  border: var(--animo-borderWidth-TextArea, 1px) var(--animo-borderStyle-TextArea, solid) var(--animo-borderColor-TextArea, var(--animo-borderColor));
+  border-radius: var(--animo-borderRadius-TextArea, var(--animo-borderRadius));
+  background: var(--animo-backgroundColor-TextArea, var(--animo-color-surface-0));
+  color: var(--animo-textColor-TextArea, var(--animo-textColor-primary));
+  font: inherit;
+  font-size: var(--animo-fontSize-TextArea, inherit);
+  line-height: 1.45;
+  box-shadow: var(--animo-boxShadow-TextArea, none);
+}
+
+.textarea:hover {
+  border-color: var(--animo-borderColor-TextArea--hover, var(--animo-borderColor-TextArea, var(--animo-borderColor)));
+  background: var(--animo-backgroundColor-TextArea--hover, var(--animo-backgroundColor-TextArea, var(--animo-color-surface-0)));
+}
+
+.textarea:focus {
+  outline: var(--animo-outlineWidth-TextArea--focus, 2px) var(--animo-outlineStyle-TextArea--focus, solid) var(--animo-outlineColor-TextArea--focus, var(--animo-color-primary-500));
+  outline-offset: var(--animo-outlineOffset-TextArea--focus, 0);
+}
+
+.textarea::placeholder {
+  color: var(--animo-textColor-placeholder-TextArea, var(--animo-textColor-placeholder));
+}
+
+.textarea[disabled] {
+  cursor: not-allowed;
+  background: var(--animo-backgroundColor-TextArea--disabled, var(--animo-color-surface-100));
+  color: var(--animo-textColor-TextArea--disabled, var(--animo-textColor-disabled));
+  border-color: var(--animo-borderColor-TextArea--disabled, var(--animo-borderColor--disabled));
+}
+
+.menu {
+  position: absolute;
+  z-index: 1000;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: var(--animo-space-1, 4px);
+  border: var(--animo-borderWidth-menu-AutoComplete, 1px) solid var(--animo-borderColor-menu-AutoComplete, var(--animo-borderColor));
+  border-radius: var(--animo-borderRadius-menu-AutoComplete, var(--animo-borderRadius));
+  background: var(--animo-backgroundColor-menu-AutoComplete, var(--animo-color-surface-raised));
+  box-shadow: var(--animo-boxShadow-menu-AutoComplete, var(--animo-boxShadow-md));
+}
+
+.item {
+  display: block;
+  width: 100%;
+  padding: var(--animo-paddingVertical-item-AutoComplete, var(--animo-space-2)) var(--animo-paddingHorizontal-item-AutoComplete, var(--animo-space-2));
+  border: 0;
+  border-radius: calc(var(--animo-borderRadius-menu-AutoComplete, var(--animo-borderRadius)) - 2px);
+  background: var(--animo-backgroundColor-item-AutoComplete, transparent);
+  color: var(--animo-textColor-value-AutoComplete, var(--animo-textColor-primary));
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover,
+.itemActive {
+  background: var(--animo-backgroundColor-item-AutoComplete--hover, var(--animo-backgroundColor-dropdown-item--hover));
+}

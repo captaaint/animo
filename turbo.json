@@ -1,12 +1,14 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalEnv": ["CI", "VITE_ANIMO_DEMO", "VITE_ANIMO_DEMO_URL", "VITE_ANIMO_VERSION", "VITE_ANIMO_HASH_ROUTING"],
+  "globalEnv": [
+    "CI",
+    "VITE_ANIMO_DEMO",
+    "VITE_ANIMO_DEMO_URL",
+    "VITE_ANIMO_VERSION",
+    "VITE_ANIMO_HASH_ROUTING"
+  ],
   "tasks": {
-    "build:extension": {
-      "inputs": ["$TURBO_DEFAULT$", "!**/*.spec.ts", "!**/*.test.ts"],
-      "outputs": ["dist/**"]
-    },
     "build": {
       "inputs": [
         "$TURBO_DEFAULT$",
@@ -15,8 +17,9 @@
         "!dist/**",
         "!dist-ssg/**"
       ],
-      "dependsOn": ["^build:extension"],
-      "outputs": ["dist/**"]
+      "outputs": [
+        "dist/**"
+      ]
     },
     "build-prod": {
       "inputs": [
@@ -26,8 +29,9 @@
         "!dist/**",
         "!dist-ssg/**"
       ],
-      "dependsOn": ["^build:extension"],
-      "outputs": ["dist/**"]
+      "outputs": [
+        "dist/**"
+      ]
     },
     "build:demo": {
       "inputs": [
@@ -37,8 +41,9 @@
         "!dist/**",
         "!dist-ssg/**"
       ],
-      "dependsOn": ["^build:extension"],
-      "outputs": ["dist/**"]
+      "outputs": [
+        "dist/**"
+      ]
     },
     "build:website": {
       "inputs": [
@@ -48,12 +53,24 @@
         "!dist/**",
         "!dist-ssg/**"
       ],
-      "dependsOn": ["^build:extension"],
-      "outputs": ["dist-ssg/**"],
-      "passThroughEnv": ["GITHUB_TOKEN", "GH_TOKEN", "VERSION", "REPO"]
+      "outputs": [
+        "dist-ssg/**"
+      ],
+      "passThroughEnv": [
+        "GITHUB_TOKEN",
+        "GH_TOKEN",
+        "VERSION",
+        "REPO"
+      ]
     },
     "check": {
-      "inputs": ["$TURBO_DEFAULT$", "!**/*.spec.ts", "!**/*.test.ts", "!dist/**", "!dist-ssg/**"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!**/*.spec.ts",
+        "!**/*.test.ts",
+        "!dist/**",
+        "!dist-ssg/**"
+      ],
       "outputs": []
     }
   }

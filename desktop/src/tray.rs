@@ -3,7 +3,7 @@
 // =====================================================================================================================
 //
 // The tray is owned by the desktop shell, but the *truth* of the stopwatch
-// lives in the XMLUI frontend (it's the same React-ish state machine that
+// lives in the React frontend (it's the same state machine that
 // also drives the in-window timer card). To keep both surfaces in sync
 // without splitting state across two stores, the contract is:
 //

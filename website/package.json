@@ -2,16 +2,25 @@
   "name": "animo-website",
   "version": "0.2.2",
   "private": true,
+  "type": "module",
   "scripts": {
-    "start": "xmlui start",
-    "build": "xmlui build --buildMode=INLINE_ALL",
-    "build-prod": "npm run build -- --prod",
+    "start": "vite",
+    "build": "vite build",
     "build:website": "node scripts/build-website.mjs",
-    "preview": "xmlui preview",
-    "check": "xmlui check src --format gnu"
+    "preview": "vite preview --outDir dist-ssg",
+    "check": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "animo-blocks": "*",
-    "xmlui": "0.14.28"
+    "lucide-react": "^1.57.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.6"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^6.0.2",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.14"
   }
 }

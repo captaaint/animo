@@ -26,7 +26,7 @@ test.describe('smoke', () => {
   test('legacy /login and /register routes redirect to workspace', async ({
     page,
   }) => {
-    // Defined as <Redirect to="/"> in Main.xmlui so old bookmarks and the
+    // A catch-all <Navigate to="/"> route in App.tsx, so old bookmarks and the
     // route-persistence helper can't strand a user on a dead page.
     await page.goto('/login');
     await expect(page).toHaveURL(/\/$/);

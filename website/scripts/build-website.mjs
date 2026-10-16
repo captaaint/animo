@@ -3,17 +3,14 @@
 //
 // The demo app (web/) is deployed independently on its own Netlify site at
 // demo.getanimo.app, so it is no longer bundled into the website output.
-// The "View Demo" CTA in Main.xmlui links directly to that external URL.
+// The "View Demo" CTA links directly to that external URL.
 //
-// Prerequisites (handled by turbo via `^build:extension` dependsOn in
-// turbo.json — see `npm run build:website` at the repo root):
-//   * `animo-blocks` is built (dist/animo-blocks.mjs exists), so xmlui
-//     ssg's Node-side SSR loader can require the shared renderers.
-//   * Workspace `node_modules` is populated (turbo only runs after the
-//     install step in CI / dev workflows).
+// Prerequisite: workspace `node_modules` is populated (turbo only runs
+// after the install step in CI / dev workflows).
 //
-// This script then runs sync-downloads (pulls release artifacts for the
-// /download page) and the xmlui SSG build.
+// This script runs sync-downloads (pulls release artifacts for the
+// /download page), regenerates the updater manifest, then builds the site
+// and prerenders every route to static HTML in dist-ssg/.
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
@@ -46,12 +43,10 @@ run("node", ["scripts/sync-downloads.mjs"], { cwd: websiteDir });
 // never strand installed apps on an old version. No-ops without a token.
 run("node", ["scripts/sync-update-manifest.mjs"], { cwd: websiteDir });
 
-// Build the public site with XMLUI's static-site generator. The CSS-stub
-// loader lets Node import the externalized xmlui library during SSR
-// without choking on its `.css` import and un-substituted
-// `import.meta.env` references.
-const loaderPath = resolve(websiteDir, "scripts/css-stub-loader.mjs");
-run("npx", ["xmlui", "ssg"], {
+// Client bundle → dist-ssg/, server bundle → .ssr/, then render each route
+// into its own index.html so crawlers and first paint get real markup.
+run("npx", ["vite", "build", "--outDir", "dist-ssg"], { cwd: websiteDir });
+run("npx", ["vite", "build", "--ssr", "src/entry-server.tsx", "--outDir", ".ssr"], {
   cwd: websiteDir,
-  env: { NODE_OPTIONS: `--loader ${loaderPath}` },
 });
+run("node", ["scripts/prerender.mjs"], { cwd: websiteDir });

@@ -2,9 +2,9 @@
 // reportPdf — client-side "Detailed Report" PDF generator (pdfmake)
 // =====================================================================================================================
 //
-// Mounts a single window-global function `window.generateReportPdf(opts, …)`
-// that ReportsScreen.xmlui calls in place of the previous backend
-// /reports/export.pdf endpoint. The output mirrors the screenshot the user
+// `generateReportPdf(opts)` renders the report in the browser (it replaced
+// the previous backend /reports/export.pdf endpoint) and resolves with a
+// blob URL. The output mirrors the screenshot the user
 // shared: a clean, Toggl/Kimai-style detailed report with:
 //   - "Detailed Report" headline + date range
 //   - Avatar circle (initials) in the top-right
@@ -16,10 +16,8 @@
 // is deferred to the first call. Roboto (the default vfs font) covers
 // Hungarian accents — verified with "Tamás Kapitány".
 
-// pdfmake ships as plain JS without TypeScript types of its own.
-// @ts-expect-error — runtime module, types via @types/pdfmake.
+// pdfmake ships as plain JS; types come from @types/pdfmake.
 import pdfMake from "pdfmake/build/pdfmake.js";
-// @ts-expect-error — vfs_fonts is a side-effect bundle, no .d.ts.
 import pdfFonts from "pdfmake/build/vfs_fonts.js";
 
 // Both shapes seen in the wild: pdfFonts.pdfMake.vfs (older) and pdfFonts.vfs (newer).
@@ -52,137 +50,27 @@ export type ReportPdfOptions = {
   entries: ReportEntry[];
 };
 
-type SummaryEntry = {
-  id?: string;
-  projectId?: string | null;
-  projectName?: string | null;
-  clientName?: string | null;
-  description?: string;
-  startTime: string;
-  endTime: string;
-  durationSeconds?: number;
-  tags?: string[];
-};
-
-type Project = { id: string; name: string; color?: string | null; clientId?: string | null };
-type Client = { id: string; name: string };
-
-type ExportInput = {
-  fromDate: string;
-  toDate: string;
-  user?: { name?: string; username?: string } | null;
-  summary: { totalSeconds?: number; entries?: SummaryEntry[] } | null | undefined;
-  projects: Project[] | null | undefined;
-  clients: Client[] | null | undefined;
-};
-
-declare global {
-  interface Window {
-    generateReportPdf?: (
-      opts: ReportPdfOptions,
-      onReady: (blobUrl: string) => void,
-      onError?: (message: string) => void,
-      onProgress?: (ratio: number) => void,
-    ) => void;
-    exportTimeReport?: (
-      input: ExportInput,
-      onReady: (blobUrl: string, fileName: string) => void,
-      onError?: (message: string) => void,
-      onProgress?: (ratio: number) => void,
-    ) => void;
-  }
+export function generateReportPdf(
+  opts: ReportPdfOptions,
+  onProgress?: (ratio: number) => void,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    try {
+      onProgress?.(0.1);
+      const docDefinition = buildDocDefinition(opts);
+      onProgress?.(0.6);
+      const pdf = (pdfMake as {
+        createPdf: (def: unknown) => { getBlob: (cb: (b: Blob) => void) => void };
+      }).createPdf(docDefinition);
+      pdf.getBlob((blob: Blob) => {
+        onProgress?.(1);
+        resolve(URL.createObjectURL(blob));
+      });
+    } catch (e) {
+      reject(new Error((e as Error)?.message || "PDF generation failed"));
+    }
+  });
 }
-
-window.generateReportPdf = function generateReportPdf(opts, onReady, onError, onProgress) {
-  try {
-    if (onProgress) onProgress(0.1);
-    const docDefinition = buildDocDefinition(opts);
-    if (onProgress) onProgress(0.6);
-    const pdf = (pdfMake as {
-      createPdf: (def: unknown) => { getBlob: (cb: (b: Blob) => void) => void };
-    }).createPdf(docDefinition);
-    pdf.getBlob((blob: Blob) => {
-      if (onProgress) onProgress(1);
-      const url = URL.createObjectURL(blob);
-      onReady(url);
-    });
-  } catch (e) {
-    if (onError) onError((e as Error)?.message || "PDF generation failed");
-  }
-};
-
-/**
- * Top-level entry point that ReportsScreen.xmlui calls. Pulls projects/clients
- * out of the user's DataSources to enrich each entry with project color and
- * client name (the /reports/summary endpoint already provides projectName,
- * but not the color), then hands off to generateReportPdf.
- *
- * Lives here (not in markup) because XMLScript can't parse multi-line arrow
- * function bodies with braces — see the "Unclosed expression" error history
- * if you're tempted to inline this back into the onClick attribute.
- */
-window.exportTimeReport = function exportTimeReport(
-  input,
-  onReady,
-  onError,
-  onProgress,
-) {
-  try {
-    const summary = input.summary || {};
-    const projects = input.projects || [];
-    const clients = input.clients || [];
-    const rawEntries = summary.entries || [];
-
-    const enriched: ReportEntry[] = rawEntries.map((e) => {
-      const p = projects.find((pp) => pp.id === e.projectId) || null;
-      const c =
-        (p && p.clientId && clients.find((cc) => cc.id === p.clientId)) ||
-        null;
-      const dur =
-        typeof e.durationSeconds === "number"
-          ? e.durationSeconds
-          : Math.max(
-              0,
-              Math.round(
-                (new Date(e.endTime).getTime() -
-                  new Date(e.startTime).getTime()) /
-                  1000,
-              ),
-            );
-      return {
-        description: e.description || "",
-        projectName: p ? p.name : e.projectName || null,
-        projectColor: p ? p.color || null : null,
-        clientName: c ? c.name : e.clientName || null,
-        durationSeconds: dur,
-        date: (e.startTime || "").slice(0, 10),
-        tags: (e.tags || []).map((name) => ({ name, color: null })),
-      };
-    });
-
-    const totalSeconds =
-      typeof summary.totalSeconds === "number"
-        ? summary.totalSeconds
-        : enriched.reduce((acc, e) => acc + e.durationSeconds, 0);
-
-    const fileName = `report_${input.fromDate}_${input.toDate}.pdf`;
-
-    window.generateReportPdf!(
-      {
-        fromDate: input.fromDate,
-        toDate: input.toDate,
-        user: input.user || { name: "User", username: "" },
-        totalSeconds,
-        entries: enriched,
-      },
-      (blobUrl) => onReady(blobUrl, fileName),
-      (msg) => onError && onError(msg),
-      onProgress,
-    );
-  } catch (e) {
-    if (onError) onError((e as Error)?.message || "Export failed");
-  }
-};
 
 // =====================================================================================================================
 // Layout — matches the user-supplied screenshot

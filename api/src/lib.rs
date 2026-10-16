@@ -116,7 +116,8 @@ fn build_cors(cfg: &Config) -> Option<CorsLayer> {
                 header::CONTENT_TYPE,
                 header::AUTHORIZATION,
                 header::HeaderName::from_static("x-xsrf-token"),
-                // XMLUI client adds this header to every API call for tracing.
+                // Tracing header sent by the former XMLUI frontend; harmless
+                // to keep allowed.
                 header::HeaderName::from_static("x-ue-client-tx-id"),
             ]),
     )
