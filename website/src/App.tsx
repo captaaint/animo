@@ -19,6 +19,7 @@ import {
   FolderKanban,
   Keyboard,
   Link as LinkIcon,
+  Menu,
   MessageSquare,
   MoonStar,
   MousePointerClick,
@@ -29,9 +30,10 @@ import {
   Sparkles,
   Upload,
   User,
+  X,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 
 import { DownloadGrid, ReleaseVersion } from "./components/DownloadGrid";
@@ -56,7 +58,29 @@ function Logo() {
   );
 }
 
+const NAV_LINKS: { label: string; href: string; external?: boolean }[] = [
+  { label: "Features", href: "/#features" },
+  { label: "Privacy", href: "/#privacy" },
+  { label: "Demo", href: DEMO_URL, external: true },
+  { label: "GitHub", href: GITHUB_URL, external: true },
+];
+
 function Header({ showDownload }: { showDownload: boolean }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { pathname, hash } = useLocation();
+
+  // Close the mobile menu on navigation and on Escape.
+  useEffect(() => setMenuOpen(false), [pathname, hash]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMenuOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  const external = (l: (typeof NAV_LINKS)[number]) =>
+    l.external ? { target: "_blank", rel: "noreferrer" } : {};
+
   return (
     <header className="site-header">
       <div className="container row">
@@ -64,18 +88,11 @@ function Header({ showDownload }: { showDownload: boolean }) {
           <Logo />
         </Link>
         <nav className="row header-nav hide-mobile" aria-label="Main">
-          <a className="nav-link" href="/#features">
-            Features
-          </a>
-          <a className="nav-link" href="/#privacy">
-            Privacy
-          </a>
-          <a className="nav-link" href={DEMO_URL} target="_blank" rel="noreferrer">
-            Demo
-          </a>
-          <a className="nav-link" href={GITHUB_URL} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
+          {NAV_LINKS.map((l) => (
+            <a key={l.label} className="nav-link" href={l.href} {...external(l)}>
+              {l.label}
+            </a>
+          ))}
         </nav>
         <span className="spacer" />
         {showDownload && (
@@ -84,7 +101,25 @@ function Header({ showDownload }: { showDownload: boolean }) {
             Download
           </Link>
         )}
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-menu"
+          onClick={() => setMenuOpen((v) => !v)}
+        >
+          {menuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
+      <nav id="mobile-menu" className="mobile-menu" aria-label="Mobile" hidden={!menuOpen}>
+        {NAV_LINKS.map((l) => (
+          <a key={l.label} href={l.href} onClick={() => setMenuOpen(false)} {...external(l)}>
+            {l.label}
+            {l.external ? <ExternalLink size={16} className="subtle" /> : <ArrowRight size={16} className="subtle" />}
+          </a>
+        ))}
+      </nav>
     </header>
   );
 }
@@ -500,13 +535,13 @@ function HomePage() {
           <div className="cta">
             <h2 className="section-title section-title--xl">Ready to take control of your time?</h2>
             <p className="muted section-lead">
-              Download the desktop app for free, or explore the live demo with three months of
-              sample data first. Mobile and on-prem web app packaging are on the roadmap.
+              Download the desktop app for Windows, macOS or Linux for free, or explore the live
+              demo with three months of sample data first. Mobile and on-prem web app packaging are on the roadmap.
             </p>
             <div className="row wrap center gap-3">
               <Link className="btn btn--primary btn--lg" to="/download">
                 <Download size={18} />
-                Download for Windows, macOS, Linux
+                Download for free
               </Link>
               <a className="btn btn--outlined btn--lg" href={DEMO_URL} target="_blank" rel="noreferrer">
                 Open the demo
