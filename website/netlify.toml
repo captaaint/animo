@@ -27,7 +27,10 @@ cd website && npx turbo run build:website --filter=animo-website
 
 [build.environment]
 NPM_FLAGS = "--ignore-scripts"
-NODE_VERSION = "20"
+# Node 24 ships npm 11. npm 10 (Node 20) crashes resolving the lockfile-less
+# install above ("Cannot read properties of null (reading 'edgesOut')" in
+# arborist #loadPeerSet, triggered by vitest's deep optional peer chain).
+NODE_VERSION = "24"
 
 # Disable Netlify's auto-trigger for production deploys. Netlify's
 # production branch is `main` (set in the Netlify dashboard, not here);
