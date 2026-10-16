@@ -43,6 +43,13 @@ $primary700: var(--animo-color-primary-700, #2a5f5b);
   white-space: nowrap;
 }
 
+// Same look as the range on a calendar block.
+.timeRange {
+  white-space: nowrap;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
 .project {
   display: flex;
   align-items: center;

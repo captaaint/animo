@@ -356,14 +356,13 @@ h3 {
 }
 
 .combobox__control {
-  flex-wrap: wrap;
-  padding-top: 3px;
-  padding-bottom: 3px;
+  flex-wrap: nowrap;
+  overflow: hidden;
 }
 
 .combobox__input {
-  flex: 1 1 80px;
-  min-width: 60px;
+  flex: 1 1 64px;
+  min-width: 64px;
   border: 0;
   outline: 0;
   background: transparent;
@@ -371,6 +370,7 @@ h3 {
 }
 
 .combobox__trigger {
+  flex-shrink: 0;
   border: 0;
   background: transparent;
   color: var(--animo-textColor-secondary);
@@ -379,15 +379,71 @@ h3 {
   padding: 2px;
 }
 
-.chip {
-  display: inline-flex;
+/* Selected values of a multi combobox: one line, overflow collapses to "+N". */
+.chip-row {
+  position: relative;
+  display: flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 4px 2px 8px;
-  border-radius: 6px;
-  background: var(--animo-color-surface-100);
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.chip-row__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.chip-row__measure > [data-chip] {
+  display: inline-flex;
+}
+
+.chip {
+  --chip-color: var(--animo-textColor-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 4px 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--chip-color) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--chip-color) 28%, transparent);
   font-size: var(--animo-fontSize-small);
+  font-weight: 500;
+  line-height: 1;
   color: var(--animo-textColor-primary);
+  white-space: nowrap;
+}
+
+/* The first chip may shrink (and truncate) when even it alone doesn't fit. */
+.chip-row > .chip:first-child {
+  flex-shrink: 1;
+}
+
+.chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color);
+  flex-shrink: 0;
+}
+
+.chip__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip--more {
+  padding: 0 8px;
+  color: var(--animo-textColor-secondary);
+  cursor: default;
 }
 
 .chip__remove {
@@ -396,7 +452,13 @@ h3 {
   cursor: pointer;
   display: inline-flex;
   padding: 2px;
+  border-radius: 50%;
   color: var(--animo-textColor-secondary);
+}
+
+.chip__remove:hover {
+  background: color-mix(in srgb, var(--chip-color) 22%, transparent);
+  color: var(--animo-textColor-primary);
 }
 
 .swatch {

@@ -200,7 +200,8 @@
 }
 
 .positioner {
-  z-index: 1000;
+  /* zag sets an inline z-index; this must stack above modals (50). */
+  z-index: 1000 !important;
 }
 
 .popoverContent {

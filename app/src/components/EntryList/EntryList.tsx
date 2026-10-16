@@ -248,14 +248,14 @@ const TableDay = memo(function TableDay({
       {!collapsed && (
         <table className={styles.table}>
           <colgroup>
-            {/* ≈ 3* : 2* : * : * : * + 70px of the previous Table columns; the
-                three unsized columns share the remaining width equally. */}
-            <col style={{ width: "34.5%" }} />
-            <col style={{ width: "23%" }} />
-            <col />
-            <col />
-            <col />
-            <col style={{ width: "70px" }} />
+            {/* Description and project share whatever is left; the value columns
+                are sized to their content so they never run into each other. */}
+            <col style={{ width: "60%" }} />
+            <col style={{ width: "40%" }} />
+            <col style={{ width: "124px" }} />
+            <col style={{ width: "92px" }} />
+            <col style={{ width: "80px" }} />
+            <col style={{ width: "64px" }} />
           </colgroup>
           <thead>
             <tr>
@@ -286,7 +286,7 @@ const TableDay = memo(function TableDay({
                     <span className={styles.ellipsis}>{row.projectName}</span>
                   </span>
                 </td>
-                <td className={styles.nowrap}>
+                <td className={styles.timeRange}>
                   {row.startHm} – {row.endHm}
                 </td>
                 <td className={styles.nowrap}>{row.durationText}</td>
