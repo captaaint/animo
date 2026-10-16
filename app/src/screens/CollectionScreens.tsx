@@ -42,14 +42,17 @@ function ColorPalette({
   kind,
   value,
   onChange,
+  fill,
 }: {
   kind: string;
   value: string;
   onChange: (hex: string) => void;
+  /** Stretch to the height of the surrounding column. */
+  fill?: boolean;
 }) {
   const current = COLOR_PALETTE.find((c) => c.hex === value);
   return (
-    <Card>
+    <Card style={fill ? { flex: "1 1 auto" } : undefined}>
       <div className="stack stack--gap-1">
         <div className="text-bold text-strong">Color</div>
         <div className="text-secondary text-small">Choose a color to identify your {kind}</div>
@@ -153,6 +156,10 @@ function ItemEditor({
   const set = <K extends keyof EditorValues>(key: K, v: EditorValues[K]) =>
     setValues((prev) => ({ ...prev, [key]: v }));
 
+  // Projects carry more fields (client, rate), so on desktop they get the
+  // entry editor's two-column layout instead of one tall column.
+  const twoColumns = kind === "project" && !isMobile;
+
   const submit = () => {
     if (!values.name.trim()) {
       toast.error("Name is required");
@@ -190,7 +197,7 @@ function ItemEditor({
       open
       onClose={onClose}
       title={item ? `Edit ${kind}` : `New ${kind}`}
-      maxWidth={kind === "project" ? 520 : 480}
+      maxWidth={twoColumns ? 720 : 480}
       mobileAction={<DrawerAction onClick={submit} />}
       footer={
         <>
@@ -209,47 +216,106 @@ function ItemEditor({
         </>
       }
     >
-      <Card>
-        <div className="stack stack--gap-1">
-          <TextField label="Name" value={values.name} onChange={(v) => set("name", v)} />
-          <div className="text-secondary text-small">Choose a name for your {kind}</div>
+      {twoColumns ? (
+        // Same two-column layout as the entry editor: fields on the left,
+        // the color palette on the right.
+        <div className="row row--gap-4 row--stretch">
+          <div className="stack stack--gap-3 grow">
+          <Card>
+            <div className="stack stack--gap-1">
+              <TextField label="Name" value={values.name} onChange={(v) => set("name", v)} />
+              <div className="text-secondary text-small">Choose a name for your {kind}</div>
+            </div>
+            {kind === "project" && (
+              <div className="stack stack--gap-1">
+                <AutoComplete
+                  label="Client"
+                  placeholder="(no client)"
+                  options={clients.map((c) => ({ value: c.id, label: c.name, color: c.color }))}
+                  value={values.clientId}
+                  onChange={(v) => set("clientId", v)}
+                />
+                <div className="text-secondary text-small">Link this project to a client (optional)</div>
+              </div>
+            )}
+          </Card>
+          {kind === "project" && (
+            <Card>
+              <div className="row row--gap-2 row--end">
+                <NumberField
+                  className="grow"
+                  label="Rate"
+                  value={values.hourlyRate}
+                  onChange={(v) => set("hourlyRate", v)}
+                  min={0}
+                  step={1}
+                />
+                <Select
+                  label="Currency"
+                  style={{ width: 120 }}
+                  options={CURRENCIES}
+                  value={values.currency}
+                  onChange={(v) => set("currency", v)}
+                />
+              </div>
+              <div className="text-secondary text-small">Hourly billing rate for this project</div>
+            </Card>
+          )}
+          </div>
+          <div className="stack grow">
+            <ColorPalette
+              fill
+              kind={kind}
+              value={values.color}
+              onChange={(hex) => set("color", hex)}
+            />
+          </div>
         </div>
-        {kind === "project" && (
-          <div className="stack stack--gap-1">
-            <AutoComplete
-              label="Client"
-              placeholder="(no client)"
-              options={clients.map((c) => ({ value: c.id, label: c.name, color: c.color }))}
-              value={values.clientId}
-              onChange={(v) => set("clientId", v)}
-            />
-            <div className="text-secondary text-small">Link this project to a client (optional)</div>
-          </div>
-        )}
-      </Card>
-      {kind === "project" && (
+      ) : (
+        <>
         <Card>
-          <div className="row row--gap-2 row--end">
-            <NumberField
-              className="grow"
-              label="Rate"
-              value={values.hourlyRate}
-              onChange={(v) => set("hourlyRate", v)}
-              min={0}
-              step={1}
-            />
-            <Select
-              label="Currency"
-              style={{ width: 120 }}
-              options={CURRENCIES}
-              value={values.currency}
-              onChange={(v) => set("currency", v)}
-            />
+          <div className="stack stack--gap-1">
+            <TextField label="Name" value={values.name} onChange={(v) => set("name", v)} />
+            <div className="text-secondary text-small">Choose a name for your {kind}</div>
           </div>
-          <div className="text-secondary text-small">Hourly billing rate for this project</div>
+          {kind === "project" && (
+            <div className="stack stack--gap-1">
+              <AutoComplete
+                label="Client"
+                placeholder="(no client)"
+                options={clients.map((c) => ({ value: c.id, label: c.name, color: c.color }))}
+                value={values.clientId}
+                onChange={(v) => set("clientId", v)}
+              />
+              <div className="text-secondary text-small">Link this project to a client (optional)</div>
+            </div>
+          )}
         </Card>
+        {kind === "project" && (
+          <Card>
+            <div className="row row--gap-2 row--end">
+              <NumberField
+                className="grow"
+                label="Rate"
+                value={values.hourlyRate}
+                onChange={(v) => set("hourlyRate", v)}
+                min={0}
+                step={1}
+              />
+              <Select
+                label="Currency"
+                style={{ width: 120 }}
+                options={CURRENCIES}
+                value={values.currency}
+                onChange={(v) => set("currency", v)}
+              />
+            </div>
+            <div className="text-secondary text-small">Hourly billing rate for this project</div>
+          </Card>
+        )}
+        <ColorPalette kind={kind} value={values.color} onChange={(hex) => set("color", hex)} />
+        </>
       )}
-      <ColorPalette kind={kind} value={values.color} onChange={(hex) => set("color", hex)} />
       {isMobile && item && (
         <Button
           block
