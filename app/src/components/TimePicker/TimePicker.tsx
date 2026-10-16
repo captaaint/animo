@@ -11,6 +11,7 @@ import {
 } from "react";
 import cx from "classnames";
 import { Popover as ArkPopover } from "@ark-ui/react/popover";
+import { Portal } from "@ark-ui/react/portal";
 
 import styles from "./TimePicker.module.scss";
 
@@ -433,19 +434,22 @@ function TimeSlot({
           {iconAlign === "end" && iconButton}
         </div>
       </ArkPopover.Anchor>
-      <ArkPopover.Positioner className={styles.positioner}>
-        <ArkPopover.Content className={styles.popoverContent}>
-          <TimeWheel
-            value={value}
-            onChange={onChange}
-            step={step}
-            hoursLabel={hoursLabel}
-            minutesLabel={minutesLabel}
-            secondsLabel={secondsLabel}
-            hourCycle={hourCycle}
-          />
-        </ArkPopover.Content>
-      </ArkPopover.Positioner>
+      {/* Portaled so the wheel overhangs a modal instead of making it scroll. */}
+      <Portal>
+        <ArkPopover.Positioner className={styles.positioner}>
+          <ArkPopover.Content className={styles.popoverContent}>
+            <TimeWheel
+              value={value}
+              onChange={onChange}
+              step={step}
+              hoursLabel={hoursLabel}
+              minutesLabel={minutesLabel}
+              secondsLabel={secondsLabel}
+              hourCycle={hourCycle}
+            />
+          </ArkPopover.Content>
+        </ArkPopover.Positioner>
+      </Portal>
     </ArkPopover.Root>
   );
 }
