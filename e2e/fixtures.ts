@@ -1,16 +1,8 @@
 import { test as base, expect } from '@playwright/test';
 
-// XMLUI only renders `testId` as `data-testid` when it runs in E2E mode
-// (`window.XMLUI_MOCK_TEST_ID`) or with `xsVerbose`. The app used to ship with
-// `xsVerbose: true`; since that was dropped no `getByTestId(...)` locator could
-// match. Turn E2E mode on for every page before the app boots.
-export const test = base.extend({
-  page: async ({ page }, use) => {
-    await page.addInitScript(() => {
-      (window as unknown as { XMLUI_MOCK_TEST_ID?: boolean }).XMLUI_MOCK_TEST_ID = true;
-    });
-    await use(page);
-  },
-});
+// Shared test fixture. The app always renders its `data-testid` hooks, so
+// no special E2E mode is needed; specs import `test`/`expect` from here so a
+// common setup step can be added in one place.
+export const test = base;
 
 export { expect };

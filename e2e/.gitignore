@@ -3,5 +3,3 @@ test-results/
 playwright-report/
 playwright/.cache/
 .auth/
-.trace-tools/
-captured-trace.json

@@ -6,7 +6,7 @@
 // input signal. When fired, we emit `hotkey://stopwatch/toggle` and let
 // the frontend decide whether that means "start a new entry" or "stop
 // the running one" — that branch needs project/description context that
-// only the XMLUI side has, and duplicating the decision tree in Rust
+// only the frontend has, and duplicating the decision tree in Rust
 // would guarantee divergence with the in-window button.
 //
 // "CommandOrControl" is Tauri's portable modifier alias: it resolves to

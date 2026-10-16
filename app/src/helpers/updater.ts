@@ -1,5 +1,5 @@
 // Updater helper — wraps the Tauri v2 updater plugin so the rest of the
-// app can call it from anywhere (XMLUI templates, async callbacks) and
+// app can call it from anywhere (components, async callbacks) and
 // the browser/SSG paths degrade to a safe no-op.
 //
 // The Tauri plugin modules are loaded lazily because:
@@ -283,24 +283,6 @@ function parseVersion(version: string): [number, number, number] | null {
   return [Number(match[1]), Number(match[2]), Number(match[3])];
 }
 
-declare global {
-  interface Window {
-    animoUpdateCheck?: (
-      onResult: (info: UpdateInfo) => void,
-      onError?: (message: string) => void,
-    ) => void;
-    animoUpdateDownload?: (
-      onProgress: (progress: UpdateProgress) => void,
-      onDone: (result: DownloadResult) => void,
-    ) => void;
-    animoUpdateRestart?: () => void;
-    animoUpdateAutoCheckEnabled?: () => boolean;
-    animoUpdateSetAutoCheck?: (enabled: boolean) => void;
-    animoUpdateLastChecked?: () => string | null;
-    animoUpdateStartAutoCheck?: () => void;
-  }
-}
-
 const AUTO_CHECK_KEY = "animo_auto_check_updates";
 const LAST_CHECKED_KEY = "animo_update_last_checked";
 const INITIAL_DELAY_MS = 3_000;
@@ -333,7 +315,7 @@ export function lastCheckedAt(): string | null {
   }
 }
 
-function recordLastChecked(): void {
+export function recordLastChecked(): void {
   if (typeof window === "undefined" || !window.localStorage) return;
   try {
     window.localStorage.setItem(LAST_CHECKED_KEY, new Date().toISOString());
@@ -367,35 +349,4 @@ export function startAutoCheck(): void {
   setInterval(() => {
     void runAutoCheck();
   }, POLL_INTERVAL_MS);
-}
-
-if (typeof window !== "undefined") {
-  window.animoUpdateCheck = (onResult, onError) => {
-    checkForUpdates()
-      .then((info) => {
-        recordLastChecked();
-        onResult(info);
-      })
-      .catch((error: unknown) => {
-        onError?.(errorMessage(error, "Update check failed."));
-      });
-  };
-  window.animoUpdateDownload = (onProgress, onDone) => {
-    downloadAndInstall(onProgress)
-      .then(onDone)
-      .catch((error: unknown) => {
-        onDone({ success: false, error: errorMessage(error, "Update download failed.") });
-      });
-  };
-  window.animoUpdateRestart = () => {
-    restartApp().catch((error: unknown) => {
-      console.warn("restartApp failed:", error);
-    });
-  };
-  window.animoUpdateAutoCheckEnabled = isAutoCheckEnabled;
-  window.animoUpdateSetAutoCheck = setAutoCheckEnabled;
-  window.animoUpdateLastChecked = lastCheckedAt;
-  window.animoUpdateStartAutoCheck = startAutoCheck;
-  // Kick the auto-check timer once the script loads — only runs in Tauri.
-  startAutoCheck();
 }

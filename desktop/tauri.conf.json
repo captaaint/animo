@@ -46,7 +46,7 @@
     ],
     "copyright": "© 2026 Animo",
     "category": "Productivity",
-    "shortDescription": "Animo — time tracker (XMLUI + axum + Tauri)",
+    "shortDescription": "Animo — time tracker (React + axum + Tauri)",
     "longDescription": "Animo is a self-hosted time tracker with projects, clients, tags, and detailed PDF reports. Runs entirely on the local machine."
   },
   "plugins": {

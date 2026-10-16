@@ -76,7 +76,7 @@ Examples:
   feat(app): drawer-based entry editor for mobile
   fix(api): timezone bug in entries endpoint
   perf(desktop): faster cold start
-  chore(deps): bump xmlui to 0.12.27
+  chore(deps): bump react to 18.3.1
   feat(app)!: drop legacy export format
 
 Note: only feat/fix/perf with scope (app|api|desktop) reach the public

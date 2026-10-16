@@ -40,8 +40,7 @@ Describe the user-facing problem before proposing a solution.
 
 ```text
 animo/
-├── app/         # XMLUI app (Vite + XMLUI standalone)
-├── extensions/  # shared XMLUI extension package(s)
+├── app/         # React app (Vite + TypeScript)
 ├── website/     # marketing/download site
 ├── demo/        # static demo build wrapper
 ├── api/         # Rust HTTP API (axum + SQLite)
@@ -90,18 +89,23 @@ cd e2e && npm test
 6. **CI must pass**: typecheck, `cargo clippy`, smoke tests.
 7. **Squash on merge** unless the history is intentionally structured.
 
-## XMLUI conventions
+## Frontend conventions
 
-The web app is built with [XMLUI](https://xmlui.org). When touching `.xmlui` files:
+The web app is React 18 + TypeScript, built with Vite (`app/src`):
 
-- **No `testId` props** in new markup — locate via roles/text/labels in tests
-- **Minimal markup** — let theme + layout engine do the work, don't inline styles
-- **Theme-first** — use semantic tokens (`$textColor-secondary`, `$borderColor`)
-  rather than hardcoded surface colors that don't adapt to dark tone
-- **Cite docs** when picking non-obvious component patterns:
-  `https://www.xmlui.org/docs/reference/components/<Name>`
-- **No raw browser JS** in event handlers (no `setTimeout`, `fetch` outside
-  `DataSource`, no `async/await`) — stay within XMLUI abstractions
+- **Layout** — `screens/` (one per route), `components/` (larger reusable
+  widgets such as the calendar and pickers), `ui/` (primitives: buttons,
+  fields, selects, modals/drawers, toasts), `lib/` (API client, queries,
+  formatters, hooks)
+- **Server state** goes through the TanStack Query hooks in `lib/queries.ts`;
+  mutations invalidate the affected collections instead of refetching by hand
+- **Theme-first** — use the `--animo-*` tokens from `styles/theme.css`
+  (`--animo-textColor-secondary`, `--animo-borderColor`, …) rather than
+  hardcoded colors that don't adapt to the dark tone
+- **Desktop vs mobile** — `useIsMobile()` (≤ 640px) picks modal vs bottom
+  drawer (`ui/overlays.tsx` → `Sheet`), table vs cards
+- **Tests locate by role/label/text**; add a `data-testid` only where no
+  accessible handle exists
 
 ## Mobile web UX
 
@@ -109,16 +113,14 @@ The web UI ships to phones, where iOS Safari has its own quirks. Before changing
 inputs, drawers, navigation, or the viewport meta, read
 [docs/mobile-ux.md](docs/mobile-ux.md) — it documents the mobile fixes and the
 do/don't guidelines (≥16px inputs, `dvh`-sized drawers, no `user-scalable=no`,
-`Viewport`-based responsive `when`). Test mobile changes with the
+`useIsMobile()`-based layout switches). Test mobile changes with the
 `mobile-safari` Playwright project and the manual checklist in
 [docs/mobile-testing.md](docs/mobile-testing.md).
 
 ## Coding style
 
 - **Rust** (`api/`, `desktop/`): `cargo fmt`, `cargo clippy -- -D warnings`
-- **TypeScript / JS**: 2-space indent, single quotes, no semicolons in `.xs`
-- **XMLUI**: attributes on separate lines for multi-prop components; expression
-  braces `{...}` for any non-literal value
+- **TypeScript / JS**: 2-space indent; `npm run check` (tsc) must pass
 
 ## Releases
 

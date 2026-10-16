@@ -1,8 +1,8 @@
 import { test, expect } from '../fixtures';
 import { type Locator } from '@playwright/test';
 
-// Palette swatches are plain XMLUI Stacks (no role / test id), so find the one
-// whose rendered background is the requested color.
+// Palette swatches are plain colored divs (no test id), so find the one whose
+// rendered background is the requested color.
 async function swatch(dialog: Locator, rgb: string): Promise<Locator> {
   const index = await dialog.locator('div').evaluateAll(
     (els, color) =>
@@ -18,8 +18,7 @@ async function swatch(dialog: Locator, rgb: string): Promise<Locator> {
 }
 
 // The tag color is picked from a swatch palette in TagModal (it replaced the
-// earlier <input type="color"> ColorPicker; see docs/xmlui-bugs/colorpicker.md
-// for that component's controlled-input lag bug). This keeps the original
+// earlier <input type="color"> ColorPicker, which lagged one pick behind). This keeps the original
 // regression's intent: a single pick must show up immediately — the preview
 // must never lag one selection behind.
 test('tag color palette reflects the selected color on the first pick', async ({ page }) => {
