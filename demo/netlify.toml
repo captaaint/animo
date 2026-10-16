@@ -37,6 +37,10 @@ NPM_FLAGS = "--ignore-scripts"
 # install above ("Cannot read properties of null (reading 'edgesOut')" in
 # arborist #loadPeerSet, triggered by vitest's deep optional peer chain).
 NODE_VERSION = "24"
+# The Turnstile *site* key is public by design (the browser needs it to
+# render the widget), so it always ends up in the bundle. Only exempt this
+# key; the Turnstile secret key must never reach the client.
+SECRETS_SCAN_OMIT_KEYS = "VITE_TURNSTILE_SITE_KEY"
 
 # SPA fallback so deep-linked routes (e.g. /list, /reports) load the
 # single index.html and let the client-side router take over.
