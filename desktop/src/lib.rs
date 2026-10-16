@@ -34,8 +34,8 @@ use tauri::{Manager, State};
 use crate::tray::{StopwatchSnapshot, StopwatchStateMutex, TrayHandle};
 
 /// Port assigned to the embedded axum server at startup. Exposed to the
-/// webview via the [`api_base`] command so the XMLUI frontend can build its
-/// `apiBase` global without hard-coding a port at compile time.
+/// webview via the [`api_base`] command so the React frontend can resolve its
+/// API base URL without hard-coding a port at compile time.
 struct ApiPort(u16);
 
 /// On first launch in a dev build, seed the Tauri app-data dir with the
@@ -174,7 +174,7 @@ pub fn run() {
                 .map_err(|e| anyhow::anyhow!("spawn api-server thread: {e}"))?;
 
             // Block here — the webview must not open before the server is
-            // listening, otherwise the first XMLUI fetch races the bind.
+            // listening, otherwise the first frontend fetch races the bind.
             let port = rx
                 .recv()
                 .map_err(|e| anyhow::anyhow!("api-server thread vanished before binding: {e}"))?

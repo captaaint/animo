@@ -59,8 +59,8 @@ export async function collectDiagnostics(): Promise<Diagnostics> {
 // summary. Every field is available synchronously in both browser and Tauri;
 // the only async path in collectDiagnostics is Tauri's getVersion(), whose
 // build-time fallback (VITE_ANIMO_VERSION / window.__ANIMO_VERSION__) resolves
-// to the same value. Keeping this sync lets XMLUI assign the result reactively
-// from a method (an awaited call only updates state from an event handler).
+// to the same value. Keeping this sync lets the feedback form render the
+// preview without an async round-trip.
 export function collectDiagnosticsSync(): Diagnostics {
   try {
     return stripEmpty({

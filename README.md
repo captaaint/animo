@@ -2,7 +2,7 @@
 
 > A self-hosted, single-user time tracker.
 > Desktop-first today, with planned mobile apps and on-premise web app deployment.
-> XMLUI frontend, Rust + axum backend, SQLite storage, Tauri desktop shell.
+> React frontend, Rust + axum backend, SQLite storage, Tauri desktop shell.
 > Your data stays on your machine — no cloud, no telemetry, no accounts to manage.
 
 [![latest release](https://img.shields.io/github/v/release/captaaint/animo?include_prereleases&sort=semver)](https://github.com/captaaint/animo/releases/latest)
@@ -15,7 +15,7 @@ grid or as a list grouped by day, slice them with project / client / tag /
 date-range filters, and export a styled PDF report.
 
 The current public release focuses on the Tauri desktop app for macOS,
-Windows, and Linux. The codebase is also structured around the same XMLUI
+Windows, and Linux. The codebase is also structured around the same React
 app and Rust API that will support future mobile apps and an installable
 on-premise web app.
 
@@ -57,7 +57,7 @@ Gatekeeper / SmartScreen handling, and per-platform notes, see:
 
 | Layer       | Choice                                                                                                  |
 | ----------- | ------------------------------------------------------------------------------------------------------- |
-| Frontend    | [XMLUI](https://docs.xmlui.org) 0.12 + custom React extensions in [`app/`](app/) and [`extensions/`](extensions/) |
+| Frontend    | [React](https://react.dev) 18 + [Vite](https://vite.dev), [TanStack Query](https://tanstack.com/query), [Ark UI](https://ark-ui.com) primitives in [`app/`](app/) |
 | Backend     | Rust + [axum](https://docs.rs/axum/) + [sqlx](https://docs.rs/sqlx/) in [`api/`](api/)                  |
 | Database    | SQLite (single file, embedded migrations)                                                               |
 | User model  | Local first-run profile; no hosted accounts or password flow                                            |
@@ -80,10 +80,9 @@ Gatekeeper / SmartScreen handling, and per-platform notes, see:
 ### Browser dev mode
 
 ```sh
-npm install --ignore-scripts
-cd app && npm install --ignore-scripts && cd ..
+npm install
 
-npm run dev          # boots animo-api on :8080 and the XMLUI dev server on :5173
+npm run dev          # boots animo-api on :8080 and the Vite dev server on :5173
 ```
 
 Open the Vite URL. On first run you'll see the onboarding screen — pick a
@@ -92,7 +91,7 @@ no email or password). Useful extras:
 
 ```sh
 npm run api          # just the Rust API
-npm run web          # just the XMLUI dev server
+npm run app          # just the Vite dev server
 npm run seed:demo    # populate demo.db with the "Demo User" (@demo) profile
 npm run dev:demo     # dev mode against demo.db
 ```
@@ -109,7 +108,7 @@ npm run tauri:dev:demo # same desktop shell, backed by demo.db
 npm run tauri:build  # produces a DMG / MSI / DEB / AppImage in desktop/target/release/bundle/
 ```
 
-### Public demo bundle (no backend, MSW-mocked)
+### Public demo bundle (no backend, mocked API)
 
 ```sh
 npm run build:demo       # builds app/dist/ with VITE_ANIMO_DEMO=true baked in
@@ -118,7 +117,7 @@ npm run preview:demo     # build + preview locally
 
 The bundle ships a hand-written `/api/*` fetch handler
 ([`app/src/demoApi.ts`](app/src/demoApi.ts)) that intercepts `window.fetch`
-before XMLUI mounts. Bootstrap always returns the "Demo User" local profile,
+before the app mounts. Bootstrap always returns the "Demo User" local profile,
 data covers four work-weeks of seed entries, and all CRUD persists in
 `localStorage`. The version stamp in the app shell comes from
 `VITE_ANIMO_VERSION` — see [`app/scripts/with-version.mjs`](app/scripts/with-version.mjs).
@@ -131,11 +130,11 @@ data covers four work-weeks of seed entries, and all CRUD persists in
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Browser (or Tauri webview)                                          │
 │  ┌────────────────────────────────────────────────────────────────┐  │
-│  │  XMLUI app                                                     │  │
-│  │  • Main.xmlui — App + LocalUserGate + NavPanel + Pages         │  │
-│  │  • DataSource / APICall ───────────────────────────────────┐   │  │
-│  │  • Extensions: LocalUserGate, WeekCalendar, Stopwatch,     │   │  │
-│  │    BarChart, PieChart, KeyListener, Viewport, …            │   │  │
+│  │  React app (app/src)                                           │  │
+│  │  • App.tsx — providers, onboarding gate, routes                │  │
+│  │  • lib/queries.ts — TanStack Query hooks ──────────────────┐   │  │
+│  │  • screens/ — Timesheet, Reports, Projects/Clients/Tags,   │   │  │
+│  │    Import, Settings; components/ — WeekCalendar, pickers … │   │  │
 │  └─────────────────────────────────────────────────────────────│───┘  │
 └────────────────────────────────────────────────────────────────│──────┘
                                                                  ▼
@@ -157,8 +156,8 @@ data covers four work-weeks of seed entries, and all CRUD persists in
 
 The Tauri shell embeds the same axum router in-process. At startup it
 binds a TCP listener on `127.0.0.1:0`, hands the resolved port back to
-the webview via the `api_base` invoke command, and the XMLUI frontend
-uses that URL as its `apiBase` global. See
+the webview via the `api_base` invoke command, and the React frontend
+uses that URL as its API base (`window.__ANIMO_API_BASE__`). See
 [`desktop/src/lib.rs`](desktop/src/lib.rs).
 
 ---
@@ -168,8 +167,7 @@ uses that URL as its `apiBase` global. See
 ```text
 animo/
 ├── api/              Rust crate — axum router, sqlx pool, migrations
-├── app/              XMLUI frontend (Vite + app-specific extensions)
-├── extensions/       Shared XMLUI extension package(s)
+├── app/              React frontend (Vite)
 ├── website/          Marketing/download site
 ├── demo/             Static demo build wrapper
 ├── desktop/          Tauri 2 shell — embeds animo-api in-process

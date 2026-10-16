@@ -1,19 +1,15 @@
 # Netlify config for the public landing site (getanimo.app).
 #
-# Deployment: standalone XMLUI website (SSG).
+# Deployment: React website, prerendered to static HTML (SSG).
 #
 # Set the Netlify site's "Base directory" to `website` in the dashboard
 # (this folder, relative to the repo root). NPM workspaces are detected
 # automatically — Netlify runs the install step from the workspace root
-# and hoists shared deps (e.g. animo-blocks) into a single node_modules
-# tree.
+# and hoists shared deps into a single node_modules tree.
 #
 # What this configures:
-#   * `publish` — relative to the base directory; the xmlui SSG output.
-#   * `command` — turbo orchestrates the build; `^build:extension`
-#     dependsOn in turbo.json guarantees animo-blocks builds first.
-#   * `NPM_FLAGS=--ignore-scripts` — bypasses an upstream `xmlui-pdf`
-#     postinstall step that 404s in fresh installs.
+#   * `publish` — relative to the base directory; the prerendered output.
+#   * `command` — turbo orchestrates the build (scripts/build-website.mjs).
 
 [build]
 publish = "dist-ssg"

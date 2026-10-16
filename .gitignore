@@ -91,3 +91,6 @@ resources/worklist.json
 # MemPalace per-project files (issue #185)
 mempalace.yaml
 entities.json
+
+# Website prerender: transient server bundle
+website/.ssr/

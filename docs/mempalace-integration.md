@@ -62,7 +62,7 @@ Important caveats:
 
 Using MemPalace during development should help answer questions like:
 
-- Why did Animo choose XMLUI plus custom React extensions?
+- Why did Animo move from XMLUI to a plain React frontend?
 - How does the Tauri shell discover the embedded API port?
 - What release-signing or installer caveats were already discussed?
 - Which files are sensitive when changing time-entry filtering, exports, or
@@ -93,7 +93,7 @@ Use rooms that mirror durable areas of the project:
 
 ```text
 architecture
-xmlui
+frontend
 rust-api
 sqlite
 tauri
@@ -110,10 +110,10 @@ agent-sessions
 Use the knowledge graph only for facts that benefit from time:
 
 ```text
-Animo -> uses_frontend -> XMLUI
+Animo -> uses_frontend -> React (replaced XMLUI)
 Animo -> uses_backend -> Rust axum
 Animo -> packages_desktop_with -> Tauri 2
-Demo mode -> uses -> MSW-style fetch interception
+Demo mode -> uses -> in-browser fetch interception
 Desktop app -> embeds -> axum API
 ```
 
@@ -132,7 +132,7 @@ mempalace search "current release constraints" --wing animo
 Before touching an area with historical decisions:
 
 ```sh
-mempalace search "why React 18 override" --wing animo --room xmlui
+mempalace search "dialog aria-hidden popover" --wing animo --room frontend
 mempalace search "Tauri embedded API port" --wing animo --room tauri
 mempalace search "installer signing warnings" --wing animo --room desktop-release
 ```
@@ -150,7 +150,7 @@ Source: docs/mempalace-integration.md
 Use MemPalace to preserve:
 
 - architectural decisions and tradeoffs;
-- known XMLUI quirks and workarounds;
+- known frontend quirks and workarounds;
 - release/build constraints;
 - debugging trails that took time to discover;
 - cross-file relationships that are easy to forget;
@@ -219,7 +219,7 @@ Useful commands:
 ```sh
 scripts/mempalace-animo.sh status
 scripts/mempalace-animo.sh search "Tauri embedded API port"
-scripts/mempalace-animo.sh search "XMLUI React 18 override"
+scripts/mempalace-animo.sh search "dialog aria-hidden popover"
 scripts/mempalace-animo.sh wake-up
 ```
 
@@ -354,7 +354,7 @@ context in verbatim drawers.
 4. Backfill important project knowledge.
    - README architecture sections.
    - Install and release docs.
-   - XMLUI bug notes.
+   - Frontend bug notes.
    - Changelog entries.
    - High-value historical conversations, only after secret review.
 
@@ -368,7 +368,7 @@ context in verbatim drawers.
 
 High-value Animo areas for MemPalace recall:
 
-- XMLUI behavior, limitations, and extension workarounds.
+- Frontend component behavior, limitations, and workarounds.
 - Tauri desktop startup and API-port handshake.
 - Installer and release-process decisions.
 - Demo mode and mocked API behavior.

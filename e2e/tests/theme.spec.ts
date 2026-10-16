@@ -37,7 +37,7 @@ test.describe('theme preference persistence', () => {
     await page.goto('/settings');
 
     // The Theme picker is the only combobox on Settings. Selecting an option
-    // both flips the live UI (via TonePersist.setTone in Main.xmlui) *and*
+    // both flips the live UI (via ThemeProvider.setPreference) *and*
     // PATCHes the user record so a fresh load on another device gets the
     // same theme.
     const themeSelect = page.getByRole('combobox');
@@ -48,7 +48,7 @@ test.describe('theme preference persistence', () => {
     await page.getByRole('option', { name: 'Dark' }).click();
     await darkSaved;
 
-    // Live: TonePersist mirrors the active tone into localStorage.
+    // Live: the ThemeProvider mirrors the active tone into localStorage.
     const live = await page.evaluate(
       ({ pref, tone }) => ({
         pref: localStorage.getItem(pref),
@@ -59,8 +59,8 @@ test.describe('theme preference persistence', () => {
     expect(live.pref).toBe('dark');
     expect(live.tone).toBe('dark');
 
-    // Reload: bootstrap re-hydrates preferences from the API and TonePersist
-    // re-applies them in useLayoutEffect before the first paint.
+    // Reload: the saved preference is re-applied before the first paint, and
+    // the Settings select reads the persisted preference from the API.
     await page.reload();
     await expect(themeSelect).toHaveText(/Dark/i);
     const afterReload = await page.evaluate(

@@ -1,0 +1,323 @@
+/* =====================================================================================================================
+ * Animo theme — design tokens as CSS custom properties.
+ * =====================================================================================================================
+ *
+ * Animo brand palette — these seven hexes are the only colors surfacing in
+ * the UI; every shade in the scales below either is one of them or is
+ * derived by varying lightness around the same hue. Keep new components on
+ * the named scales (--animo-color-primary-*, -surface-*, -warn-*, -danger-*)
+ * instead of sneaking in raw hex values, otherwise the brand drifts.
+ *
+ *   Sage Teal      #3F8F8C  — primary brand
+ *   Soft Mint      #A7D0C9  — primary subtle accent / pale teal
+ *   Mist           #EAF3F1  — primary tint surface
+ *   Deep Charcoal  #1E2328  — text / dark surface
+ *   Warm Amber     #F2A82F  — warning
+ *   Soft Coral     #FF6F61  — danger / destructive
+ *   Warm White     #FAF8F6  — page background / light surface
+ *
+ * Dark tone inverts every scale index (`-50` ↔ `-950`, surface `-0` ↔
+ * `-1000`), so the same semantic references serve both modes. The handful of
+ * tokens where the *semantic* color should differ per tone are overridden
+ * explicitly in the dark block below.
+ *
+ * The active tone is selected by `data-tone` on <html> (see lib/theme.tsx).
+ */
+
+:root {
+  --animo-color-primary-50: #EAF3F1;
+  --animo-color-primary-100: #D5E7E3;
+  --animo-color-primary-200: #A7D0C9;
+  --animo-color-primary-300: #7AB8AE;
+  --animo-color-primary-400: #5DA39D;
+  --animo-color-primary-500: #3F8F8C;
+  --animo-color-primary-600: #357773;
+  --animo-color-primary-700: #2A5F5B;
+  --animo-color-primary-800: #1F4744;
+  --animo-color-primary-900: #162F2D;
+  --animo-color-primary-950: #0F1F1D;
+  --animo-color-warn-50: #FEF6E6;
+  --animo-color-warn-100: #FCEBC8;
+  --animo-color-warn-200: #F9CE8C;
+  --animo-color-warn-300: #F6B95C;
+  --animo-color-warn-400: #F4AE45;
+  --animo-color-warn-500: #F2A82F;
+  --animo-color-warn-600: #D49118;
+  --animo-color-warn-700: #A36F0E;
+  --animo-color-warn-800: #7C5408;
+  --animo-color-warn-900: #553905;
+  --animo-color-warn-950: #3B2604;
+  --animo-color-danger-50: #FFE7E5;
+  --animo-color-danger-100: #FFCFCB;
+  --animo-color-danger-200: #FFB0A8;
+  --animo-color-danger-300: #FF9485;
+  --animo-color-danger-400: #FF8170;
+  --animo-color-danger-500: #FF6F61;
+  --animo-color-danger-600: #E8554A;
+  --animo-color-danger-700: #C8412F;
+  --animo-color-danger-800: #9C2F22;
+  --animo-color-danger-900: #6E2017;
+  --animo-color-danger-950: #48140E;
+  --animo-color-success-50: #EAF3F1;
+  --animo-color-success-100: #D5E7E3;
+  --animo-color-success-200: #A7D0C9;
+  --animo-color-success-300: #7AB8AE;
+  --animo-color-success-400: #5DA39D;
+  --animo-color-success-500: #3F8F8C;
+  --animo-color-success-600: #357773;
+  --animo-color-success-700: #2A5F5B;
+  --animo-color-success-800: #1F4744;
+  --animo-color-success-900: #162F2D;
+  --animo-color-success-950: #0F1F1D;
+  --animo-color-surface-0: #FFFFFF;
+  --animo-color-surface-50: #FAF8F6;
+  --animo-color-surface-100: #F0EDEA;
+  --animo-color-surface-200: #E0DCD7;
+  --animo-color-surface-300: #C2BDB7;
+  --animo-color-surface-400: #9D9893;
+  --animo-color-surface-500: #76716D;
+  --animo-color-surface-600: #544F4B;
+  --animo-color-surface-700: #3D3934;
+  --animo-color-surface-800: #2C2925;
+  --animo-color-surface-900: #1E2328;
+  --animo-color-surface-950: #14181C;
+  --animo-color-surface-1000: #0A0C0F;
+
+  --animo-color-primary: var(--animo-color-primary-500);
+  --animo-color-surface-raised: var(--animo-color-surface-0);
+  --animo-color-warning-500: var(--animo-color-warn-500);
+
+  /* Typography */
+  --animo-fontFamily: Sora, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --animo-fontFamily-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --animo-fontSize: 13px;
+  --animo-fontSize-tiny: 10px;
+  --animo-fontSize-xs: 11px;
+  --animo-fontSize-small: 12px;
+  --animo-fontSize-medium: 13px;
+  --animo-fontSize-large: 16px;
+  --animo-fontSize-2xl: 22px;
+
+  /* Spacing */
+  --animo-space-0_5: 2px;
+  --animo-space-1: 4px;
+  --animo-space-1_5: 6px;
+  --animo-space-2: 8px;
+  --animo-space-3: 12px;
+  --animo-space-4: 16px;
+  --animo-space-5: 20px;
+  --animo-space-6: 24px;
+  --animo-space-8: 32px;
+
+  /* Surfaces & text */
+  --animo-backgroundColor: var(--animo-color-surface-50);
+  --animo-backgroundColor-primary: var(--animo-color-surface-50);
+  --animo-backgroundColor-AppHeader: var(--animo-color-surface-0);
+  --animo-backgroundColor-NavPanel: var(--animo-backgroundColor-AppHeader);
+  --animo-backgroundColor-Card: var(--animo-color-surface-0);
+  --animo-borderColor-Card: var(--animo-color-surface-200);
+  --animo-boxShadow-Card: 0 1px 2px rgba(30, 35, 40, 0.04);
+  --animo-backgroundColor-ModalDialog: var(--animo-color-surface-0);
+  --animo-backgroundColor-overlay: rgba(10, 12, 15, 0.45);
+  --animo-textColor-primary: var(--animo-color-surface-900);
+  --animo-textColor-Text: var(--animo-color-surface-600);
+  --animo-textColor-secondary: var(--animo-color-surface-500);
+  --animo-textColor-Heading: var(--animo-color-surface-900);
+  --animo-textColor-placeholder: var(--animo-color-surface-400);
+  --animo-textColor-disabled: var(--animo-color-surface-400);
+  --animo-borderColor: var(--animo-color-surface-200);
+  --animo-borderColor--disabled: var(--animo-color-surface-200);
+  --animo-borderRadius: 6px;
+  --animo-borderRadius-Card: 16px;
+  --animo-boxShadow-md: 0 4px 12px rgba(30, 35, 40, 0.12);
+
+  /* Navigation */
+  --animo-textColor-NavLink: var(--animo-color-surface-500);
+  --animo-textColor-NavLink--hover: var(--animo-color-surface-700);
+  --animo-textColor-NavLink--active: var(--animo-color-surface-900);
+  --animo-backgroundColor-NavLink--hover: var(--animo-color-surface-50);
+  --animo-backgroundColor-NavLink--active: var(--animo-color-surface-100);
+  --animo-color-indicator-NavLink--active: transparent;
+
+  /* Form inputs */
+  --animo-backgroundColor-Input: var(--animo-color-surface-0);
+  --animo-borderColor-Input: var(--animo-color-surface-300);
+  --animo-borderColor-Input--hover: var(--animo-color-surface-400);
+  --animo-outlineColor-Input--focus: var(--animo-color-primary-500);
+  --animo-borderRadius-Input: 6px;
+  --animo-borderWidth-Input: 1px;
+  --animo-borderStyle-Input: solid;
+  --animo-fontSize-Input: var(--animo-fontSize);
+  --animo-minHeight-Input: 36px;
+  --animo-paddingHorizontal-Input: 10px;
+  --animo-paddingVertical-Input: 6px;
+  --animo-textColor-label-formItem: var(--animo-color-surface-900);
+  --animo-fontSize-label-formItem: var(--animo-fontSize-medium);
+  --animo-fontWeight-label-formItem: 700;
+  --animo-fontStyle-label-formItem: normal;
+  --animo-textTransform-label-formItem: none;
+
+  /* Popovers / menus */
+  --animo-backgroundColor-menu-AutoComplete: var(--animo-color-surface-raised);
+  --animo-backgroundColor-menu-Select: var(--animo-color-surface-raised);
+  --animo-backgroundColor-menu-DatePicker: var(--animo-color-surface-raised);
+  --animo-backgroundColor-DropdownMenu: var(--animo-color-surface-raised);
+  --animo-borderColor-menu: var(--animo-borderColor);
+  --animo-backgroundColor-dropdown-item--hover: var(--animo-color-surface-100);
+  --animo-backgroundColor-item-AutoComplete--hover: var(--animo-color-surface-100);
+  --animo-backgroundColor-item-Select--hover: var(--animo-color-surface-100);
+  --animo-backgroundColor-item-Select--active: var(--animo-color-primary-50);
+  --animo-backgroundColor-item-DatePicker--hover: var(--animo-color-surface-100);
+  --animo-backgroundColor-popover-Picker: var(--animo-color-surface-0);
+
+  /* Buttons */
+  --animo-backgroundColor-Button-secondary-ghost--hover: var(--animo-color-surface-50);
+  --animo-backgroundColor-Button-secondary-outlined--hover: var(--animo-color-surface-50);
+  --animo-backgroundColor-Button-primary-outlined--hover: var(--animo-color-primary-50);
+  --animo-backgroundColor-Button-attention-outlined--hover: var(--animo-color-danger-50);
+
+  /* WeekCalendar */
+  --animo-backgroundColor-WeekCalendar: var(--animo-color-surface-raised);
+  --animo-backgroundColor-toolbar-WeekCalendar: var(--animo-color-surface-raised);
+  --animo-backgroundColor-header-WeekCalendar: var(--animo-color-surface-raised);
+  --animo-backgroundColor-gutter-WeekCalendar: var(--animo-color-surface-raised);
+  --animo-backgroundColor-popover-WeekCalendar: var(--animo-backgroundColor-primary);
+  --animo-backgroundColor-popoverPrimary-WeekCalendar: var(--animo-backgroundColor-primary);
+
+  --animo-width-NavPanel: 280px;
+
+  color-scheme: light;
+}
+
+:root[data-tone="dark"] {
+  --animo-color-primary-50: #0F1F1D;
+  --animo-color-primary-100: #162F2D;
+  --animo-color-primary-200: #1F4744;
+  --animo-color-primary-300: #2A5F5B;
+  --animo-color-primary-400: #357773;
+  --animo-color-primary-500: #3F8F8C;
+  --animo-color-primary-600: #5DA39D;
+  --animo-color-primary-700: #7AB8AE;
+  --animo-color-primary-800: #A7D0C9;
+  --animo-color-primary-900: #D5E7E3;
+  --animo-color-primary-950: #EAF3F1;
+  --animo-color-warn-50: #3B2604;
+  --animo-color-warn-100: #553905;
+  --animo-color-warn-200: #7C5408;
+  --animo-color-warn-300: #A36F0E;
+  --animo-color-warn-400: #D49118;
+  --animo-color-warn-500: #F2A82F;
+  --animo-color-warn-600: #F4AE45;
+  --animo-color-warn-700: #F6B95C;
+  --animo-color-warn-800: #F9CE8C;
+  --animo-color-warn-900: #FCEBC8;
+  --animo-color-warn-950: #FEF6E6;
+  --animo-color-danger-50: #48140E;
+  --animo-color-danger-100: #6E2017;
+  --animo-color-danger-200: #9C2F22;
+  --animo-color-danger-300: #C8412F;
+  --animo-color-danger-400: #E8554A;
+  --animo-color-danger-500: #FF6F61;
+  --animo-color-danger-600: #FF8170;
+  --animo-color-danger-700: #FF9485;
+  --animo-color-danger-800: #FFB0A8;
+  --animo-color-danger-900: #FFCFCB;
+  --animo-color-danger-950: #FFE7E5;
+  --animo-color-success-50: #0F1F1D;
+  --animo-color-success-100: #162F2D;
+  --animo-color-success-200: #1F4744;
+  --animo-color-success-300: #2A5F5B;
+  --animo-color-success-400: #357773;
+  --animo-color-success-500: #3F8F8C;
+  --animo-color-success-600: #5DA39D;
+  --animo-color-success-700: #7AB8AE;
+  --animo-color-success-800: #A7D0C9;
+  --animo-color-success-900: #D5E7E3;
+  --animo-color-success-950: #EAF3F1;
+  --animo-color-surface-0: #0A0C0F;
+  --animo-color-surface-50: #14181C;
+  --animo-color-surface-100: #1E2328;
+  --animo-color-surface-200: #2C2925;
+  --animo-color-surface-300: #3D3934;
+  --animo-color-surface-400: #544F4B;
+  --animo-color-surface-500: #76716D;
+  --animo-color-surface-600: #9D9893;
+  --animo-color-surface-700: #C2BDB7;
+  --animo-color-surface-800: #E0DCD7;
+  --animo-color-surface-900: #F0EDEA;
+  --animo-color-surface-950: #FAF8F6;
+  --animo-color-surface-1000: #FFFFFF;
+
+  --animo-color-surface-raised: #1E2328;
+
+  --animo-backgroundColor: #0A0C0F;
+  --animo-backgroundColor-primary: #0A0C0F;
+  --animo-backgroundColor-AppHeader: #1E2328;
+  --animo-backgroundColor-NavPanel: #14181C;
+  --animo-backgroundColor-Card: #1E2328;
+  --animo-borderColor-Card: rgba(255, 255, 255, 0.04);
+  --animo-boxShadow-Card: 0 18px 60px rgba(0, 0, 0, 0.32);
+  --animo-backgroundColor-ModalDialog: #14181C;
+  --animo-backgroundColor-overlay: rgba(0, 0, 0, 0.6);
+  --animo-textColor-primary: rgb(250 248 246 / 0.92);
+  --animo-textColor-Text: rgb(250 248 246 / 0.92);
+  --animo-textColor-Heading: #FAF8F6;
+  --animo-textColor-secondary: #C2BDB7;
+  --animo-borderColor: rgba(255, 255, 255, 0.08);
+  --animo-boxShadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  --animo-textColor-NavLink: #C2BDB7;
+  --animo-textColor-NavLink--hover: #FAF8F6;
+  --animo-textColor-NavLink--active: #FAF8F6;
+  --animo-backgroundColor-NavLink--hover: #0F1F1D;
+  --animo-backgroundColor-NavLink--active: #162F2D;
+  --animo-color-indicator-NavLink--active: #5DA39D;
+
+  --animo-backgroundColor-menu-AutoComplete: #1E2328;
+  --animo-backgroundColor-menu-Select: #1E2328;
+  --animo-backgroundColor-menu-DatePicker: #1E2328;
+  --animo-backgroundColor-DropdownMenu: #1E2328;
+  --animo-borderColor-menu: rgba(255, 255, 255, 0.06);
+  --animo-backgroundColor-dropdown-item--hover: #2A5F5B;
+  --animo-backgroundColor-item-AutoComplete--hover: #2A5F5B;
+  --animo-backgroundColor-item-Select--hover: #2A5F5B;
+  --animo-backgroundColor-item-Select--active: #1F4744;
+  --animo-backgroundColor-item-DatePicker--hover: #2A5F5B;
+  --animo-backgroundColor-popover-Picker: #1E2328;
+
+  --animo-backgroundColor-Button-secondary-ghost--hover: #0F1F1D;
+  --animo-backgroundColor-Button-secondary-outlined--hover: #2C2925;
+  --animo-backgroundColor-Button-primary-outlined--hover: #162F2D;
+  --animo-backgroundColor-Button-attention-outlined--hover: #3B1614;
+
+  --animo-backgroundColor-WeekCalendar: #1E2328;
+  --animo-backgroundColor-toolbar-WeekCalendar: #1E2328;
+  --animo-backgroundColor-header-WeekCalendar: #1E2328;
+  --animo-backgroundColor-gutter-WeekCalendar: #14181C;
+  --animo-backgroundColor-columnAlt-WeekCalendar: rgb(15 31 29 / 0.36);
+  --animo-backgroundColor-today-WeekCalendar: rgb(31 71 68 / 0.42);
+  --animo-borderColor-WeekCalendar: rgba(255, 255, 255, 0.05);
+  --animo-borderColor-hour-WeekCalendar: rgba(255, 255, 255, 0.045);
+  --animo-borderColor-halfHour-WeekCalendar: rgba(255, 255, 255, 0.025);
+  --animo-textColor-WeekCalendar: rgb(250 248 246 / 0.92);
+  --animo-textColor-strong-WeekCalendar: #FAF8F6;
+  --animo-textColor-secondary-WeekCalendar: #C2BDB7;
+  --animo-textColor-today-WeekCalendar: #A7D0C9;
+  --animo-backgroundColor-entry-WeekCalendar: #3F8F8C;
+  --animo-borderColor-entry-WeekCalendar: rgba(255, 255, 255, 0.18);
+  --animo-textColor-entry-WeekCalendar: #FAF8F6;
+  --animo-boxShadow-entry-WeekCalendar: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --animo-backgroundColor-create-WeekCalendar: rgb(63 143 140 / 0.18);
+  --animo-borderColor-create-WeekCalendar: rgb(93 163 157 / 0.72);
+  --animo-textColor-create-WeekCalendar: #A7D0C9;
+  --animo-color-now-WeekCalendar: #F4AE45;
+  --animo-backgroundColor-popover-WeekCalendar: #1E2328;
+  --animo-backgroundColor-popoverPrimary-WeekCalendar: #3F8F8C;
+  --animo-borderColor-popover-WeekCalendar: rgba(255, 255, 255, 0.06);
+  --animo-boxShadow-popover-WeekCalendar: 0 24px 70px rgba(0, 0, 0, 0.48);
+  --animo-textColor-popover-WeekCalendar: rgb(250 248 246 / 0.92);
+  --animo-textColor-popover-secondary-WeekCalendar: #C2BDB7;
+  --animo-backgroundColor-button-WeekCalendar: var(--animo-color-surface-200);
+
+  color-scheme: dark;
+}

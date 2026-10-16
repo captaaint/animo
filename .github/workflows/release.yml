@@ -189,13 +189,11 @@ jobs:
             libssl-dev \
             build-essential
 
-      # Workspaces root install — covers app, website, demo, and the
-      # animo-blocks extension package. We wipe node_modules + the lockfile
-      # before `npm install` to work around npm/cli#4828: a macOS-generated
-      # lockfile leaves out Linux optional bindings (e.g.
-      # @rolldown/binding-linux-x64-gnu) under `npm ci`, and the build
-      # then crashes inside rolldown. `--ignore-scripts` skips the broken
-      # xmlui-pdf@0.1.13 postinstall (runtime is unaffected).
+      # Workspaces root install — covers app, website, and demo. We wipe
+      # node_modules + the lockfile before `npm install` to work around
+      # npm/cli#4828: a macOS-generated lockfile leaves out Linux optional
+      # bindings (e.g. @rolldown/binding-linux-x64-gnu) under `npm ci`, and
+      # the build then crashes inside rolldown.
       - name: Install workspace dependencies
         if: steps.gate.outputs.skip != 'true'
         shell: bash
@@ -211,12 +209,9 @@ jobs:
       - uses: rharkor/caching-for-turbo@v2.3.1
         if: steps.gate.outputs.skip != 'true'
 
-      # Pre-build animo-blocks and the app bundle before Tauri builds the
-      # desktop shell. Tauri's `beforeBuildCommand` (`npm --prefix app run
-      # build-prod`) reads app/index.ts which imports `animo-blocks` —
-      # without dist/animo-blocks.mjs, the bundle fails to resolve.
-      # Turbo's `^build:extension` dependsOn builds animo-blocks first.
-      - name: Pre-build animo-blocks + app
+      # Pre-build the app bundle (with the release version baked in) before
+      # Tauri builds the desktop shell.
+      - name: Pre-build app
         if: steps.gate.outputs.skip != 'true'
         run: npx turbo run build-prod --filter=animo-app
         env:

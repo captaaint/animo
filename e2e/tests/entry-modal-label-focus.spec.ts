@@ -10,7 +10,7 @@ test('entry modal labels focus their fields', async ({ page }) => {
   await dialog.getByText('What did you work on?', { exact: true }).click();
   await expect(page.locator('#descrInput')).toBeFocused();
 
-  // Project and Tags are built-in XMLUI AutoCompletes, which generate their
+  // Project and Tags are AutoComplete comboboxes, which generate their
   // own DOM ids; assert the label association through the accessible name.
   await dialog.getByText('Project', { exact: true }).click();
   await expect(dialog.getByRole('combobox', { name: 'Project' })).toBeFocused();

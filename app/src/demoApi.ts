@@ -3,13 +3,10 @@
 // the Rust backend just well enough for the Netlify demo.
 // =====================================================================================================================
 //
-// Why not XMLUI's built-in MSW interceptor?
-//   We tried that first. XMLUI registers the service worker inside React's
-//   useEffect after `startApp` runs, and early DataSource requests can hit the
-//   static Netlify host and gets HTML back. The `waitForApiInterceptor` prop
-//   that would block children rendering until MSW is up isn't exposed
-//   through `startApp`. Monkey-patching `window.fetch` synchronously in
-//   index.ts before `startApp` sidesteps the issue entirely.
+// Why a fetch patch instead of an MSW service worker?
+//   A service worker registers asynchronously, so the first requests could
+//   hit the static Netlify host and get HTML back. Patching `window.fetch`
+//   synchronously in main.tsx before the app mounts sidesteps that entirely.
 //
 // Storage:
 //   * Initial seed (4 weeks of entries, 2 clients × 2 projects, 5 tags) is
@@ -822,7 +819,7 @@ export function installDemoApi() {
   window.fetch = async function patchedFetch(input: RequestInfo | URL, init?: RequestInit) {
     const url =
       typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-    // Match relative `/api/...` and the absolute form some XMLUI internals use.
+    // Match both relative `/api/...` and absolute `http(s)://host/api/...` URLs.
     const looksLikeApi = /(?:^|\/\/[^/]+)\/api\//.test(url);
     // Feedback must reach the real Netlify function even in the demo — reports
     // from people clicking around the demo are valuable, so let the feedback

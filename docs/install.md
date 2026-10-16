@@ -86,7 +86,7 @@ Unpack and run the binary; configuration is via `DATABASE_URL` and the
 other env vars documented in `api/.env.example`.
 
 This API binary is the backend foundation for the future on-premise web app
-deployment path. Today, run the XMLUI app from source when you need a
+deployment path. Today, run the web app from source when you need a
 browser-based local setup.
 
 [releases]: https://github.com/captaaint/animo/releases

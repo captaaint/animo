@@ -4,25 +4,29 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/resources/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Animo</title>
-    <style>
-      [data-icon-name],
-      :has(> svg[data-icon-name]),
-      button [data-part-id="icon"] > span,
-      button [data-part-id="icon"] {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        line-height: 0;
-      }
-      svg[data-icon-name],
-      button [data-part-id="icon"] svg {
-        display: block;
-      }
-    </style>
+    <title>Animo - Self-hosted time tracking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap"
+    />
+    <script>
+      // Apply the saved tone before first paint (see src/tone.ts).
+      try {
+        var pref = localStorage.getItem("tt:theme-pref");
+        var tone =
+          pref === "system"
+            ? matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+            : pref === "light" || pref === "dark"
+              ? pref
+              : localStorage.getItem("tt:theme-tone");
+        if (tone === "dark") document.documentElement.dataset.tone = "dark";
+      } catch (e) {}
+    </script>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/index.ts"></script>
+    <div id="root"><!--app-html--></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
