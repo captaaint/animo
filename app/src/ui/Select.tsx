@@ -2,7 +2,15 @@ import { Combobox, createListCollection } from "@ark-ui/react/combobox";
 import { Portal } from "@ark-ui/react/portal";
 import { Select as ArkSelect } from "@ark-ui/react/select";
 import cx from "classnames";
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 
 import { Icon } from "./Icon";
 
@@ -108,6 +116,114 @@ function matches(option: AutoCompleteOption, query: string): boolean {
   return (option.keywords || []).some((k) => k.toLowerCase().includes(q));
 }
 
+// ---------------------------------------------------------------------------------------------------------------------
+// ChipRow — the selected values of a multi AutoComplete, kept on a single line. Chips that don't fit collapse into a
+// "+N" badge so the field never grows taller (and never resizes the modal it sits in).
+// ---------------------------------------------------------------------------------------------------------------------
+
+// Room kept for the search input next to the chips.
+const CHIP_INPUT_MIN = 64;
+const CHIP_GAP = 4;
+
+function Chip({ option, onRemove }: { option: AutoCompleteOption; onRemove: () => void }) {
+  return (
+    <span
+      className="chip"
+      style={option.color ? ({ "--chip-color": option.color } as CSSProperties) : undefined}
+    >
+      <span className="chip__dot" />
+      <span className="chip__label">{option.label}</span>
+      <button
+        type="button"
+        className="chip__remove"
+        aria-label={`Remove ${option.label}`}
+        onClick={onRemove}
+      >
+        <Icon name="close" size={12} />
+      </button>
+    </span>
+  );
+}
+
+function ChipRow({
+  chips,
+  onRemove,
+}: {
+  chips: AutoCompleteOption[];
+  onRemove: (value: string) => void;
+}) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(chips.length);
+
+  useLayoutEffect(() => {
+    const measure = measureRef.current;
+    const control = rowRef.current?.parentElement;
+    if (!measure || !control) return;
+
+    const fit = () => {
+      const cs = getComputedStyle(control);
+      const gap = parseFloat(cs.columnGap) || 0;
+      const trigger = control.querySelector<HTMLElement>(".combobox__trigger");
+      const available =
+        control.clientWidth -
+        parseFloat(cs.paddingLeft) -
+        parseFloat(cs.paddingRight) -
+        (trigger?.offsetWidth ?? 0) -
+        CHIP_INPUT_MIN -
+        gap * 2;
+      const widths = [...measure.querySelectorAll<HTMLElement>("[data-chip]")].map(
+        (el) => el.offsetWidth,
+      );
+      const badge = measure.querySelector<HTMLElement>("[data-badge]")?.offsetWidth ?? 0;
+
+      let used = 0;
+      let count = 0;
+      for (let i = 0; i < widths.length; i++) {
+        const next = used + (i ? CHIP_GAP : 0) + widths[i];
+        const rest = i < widths.length - 1 ? CHIP_GAP + badge : 0;
+        if (next + rest > available) break;
+        used = next;
+        count++;
+      }
+      // Always show at least one chip; its label truncates if even that is too wide.
+      setVisible(Math.max(1, count));
+    };
+
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(control);
+    return () => ro.disconnect();
+  }, [chips]);
+
+  const shown = chips.slice(0, visible);
+  const hidden = chips.slice(visible);
+
+  return (
+    <div ref={rowRef} className="chip-row">
+      {shown.map((o) => (
+        <Chip key={o.value} option={o} onRemove={() => onRemove(o.value)} />
+      ))}
+      {hidden.length > 0 && (
+        <span className="chip chip--more" title={hidden.map((o) => o.label).join(", ")}>
+          +{hidden.length}
+        </span>
+      )}
+      {/* Invisible copy at natural widths, used to decide how many chips fit. */}
+      <div ref={measureRef} className="chip-row__measure" aria-hidden="true">
+        {chips.map((o) => (
+          <span key={o.value} data-chip>
+            <Chip option={o} onRemove={() => {}} />
+          </span>
+        ))}
+        <span data-badge className="chip chip--more">
+          +{chips.length}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function AutoComplete(props: AutoCompleteProps) {
   const { label, placeholder, options, testId, style, className, grouped, onCreate } = props;
   const selected = props.multiple ? props.value : props.value ? [props.value] : [];
@@ -205,20 +321,12 @@ export function AutoComplete(props: AutoCompleteProps) {
     >
       {label && <Combobox.Label className="field__label">{label}</Combobox.Label>}
       <Combobox.Control className="input combobox__control" data-testid={testId}>
-        {chips.map((o) => (
-          <span key={o.value} className="chip">
-            {o.color && <span className="swatch" style={{ background: o.color }} />}
-            {o.label}
-            <button
-              type="button"
-              className="chip__remove"
-              aria-label={`Remove ${o.label}`}
-              onClick={() => props.multiple && props.onChange(selected.filter((v) => v !== o.value))}
-            >
-              <Icon name="close" size={12} />
-            </button>
-          </span>
-        ))}
+        {props.multiple && chips.length > 0 && (
+          <ChipRow
+            chips={chips}
+            onRemove={(v) => props.onChange(selected.filter((x) => x !== v))}
+          />
+        )}
         <Combobox.Input className="combobox__input" />
         <Combobox.Trigger className="combobox__trigger" aria-label="Toggle options">
           <Icon name="chevrondown" size={16} />
