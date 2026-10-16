@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-_No changes yet._
+### Added
+
+- feat(app): start/stop the timer with Alt+T instead of a bare T (883d7cf)
 
 ## [0.2.14] - 2026-10-15
 
